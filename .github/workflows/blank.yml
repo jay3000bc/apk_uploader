@@ -32,6 +32,6 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./AeroInsta_V24.0.0_Clone_DEFAULT__aeromods.app__.apk
-        asset_name: AeroInsta_V24.0.0_Clone_DEFAULT__aeromods.app__.apk
+        asset_path: ./app-debug.apk
+        asset_name: app-debug.apk
         asset_content_type: application/zip
