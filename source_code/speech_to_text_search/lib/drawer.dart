@@ -10,6 +10,7 @@ import 'package:speech_to_text_search/Service/is_login.dart';
 import 'package:speech_to_text_search/login_profile.dart';
 import 'package:speech_to_text_search/navigation_bar.dart';
 import 'package:speech_to_text_search/preferences.dart';
+import 'package:speech_to_text_search/search_app.dart';
 import 'package:speech_to_text_search/sub_user_signup.dart';
 import 'package:speech_to_text_search/transaction_list.dart';
 import 'package:speech_to_text_search/update_inventory.dart';
@@ -48,9 +49,14 @@ class _SidebarState extends State<Sidebar> {
     return Scaffold(
       body: WillPopScope(
         onWillPop: () async {
-          // Handle back button press
-
-          return true; // Return true to allow popping the route
+          _selectedIndex = 0;
+          // Navigate to NextPage when user tries to pop MyHomePage
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => SearchApp()),
+          );
+          // Return false to prevent popping the current route
+          return false; // Return true to allow popping the route
         },
         child: Container(
           child: ListView(
@@ -208,73 +214,25 @@ class _SidebarState extends State<Sidebar> {
       EasyLoading.dismiss();
       if (response.statusCode == 200) {
         final jsonData = json.decode(response.body);
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('Success'),
-              content: Text('User is logged out successfully.'),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => LoginScreen()),
-                    );
-                  },
-                  child: Text('OK'),
-                ),
-              ],
-            );
-          },
+        // Directly navigate to login screen
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => LoginScreen()),
         );
       } else {
         final jsonData = json.decode(response.body);
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text('Error'),
-              content: Text('Failed to logout. Please try again.'),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(builder: (context) => LoginScreen()),
-                    );
-                  },
-                  child: Text('OK'),
-                ),
-              ],
-            );
-          },
+        // Directly navigate to login screen
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => LoginScreen()),
         );
       }
     } catch (e) {
       print('Exception: $e');
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Error'),
-            content: Text('An error occurred while logging out. Please try again.'),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => LoginScreen()),
-                  );
-                },
-                child: Text('OK'),
-              ),
-            ],
-          );
-        },
+      // Directly navigate to login screen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => LoginScreen()),
       );
     }
   }

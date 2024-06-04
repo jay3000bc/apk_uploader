@@ -6,6 +6,8 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:convert';
 import 'package:speech_to_text_search/edit_product.dart';
 import 'package:speech_to_text_search/Service/is_login.dart';
+import 'package:speech_to_text_search/navigation_bar.dart';
+import 'package:speech_to_text_search/search_app.dart';
 
 import 'Service/api_constants.dart';
 
@@ -117,6 +119,7 @@ class _ProductListPageState extends State<ProductListPage> {
   List<String> _columnNames = ['Item Name', 'Qty', 'MRP'];
   List<Product> _products = [];
   bool _isLoading = false; // Store fetched products
+  int _selectedIndex = 3;
 
   final ScrollController scrollController = ScrollController();
 
@@ -314,119 +317,143 @@ class _ProductListPageState extends State<ProductListPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Text(
-          'View & Update Inventory',
-          style: TextStyle(
-            color: const Color.fromARGB(255, 0, 0, 0),
+    return WillPopScope(
+      onWillPop: () async {
+        _selectedIndex = 0;
+        // Navigate to NextPage when user tries to pop MyHomePage
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => SearchApp()),
+        );
+        // Return false to prevent popping the current route
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          title: Text(
+            'View & Update Inventory',
+            style: TextStyle(
+              color: const Color.fromARGB(255, 0, 0, 0),
+            ),
           ),
+          backgroundColor: Color.fromRGBO(243, 203, 71, 1),
         ),
-        backgroundColor: Color.fromRGBO(243, 203, 71, 1),
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                Expanded(
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[200], // Change color to match your theme
-                      borderRadius: BorderRadius.circular(8), // Add border radius
-                    ),
-                    child: TextField(
-                      onChanged: _handleSearch,
-                      decoration: InputDecoration(
-                        hintText: 'Search',
-                        border: InputBorder.none, // Remove border
-                        prefixIcon: Icon(Icons.search, color: Colors.grey), // Adjust icon color
+        bottomNavigationBar: CustomNavigationBar(
+          onItemSelected: (index) {
+            // Handle navigation item selection
+            setState(() {
+              _selectedIndex = index;
+            });
+          },
+          selectedIndex: _selectedIndex,
+        ),
+        body: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      padding: EdgeInsets.symmetric(horizontal: 12),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[200], // Change color to match your theme
+                        borderRadius: BorderRadius.circular(8), // Add border radius
+                      ),
+                      child: TextField(
+                        onChanged: _handleSearch,
+                        decoration: InputDecoration(
+                          hintText: 'Search',
+                          border: InputBorder.none, // Remove border
+                          prefixIcon: Icon(Icons.search, color: Colors.grey), // Adjust icon color
+                        ),
                       ),
                     ),
                   ),
-                ),
-                SizedBox(width: 10),
-                DropdownButton<String>(
-                  value: _selectedColumn,
-                  onChanged: _handleColumnSelect,
-                  style: TextStyle(color: Colors.black), // Adjust text color
-                  underline: Container(), // Remove underline
-                  icon: Icon(Icons.arrow_drop_down, color: Colors.grey), // Adjust icon color
-                  items: _columnNames.map((_columnName) {
-                    return DropdownMenuItem<String>(
-                      value: _columnName,
-                      child: Text(_columnName),
-                    );
-                  }).toList(),
-                ),
-              ],
+                  SizedBox(width: 10),
+                  DropdownButton<String>(
+                    value: _selectedColumn,
+                    onChanged: _handleColumnSelect,
+                    style: TextStyle(color: Colors.black), // Adjust text color
+                    underline: Container(), // Remove underline
+                    icon: Icon(Icons.arrow_drop_down, color: Colors.grey), // Adjust icon color
+                    items: _columnNames.map((_columnName) {
+                      return DropdownMenuItem<String>(
+                        value: _columnName,
+                        child: Text(_columnName),
+                      );
+                    }).toList(),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                ElevatedButton(
-                  onPressed: _handleUpload,
-                  child: Text('Upload'),
-                ),
-                SizedBox(width: 10),
-                ElevatedButton(
-                  onPressed: _handleDownload,
-                  child: Text('Download'),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
+            // Padding(
+            //   padding: const EdgeInsets.all(8.0),
+            //   child: Row(
+            //     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            //     children: [
+            //       ElevatedButton(
+            //         onPressed: _handleUpload,
+            //         child: Text('Upload'),
+            //       ),
+            //       SizedBox(width: 10),
+            //       ElevatedButton(
+            //         onPressed: _handleDownload,
+            //         child: Text('Download'),
+            //       ),
+            //     ],
+            //   ),
+            // ),
+            Expanded(
               child: SingleChildScrollView(
-                controller: scrollController,
-                child: DataTable(
-                  showCheckboxColumn: false,
-                  columns: [
-                    DataColumn(label: Text('Item Name')),
-                    DataColumn(label: Text('Qty')),
-                    DataColumn(label: Text('MRP')),
-                  ],
-                  rows: _products.where(_filterProduct).map((product) {
-                    return DataRow(
-                      cells: [
-                        DataCell(Text(product.itemName)),
-                        DataCell(Text(product.quantity)),
-                        DataCell(Text(product.mrp)),
-                      ],
-                      onSelectChanged: (isSelected) {
-                        if (isSelected != null && isSelected) {
-                          Navigator.of(context).push(
-                            MaterialPageRoute(
-                              builder: (context) => ProductEditPage(productId: product.id),
-                            ),
-                          );
-                        }
-                      },
-                    );
-                  }).toList(),
+                scrollDirection: Axis.horizontal,
+                child: SingleChildScrollView(
+                  controller: scrollController,
+                  child: DataTable(
+                    showCheckboxColumn: false,
+                    columns: [
+                      DataColumn(label: Text('Item Name')),
+                      // DataColumn(label: Text('Qty')),
+                      DataColumn(label: Text('MRP')),
+                    ],
+                    rows: _products.where(_filterProduct).map((product) {
+                      return DataRow(
+                        cells: [
+                          DataCell(Text(product.itemName)),
+                          // DataCell(Text(product.quantity)),
+                          DataCell(Text(product.mrp)),
+                        ],
+                        onSelectChanged: (isSelected) {
+                          if (isSelected != null && isSelected) {
+                            Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (context) => ProductEditPage(productId: product.id),
+                              ),
+                            );
+                          }
+                        },
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
             ),
-          ),
-          _isLoading
-              ? Center(
-                  child: CircularProgressIndicator(),
-                )
-              : Center(
-                  child: ElevatedButton(
-                    onPressed: _handleLoadMore,
-                    child: Text('Load More'),
+            _isLoading
+                ? Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : Padding(
+                    padding: EdgeInsets.only(bottom: 15.0), // Adjust the value as needed
+                    child: Center(
+                      child: ElevatedButton(
+                        onPressed: _handleLoadMore,
+                        child: Text('Load More'),
+                      ),
+                    ),
                   ),
-                ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -444,7 +471,6 @@ class _ProductDataSource extends DataTableSource {
     return DataRow(
       cells: [
         DataCell(Container(width: 170, child: Text(product.itemName))),
-        DataCell(Container(width: 50, child: Text(product.quantity))),
         DataCell(Container(width: 50, child: Text(product.mrp))),
       ],
       onSelectChanged: (isSelected) {

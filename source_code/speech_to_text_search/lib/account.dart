@@ -1,13 +1,18 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'package:speech_to_text_search/Service/api_constants.dart';
 import 'dart:convert';
 
 import 'package:speech_to_text_search/Service/is_login.dart';
+import 'package:speech_to_text_search/navigation_bar.dart';
 
 String userDetailsAPI = "$baseUrl/user-detail";
 
 class UserDetail {
+  final int id;
   final String name;
   final String username;
   final String email;
@@ -18,6 +23,7 @@ class UserDetail {
   final String logo;
 
   UserDetail({
+    required this.id,
     required this.name,
     required this.username,
     required this.email,
@@ -44,7 +50,10 @@ class _UserDetailFormState extends State<UserDetailForm> {
   late TextEditingController gstinController;
   late TextEditingController newPasswordController;
 
+  int _selectedIndex = 3;
+
   UserDetail? userDetail;
+  XFile? logoImageFile;
 
   @override
   void initState() {
@@ -52,6 +61,97 @@ class _UserDetailFormState extends State<UserDetailForm> {
     print("$baseUrl/user-detail");
     super.initState();
     getUserDetail();
+  }
+
+  Future<void> pickLogoImage() async {
+    final ImagePicker _picker = ImagePicker();
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    setState(() {
+      logoImageFile = image;
+    });
+  }
+
+  _submitData() async {
+    var token = await APIService.getToken();
+    try {
+      var request = http.MultipartRequest('POST', Uri.parse('https://dev.probill.app/api/update-profile'));
+      request.headers.addAll({
+        'Authorization': 'Bearer $token', // Replace $token with your actual token value
+      });
+      request.fields.addAll({
+        'id': userDetail!.id.toString(), // Add your user ID here
+        'name': nameController.text,
+        'address': addressController.text,
+        'shop_type': shopTypeController.text,
+        'password': newPasswordController.text,
+      });
+      if (logoImageFile != null) {
+        request.files.add(await http.MultipartFile.fromPath('logo', logoImageFile!.path));
+      }
+      http.StreamedResponse response = await request.send();
+
+      if (response.statusCode == 200) {
+        print(await response.stream.bytesToString());
+        // Handle successful response
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("Success"),
+              content: Text("Profile updated successfully."),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text("OK"),
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        print(response.reasonPhrase);
+        // Handle error response
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: Text("Error"),
+              content: Text("Failed to update profile. ${response.reasonPhrase}"),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: Text("OK"),
+                ),
+              ],
+            );
+          },
+        );
+      }
+    } catch (e) {
+      print('Error: $e');
+      // Handle exception
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text("Error"),
+            content: Text("An error occurred while updating profile. $e"),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text("OK"),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 
   Future<void> getUserDetail() async {
@@ -66,6 +166,7 @@ class _UserDetailFormState extends State<UserDetailForm> {
       final userData = jsonData['data'];
       setState(() {
         userDetail = UserDetail(
+          id: userData['id'],
           name: userData['name'],
           username: userData['username'],
           email: userData['email'],
@@ -107,7 +208,7 @@ class _UserDetailFormState extends State<UserDetailForm> {
   }
 
   Widget _buildLogoPicker() {
-    String logoUrl = 'https://probill.app/storage/logo/${userDetail!.logo}';
+    String logoUrl = 'https://dev.probill.app/storage/logo/${userDetail!.logo}';
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
@@ -136,10 +237,39 @@ class _UserDetailFormState extends State<UserDetailForm> {
     );
   }
 
+  Widget _logoPicker() {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        ElevatedButton(
+          onPressed: pickLogoImage,
+          child: Text('Pick Logo'),
+        ),
+        SizedBox(width: 10), // Add some space between the button and the thumbnail
+        logoImageFile != null
+            ? SizedBox(
+                width: 50, // Set the width of the thumbnail
+                height: 50, // Set the height of the thumbnail
+                child: Image.file(File(logoImageFile!.path)),
+              )
+            : Container(), // If no image is selected, display an empty container
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color.fromRGBO(246, 247, 255, 1),
+      bottomNavigationBar: CustomNavigationBar(
+        onItemSelected: (index) {
+          // Handle navigation item selection
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        selectedIndex: _selectedIndex,
+      ),
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: Text(
@@ -176,30 +306,25 @@ class _UserDetailFormState extends State<UserDetailForm> {
                     children: [
                       Text('Logo: '),
                       _buildLogoPicker(),
+                      _logoPicker(), // Display current logo and replace logo button
                     ],
                   ),
                   SizedBox(height: 10.0),
                   textFieldCustom(newPasswordController, true, 'New Password', false),
                   SizedBox(height: 20.0),
                   ElevatedButton(
-                    onPressed: () {
-                      // Implement your update logic here
-                      print('Updating user detail...');
-                    },
+                    onPressed: _submitData,
+                    // Implement your update logic here
+
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green, // Change the color here
+                      foregroundColor: Colors.white,
+                      backgroundColor: Color(0xFF0B5ED7), // Change the color here
                     ),
-                    child: Text('Update'),
+                    child: Text('Update Changes'),
                   ),
                 ],
               ),
             ),
     );
   }
-}
-
-void main() {
-  runApp(MaterialApp(
-    home: UserDetailForm(),
-  ));
 }

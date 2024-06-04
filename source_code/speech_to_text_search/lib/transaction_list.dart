@@ -5,11 +5,12 @@ import 'package:speech_to_text_search/models/transaction.dart';
 import 'dart:convert';
 import 'package:speech_to_text_search/Service/is_login.dart';
 import 'package:speech_to_text_search/navigation_bar.dart';
+import 'package:speech_to_text_search/search_app.dart';
 import 'package:speech_to_text_search/transaction_details.dart';
-
 import 'Service/api_constants.dart';
+import 'package:intl/intl.dart';
 
-String _getProductNames(List<Map<String, dynamic>> itemList) {
+String getProductNames(List<Map<String, dynamic>> itemList) {
   final productNames = itemList.map((item) => item['itemName']).toList();
   return productNames.join(', ');
 }
@@ -17,7 +18,7 @@ String _getProductNames(List<Map<String, dynamic>> itemList) {
 class TransactionService {
   static const String apiUrl = '$baseUrl/all-transactions';
 
-  static Future<List<Transaction>> fetchTransactions({required int page, required int pageSize}) async {
+  static Future<List<Transaction>> fetchTransactions() async {
     var token = await APIService.getToken();
     final response = await http.post(
       Uri.parse(apiUrl),
@@ -26,8 +27,8 @@ class TransactionService {
         'Content-Type': 'application/json',
       },
       body: json.encode({
-        'start': page * pageSize,
-        'length': pageSize,
+        'start': 0,
+        'length': 1000, // Fetch a large number of transactions to handle all data
       }),
     );
     if (response.statusCode == 200) {
@@ -45,12 +46,11 @@ class TransactionListPage extends StatefulWidget {
 }
 
 class _TransactionListPageState extends State<TransactionListPage> {
-  int _rowsPerPage = PaginatedDataTable.defaultRowsPerPage;
-  int _page = 0;
-  int _selectedIndex = 1;
+  int _selectedIndex = 3;
   String _searchQuery = '';
   String _selectedColumn = 'Invoice'; // Default selected column
   List<String> _columnNames = ['Invoice', 'Transactions', 'Total', 'Date-time']; // List of column names
+  List<Transaction> _transactions = []; // Store all transactions
   List<Transaction> _filteredTransactions = []; // Store filtered transactions
 
   final ScrollController scrollController = ScrollController();
@@ -71,33 +71,15 @@ class _TransactionListPageState extends State<TransactionListPage> {
   }
 
   Future<void> _fetchTransactions() async {
-    List<Transaction> transactions = await TransactionService.fetchTransactions(
-      page: _page,
-      pageSize: _rowsPerPage,
-    );
+    List<Transaction> transactions = await TransactionService.fetchTransactions();
 
-    // Sort transactions by invoice number in descending order
-    transactions.sort((a, b) => b.invoiceNumber.compareTo(a.invoiceNumber));
+    // Sort transactions by date in descending order
+    transactions.sort((a, b) => DateTime.parse(b.createdAt).compareTo(DateTime.parse(a.createdAt)));
 
     setState(() {
+      _transactions = transactions;
       _filteredTransactions = transactions;
     });
-  }
-
-  void _handleNextPage() {
-    setState(() {
-      _page++;
-    });
-    _fetchTransactions();
-  }
-
-  void _handlePreviousPage() {
-    if (_page > 0) {
-      setState(() {
-        _page--;
-      });
-      _fetchTransactions();
-    }
   }
 
   void _handleSearch(String query) {
@@ -115,14 +97,14 @@ class _TransactionListPageState extends State<TransactionListPage> {
 
   List<Transaction> _searchTransactions(String query) {
     if (query.isEmpty) {
-      return _filteredTransactions;
+      return _transactions;
     } else {
-      return _filteredTransactions.where((transaction) {
+      return _transactions.where((transaction) {
         switch (_selectedColumn) {
           case 'Invoice':
             return transaction.invoiceNumber.toLowerCase().contains(query);
           case 'Transactions':
-            return _getProductNames(transaction.itemList).toLowerCase().contains(query);
+            return getProductNames(transaction.itemList).toLowerCase().contains(query);
           case 'Total':
             return transaction.totalPrice.toLowerCase().contains(query);
           case 'Date-time':
@@ -134,126 +116,187 @@ class _TransactionListPageState extends State<TransactionListPage> {
     }
   }
 
+  Map<String, List<Transaction>> _groupTransactionsByMonth(List<Transaction> transactions) {
+    Map<String, List<Transaction>> groupedTransactions = {};
+    for (var transaction in transactions) {
+      String month = DateFormat.yMMMM().format(DateTime.parse(transaction.createdAt));
+      if (!groupedTransactions.containsKey(month)) {
+        groupedTransactions[month] = [];
+      }
+      groupedTransactions[month]!.add(transaction);
+    }
+
+    // Sort transactions within each month by invoice number in descending order
+    groupedTransactions.forEach((month, monthTransactions) {
+      monthTransactions.sort((a, b) => b.invoiceNumber.compareTo(a.invoiceNumber));
+    });
+
+    return groupedTransactions;
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      bottomNavigationBar: CustomNavigationBar(
-        onItemSelected: (index) {
-          // Handle navigation item selection
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        selectedIndex: _selectedIndex,
-      ),
-      appBar: AppBar(
-        automaticallyImplyLeading: false,
-        title: Text(
-          'Transactions',
-          style: TextStyle(
-            color: const Color.fromARGB(255, 0, 0, 0),
-          ),
+    return WillPopScope(
+      onWillPop: () async {
+        _selectedIndex = 0;
+        // Navigate to NextPage when user tries to pop MyHomePage
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => SearchApp()),
+        );
+        // Return false to prevent popping the current route
+        return false;
+      },
+      child: Scaffold(
+        bottomNavigationBar: CustomNavigationBar(
+          onItemSelected: (index) {
+            // Handle navigation item selection
+            setState(() {
+              _selectedIndex = index;
+            });
+          },
+          selectedIndex: _selectedIndex,
         ),
-        backgroundColor: Color.fromRGBO(243, 203, 71, 1),
-      ),
-      body: SingleChildScrollView(
-        controller: scrollController,
-        scrollDirection: Axis.horizontal,
-        child: Container(
-          width: MediaQuery.of(context).size.width,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Container(
-                        padding: EdgeInsets.symmetric(horizontal: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.grey[200],
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: TextField(
-                          onChanged: _handleSearch,
-                          decoration: InputDecoration(
-                            hintText: 'Search',
-                            border: InputBorder.none,
-                            prefixIcon: Icon(Icons.search, color: Colors.grey),
-                          ),
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          title: Text(
+            'Sales & Refund',
+            style: TextStyle(
+              color: const Color.fromARGB(255, 0, 0, 0),
+            ),
+          ),
+          backgroundColor: Color.fromRGBO(243, 203, 71, 1),
+        ),
+        body: SingleChildScrollView(
+          controller: scrollController,
+          scrollDirection: Axis.vertical,
+          child: FutureBuilder(
+            future: TransactionService.fetchTransactions(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Failed to load transactions'));
+              } else {
+                _transactions = snapshot.data!;
+                _filteredTransactions = _searchTransactions(_searchQuery);
+
+                var groupedTransactions = _groupTransactionsByMonth(_filteredTransactions);
+
+                var sortedMonths = groupedTransactions.keys.toList()..sort((a, b) => DateFormat.yMMMM().parse(b).compareTo(DateFormat.yMMMM().parse(a)));
+
+                return Container(
+                  width: MediaQuery.of(context).size.width,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                padding: EdgeInsets.symmetric(horizontal: 12),
+                                decoration: BoxDecoration(
+                                  color: Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: TextField(
+                                  onChanged: _handleSearch,
+                                  decoration: InputDecoration(
+                                    hintText: 'Search',
+                                    border: InputBorder.none,
+                                    prefixIcon: Icon(Icons.search, color: Colors.grey),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 10),
+                            DropdownButton<String>(
+                              value: _selectedColumn,
+                              onChanged: _handleColumnSelect,
+                              style: TextStyle(color: Colors.black),
+                              underline: Container(),
+                              icon: Icon(Icons.arrow_drop_down, color: Colors.grey),
+                              items: _columnNames.map((_columnName) {
+                                return DropdownMenuItem<String>(
+                                  value: _columnName,
+                                  child: Text(_columnName),
+                                );
+                              }).toList(),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                    SizedBox(width: 10),
-                    DropdownButton<String>(
-                      value: _selectedColumn,
-                      onChanged: _handleColumnSelect,
-                      style: TextStyle(color: Colors.black),
-                      underline: Container(),
-                      icon: Icon(Icons.arrow_drop_down, color: Colors.grey),
-                      items: _columnNames.map((_columnName) {
-                        return DropdownMenuItem<String>(
-                          value: _columnName,
-                          child: Text(_columnName),
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
-              ),
-              PaginatedDataTable(
-                showCheckboxColumn: false,
-                columnSpacing: 25.0,
-                rowsPerPage: _rowsPerPage,
-                onRowsPerPageChanged: (value) {
-                  setState(() {
-                    _rowsPerPage = value!;
-                  });
-                },
-                columns: [
-                  DataColumn(label: Text('Invoice')),
-                  DataColumn(label: Text('Transactions')),
-                  DataColumn(label: Text('Total')),
-                  DataColumn(label: Text('Date-time')),
-                ],
-                source: _TransactionDataSource(_filteredTransactions, context),
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextButton(
-                    onPressed: _handlePreviousPage,
-                    child: Row(
-                      children: [
-                        Icon(Icons.arrow_back),
-                        SizedBox(width: 5),
-                        Text('Previous Page'),
-                      ],
-                    ),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: sortedMonths.length,
+                        itemBuilder: (context, index) {
+                          String month = sortedMonths[index];
+                          List<Transaction> monthTransactions = groupedTransactions[month]!;
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Container(
+                                color: Colors.grey[300],
+                                padding: EdgeInsets.symmetric(vertical: 8),
+                                child: Center(
+                                  child: Text(
+                                    month,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              DataTable(
+                                showCheckboxColumn: false,
+                                columns: [
+                                  DataColumn(label: Text('Invoice')),
+                                  DataColumn(label: Text('Transactions')),
+                                  DataColumn(label: Text('Total')),
+                                  DataColumn(label: Text('Date-time')),
+                                ],
+                                rows: monthTransactions.map((transaction) {
+                                  return DataRow(
+                                    cells: [
+                                      DataCell(Text(transaction.invoiceNumber)),
+                                      DataCell(Container(
+                                        width: 100,
+                                        child: Text(
+                                          getProductNames(transaction.itemList),
+                                        ),
+                                      )),
+                                      DataCell(Text(transaction.totalPrice)),
+                                      DataCell(Container(width: 70, child: Text(transaction.createdAt))),
+                                    ],
+                                    onSelectChanged: (isSelected) {
+                                      if (isSelected != null && isSelected) {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder: (context) => TransactionDetailPage(transaction: transaction),
+                                          ),
+                                        );
+                                      }
+                                    },
+                                  );
+                                }).toList(),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
                   ),
-                  TextButton(
-                    onPressed: _handleNextPage,
-                    child: Row(
-                      children: [
-                        Text('Next Page'),
-                        SizedBox(width: 5),
-                        Icon(Icons.arrow_forward),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
+                );
+              }
+            },
           ),
         ),
       ),
     );
-  }
-
-  String _getProductNames(List<Map<String, dynamic>> itemList) {
-    final productNames = itemList.map((item) => item['itemName']).toList();
-    return productNames.join(', ');
   }
 }
 
@@ -272,7 +315,7 @@ class _TransactionDataSource extends DataTableSource {
         DataCell(Container(
           width: 100,
           child: Text(
-            _getProductNames(transaction.itemList),
+            getProductNames(transaction.itemList),
           ),
         )),
         DataCell(Text(transaction.totalPrice)),

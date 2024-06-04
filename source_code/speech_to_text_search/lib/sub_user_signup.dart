@@ -7,6 +7,7 @@ import 'package:speech_to_text_search/Service/api_constants.dart';
 import 'package:speech_to_text_search/login_profile.dart';
 import 'package:http/http.dart' as http;
 import 'package:speech_to_text_search/Service/is_login.dart';
+import 'package:speech_to_text_search/navigation_bar.dart';
 import 'package:speech_to_text_search/search_app.dart';
 import 'package:speech_to_text_search/view_sub_user.dart';
 
@@ -21,7 +22,7 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
   TextEditingController passwordController = TextEditingController();
   TextEditingController confirmPasswordController = TextEditingController();
   TextEditingController addressController = TextEditingController();
-
+  int _selectedIndex = 3;
   Future<void> submitData() async {
     EasyLoading.show(status: 'Loading...');
     var token = await APIService.getToken();
@@ -114,7 +115,26 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        title: Text(
+          'Add User',
+          style: TextStyle(
+            color: const Color.fromARGB(255, 0, 0, 0),
+          ),
+        ),
+        backgroundColor: Color.fromRGBO(243, 203, 71, 1),
+      ),
       backgroundColor: Color.fromRGBO(246, 247, 255, 1),
+      bottomNavigationBar: CustomNavigationBar(
+        onItemSelected: (index) {
+          // Handle navigation item selection
+          setState(() {
+            _selectedIndex = index;
+          });
+        },
+        selectedIndex: _selectedIndex,
+      ),
       body: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light,
         child: GestureDetector(
@@ -142,16 +162,7 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      Text(
-                        'SubUser Sign Up',
-                        style: TextStyle(
-                          color: const Color.fromARGB(255, 0, 0, 0),
-                          fontFamily: 'OpenSans',
-                          fontSize: 30.0,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 30.0),
+                      SizedBox(height: 10.0),
                       ElevatedButton(
                         child: Text("View User"),
                         onPressed: () {
@@ -161,6 +172,7 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
                           );
                         },
                       ),
+                      SizedBox(height: 10.0),
                       _buildNameTF(),
                       _buildMobileTF(),
                       _buildPasswordTF(),
@@ -169,7 +181,7 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
                       SizedBox(height: 40.0),
                       _buildSignUpBtn(),
                       SizedBox(height: 10.0),
-                      _buildSignInText(),
+                      // _buildSignInText(),
                     ],
                   ),
                 ),
@@ -369,14 +381,15 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
           submitData();
         },
         style: ElevatedButton.styleFrom(
-          elevation: 5.0, backgroundColor: Colors.green,
+          elevation: 5.0,
+          backgroundColor: Colors.green,
           padding: EdgeInsets.all(15.0),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(0),
           ),
         ),
         child: Text(
-          'SIGN UP',
+          'Add User',
           style: TextStyle(
             color: Colors.white,
             letterSpacing: 1.5,

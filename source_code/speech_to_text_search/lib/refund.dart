@@ -30,13 +30,13 @@ class MicStateListener {
   }
 }
 
-class SearchApp extends StatefulWidget {
+class Refund extends StatefulWidget {
   @override
-  _SearchAppState createState() => _SearchAppState();
+  _RefundState createState() => _RefundState();
 }
 
-class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
-  GlobalKey<_SearchAppState> yourButtonKey = GlobalKey();
+class _RefundState extends State<Refund> with TickerProviderStateMixin {
+  GlobalKey<_RefundState> yourButtonKey = GlobalKey();
 
   TextEditingController productNameController = TextEditingController();
   late final AnimationController _animationController;
@@ -46,7 +46,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
   String errorMessage = "";
   bool isListeningMic = false;
   bool validProductName = true;
-  int _selectedIndex = 0;
+  int _selectedIndex = 1;
   bool isActive = false;
   bool isquantityavailable = false;
   bool isSuggetion = false;
@@ -66,7 +66,6 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
   bool _hasSpeech = false;
   bool _logEvents = false;
   bool _onDevice = false;
-  bool quantityParsed = false;
   double level = 0.0;
   double minSoundLevel = 50000;
   double maxSoundLevel = -50000;
@@ -111,6 +110,8 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
 
   List<String> additionalSuggestions = [];
 
+  String _errorMessage = '';
+
   bool listening = false;
 
   String recognizedWord = '';
@@ -121,51 +122,46 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
 
   List<String> suggestionList = [];
 
-  String _errorMessage = '';
-
   List<String> getSuggestions() {
     return items.map<String>((item) => item['name']!).toList();
   }
 
-  Future<void> fetchDataAndAssign(String productName) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/suggesstion-list?item_name=$productName'),
-        headers: {
-          'Authorization': 'Bearer $token',
-        },
-      );
+  Future<void> fetchDataAndAssign() async {
+    // You need to replace this with your recognized word
+    // You need to replace this with your token
 
-      if (response.statusCode == 201) {
-        final Map<String, dynamic> responseData = json.decode(response.body);
-        print(responseData);
-        if (responseData['status'] == 'success') {
-          final List<dynamic> data = responseData['data'];
-          final List<Map<String, String>> newItems = data.map<Map<String, String>>((item) {
+    final response = await http.get(
+      Uri.parse('$baseUrl/product-suggesstions?item_name='),
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 201) {
+      final Map<String, dynamic> responseData = json.decode(response.body);
+
+      if (responseData['status'] == 'success') {
+        final List<dynamic> data = responseData['data'];
+        setState(() {
+          items = data.map<Map<String, String>>((item) {
             return {
               'id': item['id'].toString(),
               'name': item['item_name'].trim(),
               'unit': item['short_unit'],
             };
           }).toList();
-
-          final List<String> newSuggestions = data.map<String>((item) {
-            return item['item_name'].toString();
+          final List<String> suggestions = data.map<String>((item) {
+            return item['item_name'].toString(); // Assuming 'item_name' is a String
           }).toList();
-
           setState(() {
-            items = newItems;
-            item_name_suggetion = newSuggestions;
-            suggestionList = item_name_suggetion;
+            item_name_suggetion = suggestions;
           });
-        } else {
-          print('API call failed with status: ${responseData['status']}. Response body: ${response.body}');
-        }
+        });
       } else {
-        print('Failed to load data. Status code: ${response.statusCode}. Response body: ${response.body}');
+        print('API call failed with status: ${responseData['status']}. Response body: ${response.body}');
       }
-    } catch (e) {
-      print('Error fetching data: $e');
+    } else {
+      print('Failed to load data. Response body: ${response.body}');
     }
   }
 
@@ -197,6 +193,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
   Future<void> _initializeData() async {
     token = await APIService.getToken();
     APIService.getUserDetails(token, _showFailedDialog);
+    await fetchDataAndAssign();
   }
 
   void _checkAndRequestPermission() async {
@@ -461,7 +458,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                     Container(
                                       decoration: BoxDecoration(
                                         borderRadius: BorderRadius.circular(50),
-                                        color: (productNameController.text.isEmpty || quantityController.text.isEmpty) ? const Color.fromRGBO(210, 211, 211, 1) : Color(0xFF0B5ED7),
+                                        color: (productNameController.text.isEmpty || quantityController.text.isEmpty) ? const Color.fromRGBO(210, 211, 211, 1) : Colors.blue,
                                       ),
                                       padding: const EdgeInsets.all(5.0),
                                       child: MaterialButton(
@@ -513,10 +510,63 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                         ),
                                       ),
                                     ),
+                                    Container(
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(50),
+                                        color: Colors.red, // Example color for refund button
+                                      ),
+                                      padding: const EdgeInsets.all(5.0),
+                                      child: MaterialButton(
+                                        onPressed: () async {
+                                          if (productNameController.text.isNotEmpty && quantityController.text.isNotEmpty) {
+                                            // Both productNameController and quantityController are not empty, proceed void handleStockStatus(String itemId, String quantity, String relatedUnit, String token) async {
+                                            String quantityValue = quantityController.text;
+                                            int? stockStatus = await checkStockStatus(itemId, quantityValue, _selectedQuantitySecondaryUnit!, token!);
+                                            print("eytu status");
+                                            print(stockStatus);
+                                            if (stockStatus == 0 || stockStatus == 1 || stockStatus == 2) {
+                                              double? quantityValueforConvert = double.tryParse(quantityValue);
+                                              double quantityValueforTable = convertQuantityBasedOnUnit(_primaryUnit!, _selectedQuantitySecondaryUnit!, quantityValueforConvert!);
+
+                                              double? salePriceforTable = double.tryParse(salePrice);
+                                              addProductRefundTable(itemNameforTable!, quantityValueforTable, _selectedQuantitySecondaryUnit!, salePriceforTable!);
+                                            } else if (stockStatus == 0) {
+                                              showDialog(
+                                                context: context,
+                                                builder: (BuildContext context) {
+                                                  return AlertDialog(
+                                                    title: Text("Out of Stock"),
+                                                    content: Text("You have only $availableStockValue left"),
+                                                    actions: [
+                                                      TextButton(
+                                                        onPressed: () {
+                                                          Navigator.pop(context); // Close the dialog
+                                                        },
+                                                        child: Text("OK"),
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              );
+                                            }
+                                          } else {
+                                            // Either productNameController or quantityController is empty, show dialog box
+                                            return null;
+                                          }
+                                        },
+                                        height: 10,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.circular(50),
+                                        ),
+                                        child: Center(
+                                          child: Text(
+                                            "REFUND",
+                                            style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                   ],
-                                ),
-                                SizedBox(
-                                  height: 20,
                                 ),
                                 if (_errorMessage.isNotEmpty) _productErrorWidget(_errorMessage),
                                 Visibility(
@@ -666,106 +716,73 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                     ),
                                   ),
                                 ),
+
                                 Visibility(
                                   visible: itemForBillRows.isNotEmpty,
-                                  child: Divider(
-                                    // Thin break line
-                                    thickness: 5.0,
-                                    color: Colors.grey[300],
-                                  ),
-                                ),
-                                Visibility(
-                                  visible: itemForBillRows.isNotEmpty,
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                                    children: [
-                                      Padding(
-                                        padding: const EdgeInsets.all(10.0),
-                                        child: Text(
-                                          "Grand Total: ",
-                                          style: TextStyle(
-                                            fontSize: 18.0,
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.all(16.0),
-                                        child: Text(
-                                          "\₹${calculateOverallTotal()}",
-                                          style: TextStyle(
-                                            fontSize: 18.0,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Text(
+                                      "Overall Total: \₹${calculateOverallTotal()}",
+                                      style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
+                                    ),
                                   ),
                                 ),
 
                                 Visibility(
                                   visible: itemForBillRows.isNotEmpty,
                                   child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start, // Align buttons evenly
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly, // Align buttons evenly
                                     children: [
-                                      SizedBox(
-                                        width: 20,
+                                      ElevatedButton(
+                                        onPressed: () {
+                                          saveData();
+                                          // setState(() {
+                                          //   itemForBillRows.clear(); // Clear the list
+                                          //   clearProductName();
+                                          // });
+                                        },
+                                        child: Text("Save"),
                                       ),
                                       ElevatedButton(
                                         onPressed: () {
                                           // Action for print button
                                         },
                                         child: Text("Print"),
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Color(0xFF0B5ED7),
-                                          foregroundColor: Colors.white, // white text color
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: 10,
-                                      ),
-                                      ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Color(0xFF198754),
-                                          foregroundColor: Colors.white, // white text color
-                                        ),
-                                        onPressed: () {
-                                          saveData();
-                                        },
-                                        child: Text("Save"),
                                       ),
                                     ],
                                   ),
                                 ),
                               ],
                             ),
-                            Positioned(
-                              bottom: 190,
-                              left: 1,
-                              right: 1,
-                              child: ErrorWidget(
-                                lastError: lastError,
-                                quantityWord: isquantityavailable,
-                              ),
-                            ),
-                            Positioned(
-                                left: 10,
-                                right: 10,
-                                bottom: 80,
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      !_hasSpeech || speech.isListening ? "" : "Tap to speak",
-                                      style: const TextStyle(
-                                        color: Colors.green,
-                                      ),
-                                    ),
-                                  ],
-                                )),
-                            Positioned(bottom: 230, left: 1, right: 1, child: !_hasSpeech || speech.isListening ? listeningAnimation() : SizedBox()),
-                            Positioned.fill(
-                              bottom: 100,
-                              child: Align(alignment: Alignment.bottomCenter, child: microphoneButton()),
-                            ),
+                            // Positioned(
+                            //   bottom: 230,
+                            //   left: 1,
+                            //   right: 1,
+                            //   child: ErrorWidget(
+                            //     lastError: lastError,
+                            //     quantityWord: isquantityavailable,
+                            //   ),
+                            // ),
+                            // Positioned(
+                            //     left: 10,
+                            //     right: 10,
+                            //     bottom: 80,
+                            //     child: Row(
+                            //       mainAxisAlignment: MainAxisAlignment.center,
+                            //       children: [
+                            //         Text(
+                            //           !_hasSpeech || speech.isListening ? "" : "Tap to speak",
+                            //           style: const TextStyle(
+                            //             color: Colors.green,
+                            //           ),
+                            //         ),
+                            //       ],
+                            //     )),
+                            // Positioned(bottom: 230, left: 1, right: 1, child: !_hasSpeech || speech.isListening ? listeningAnimation() : SizedBox()),
+                            // Positioned.fill(
+                            //   bottom: 100,
+                            //   child: Align(alignment: Alignment.bottomCenter, child: microphoneButton()),
+                            // ),
                             Positioned(
                               top: 128, // Adjust the position as needed
                               left: 0,
@@ -784,6 +801,35 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                       ),
                     ),
                   ),
+                  Positioned(
+                    bottom: 150,
+                    left: 1,
+                    right: 1,
+                    child: ErrorWidget(
+                      lastError: lastError,
+                      quantityWord: isquantityavailable,
+                    ),
+                  ),
+                  Positioned(
+                      left: 10,
+                      right: 10,
+                      bottom: 20,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            !_hasSpeech || speech.isListening ? "" : "Tap to speak",
+                            style: const TextStyle(
+                              color: Colors.green,
+                            ),
+                          ),
+                        ],
+                      )),
+                  Positioned(bottom: 170, left: 1, right: 1, child: !_hasSpeech || speech.isListening ? listeningAnimation() : SizedBox()),
+                  Positioned.fill(
+                    bottom: 50,
+                    child: Align(alignment: Alignment.bottomCenter, child: microphoneButton()),
+                  ),
                 ],
               ),
             ),
@@ -795,7 +841,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
 
   Future<void> saveData() async {
     print("Eytu bill::    $itemForBillRows");
-    final String apiUrl = '$baseUrl/billing-n-refund';
+    final String apiUrl = '$baseUrl/refund';
 
     double grandTotal = calculateOverallTotal(); // Calculate overall total
 // Determine print flag
@@ -879,7 +925,29 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
     // Add the product to the list
   }
 
+  void addProductRefundTable(String itemName, double finalQuantity, String unit, double salePrice) {
+    double amount = salePrice * finalQuantity; // Calculate the amount
+    setState(() {
+      itemForBillRows.add({
+        'itemId': itemId,
+        'itemName': itemName,
+        'quantity': finalQuantity,
+        'rate': salePrice,
+        'selectedUnit': unit,
+        'amount': amount * -1,
+        'isDelete': 0,
+        'isRefund': 1,
+      });
+    });
+    // Add the product to the list
+  }
+
   Future<int?> checkStockStatus(String itemId, String quantity, String relatedUnit, String token) async {
+    print("eygal sob");
+    print(itemId);
+    print(quantity);
+    print(relatedUnit);
+
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/stock-quantity'),
@@ -991,15 +1059,34 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
   void resultListener(SpeechRecognitionResult result) {
     _logEvent('Result listener final: ${result.finalResult}, words: ${result.recognizedWords}');
     print('Result listener final: ${result.finalResult}, words: ${result.recognizedWords}');
-
     setState(() {
       lastWords = '${result.recognizedWords} - ${result.finalResult}';
 
+      ///my code
       final recognizedWord = result.recognizedWords.toLowerCase();
+
       print("Recognized Word: $recognizedWord");
-      shouldOpenDropdown = true;
-      validProductName = true;
-      _parseSpeech(recognizedWord);
+
+      final isValidWord = items.any((item) => _areWordsSimilar(item['name']!.toLowerCase(), recognizedWord));
+      final similarItems = items.where((item) => _areWordsSimilar(item['name']!.toLowerCase(), recognizedWord)).toList();
+
+      if (similarItems.isNotEmpty) {
+        shouldOpenDropdown = true;
+        validProductName = true;
+        _parseSpeech(recognizedWord);
+      } else {
+        if (!additionalSuggestions.contains(recognizedWord)) {
+          setState(() {
+            additionalSuggestions.add(recognizedWord);
+          });
+
+          if (!isValidWord) {
+            setState(() {
+              validProductName = false;
+            });
+          }
+        }
+      }
     });
   }
 
@@ -1092,8 +1179,8 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
       if (product.isNotEmpty && quantity.isNotEmpty && unitOfQuantity != null && unitOfQuantity.isNotEmpty) {
         productNameController.text = product;
         quantityController.text = quantity;
-        quantityNumeric = double.parse(quantity);
-        fetchDataAndAssign(product);
+
+        updateSuggestionList(product);
 
         setState(() {
           _errorMessage = ''; // Clear error message on successful parsing
@@ -1263,6 +1350,14 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
     return quantityValue;
   }
 
+  void updateQuantity(int quantity) {
+    if (mounted) {
+      setState(() {
+        quantityController.text = quantity.toString();
+      });
+    }
+  }
+
   void updateSuggestionList(String recognizedWord) {
     setState(() {
       // Clear the existing suggestions
@@ -1281,6 +1376,25 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
       // suggestionList = suggestionList.toSet().take(maxSuggestions).toList();
       isSuggetion = true;
     });
+  }
+
+  bool isNumeric(String s) {
+    // Null or empty string is not a number
+    if (s == null || s.isEmpty) {
+      return false;
+    }
+
+    // Try to parse input string to number.
+    // Both integer and double work.
+    // Use int.tryParse if you want to check integer only.
+    // Use double.tryParse if you want to check double only.
+    final number = num.tryParse(s);
+
+    if (number == null) {
+      return false;
+    }
+
+    return true;
   }
 
   double calculateOverallTotal() {
@@ -1362,7 +1476,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
     return suggestionList.isNotEmpty
         ? Container(
             decoration: BoxDecoration(
-              color: Color.fromRGBO(255, 255, 255, 1),
+              color: Color.fromRGBO(243, 203, 71, 1),
               border: Border.all(color: Colors.grey),
               borderRadius: BorderRadius.circular(0),
             ),

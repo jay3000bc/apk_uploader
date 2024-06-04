@@ -5,6 +5,7 @@ import 'package:speech_to_text_search/drawer.dart';
 import 'package:speech_to_text_search/Service/is_login.dart';
 import 'package:speech_to_text_search/login_profile.dart';
 import 'package:http/http.dart' as http;
+import 'package:speech_to_text_search/navigation_bar.dart';
 import 'package:speech_to_text_search/search_app.dart';
 
 class PreferencesPage extends StatefulWidget {
@@ -20,7 +21,7 @@ class _PreferencesPageState extends State<PreferencesPage> {
   bool showHSNSACCode = false;
   bool showHSNSACCodeInInvoice = false;
 
-  int _selectedIndex = 0;
+  int _selectedIndex = 3;
 
   Future<void> _fetchUserPreferences() async {
     setState(() {
@@ -35,7 +36,7 @@ class _PreferencesPageState extends State<PreferencesPage> {
     var token = await APIService.getToken();
 
     // Make API call to fetch user preferences
-    final String apiUrl = '$baseUrl/api/user-preferences';
+    final String apiUrl = '$baseUrl/user-preferences';
     final response = await http.get(Uri.parse(apiUrl), headers: {
       'Authorization': 'Bearer $token',
     });
@@ -196,6 +197,15 @@ class _PreferencesPageState extends State<PreferencesPage> {
           backgroundColor: Color.fromRGBO(243, 203, 71, 1), // Change this color to whatever you desire
         ),
         drawer: Sidebar(),
+        bottomNavigationBar: CustomNavigationBar(
+          onItemSelected: (index) {
+            // Handle navigation item selection
+            setState(() {
+              _selectedIndex = index;
+            });
+          },
+          selectedIndex: _selectedIndex,
+        ),
         body: isLoading
             ? Center(
                 child: CircularProgressIndicator(
@@ -240,7 +250,7 @@ class _PreferencesPageState extends State<PreferencesPage> {
                         },
                       ),
                       buildCheckbox(
-                        'Do you want to show HSN/ SAC code in invoice?',
+                        'Do you want to show HSN/ SAC code \nin invoice?',
                         showHSNSACCodeInInvoice,
                         (value) {
                           setState(() {

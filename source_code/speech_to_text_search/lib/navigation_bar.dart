@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:speech_to_text_search/add_product.dart';
 import 'package:speech_to_text_search/drawer.dart';
+import 'package:speech_to_text_search/refund.dart';
 import 'package:speech_to_text_search/search_app.dart';
+import 'package:speech_to_text_search/support.dart';
 import 'package:speech_to_text_search/transaction_list.dart';
 // Import the AddItem screen
 
@@ -44,18 +46,18 @@ class CustomNavigationBar extends StatelessWidget {
             onItemSelected(1);
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => AddInventory()), // Navigate to Dashboard screen
+              MaterialPageRoute(builder: (context) => Refund()), // Navigate to Dashboard screen
             );
           },
           child: CustomNavigationItem(
-            iconData: Icons.list_alt_rounded,
-            label: "Transaction",
+            iconData: Icons.sync,
+            label: "Refund",
             isSelected: selectedIndex == 1,
             onTap: () {
               onItemSelected(1);
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => TransactionListPage()), // Navigate to Dashboard screen
+                MaterialPageRoute(builder: (context) => Refund()), // Navigate to Dashboard screen
               );
             },
           ),
@@ -65,7 +67,7 @@ class CustomNavigationBar extends StatelessWidget {
             onItemSelected(2);
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => TransactionListPage()), // Navigate to Transaction screen
+              MaterialPageRoute(builder: (context) => ContactSupportPage()), // Navigate to Transaction screen
             );
           },
           child: CustomNavigationItem(
@@ -76,7 +78,7 @@ class CustomNavigationBar extends StatelessWidget {
               onItemSelected(2);
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => TransactionListPage()), // Navigate to Transaction screen
+                MaterialPageRoute(builder: (context) => ContactSupportPage()), // Navigate to Transaction screen
               );
             },
           ),

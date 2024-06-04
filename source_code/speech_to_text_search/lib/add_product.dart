@@ -80,7 +80,7 @@ class _AddInventoryState extends State<AddInventory> {
   String mrpValue = '';
   String codeHSNSACvalue = '';
 
-  int _selectedIndex = 1;
+  int _selectedIndex = 3;
 
   bool maintainMRP = false;
   bool maintainStock = false;
@@ -323,6 +323,7 @@ class _AddInventoryState extends State<AddInventory> {
   Widget build(BuildContext context) {
     return WillPopScope(
       onWillPop: () async {
+        _selectedIndex = 0;
         // Navigate to NextPage when user tries to pop MyHomePage
         Navigator.push(
           context,
@@ -366,21 +367,29 @@ class _AddInventoryState extends State<AddInventory> {
                       Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             ElevatedButton(
                               onPressed: _handleUpload,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(0xFF31D2F2),
+                                foregroundColor: Colors.white, // white text color
+                              ),
                               child: Text('Upload'),
                             ),
                             SizedBox(width: 10),
                             ElevatedButton(
                               onPressed: _handleDownload,
+                              style: ElevatedButton.styleFrom(
+                                foregroundColor: Colors.white, backgroundColor: Color(0xFF5C636A), // white text color
+                              ),
                               child: Text('Download'),
                             ),
                           ],
                         ),
                       ),
                       // Item Name Input Box
+                      SizedBox(height: 15.0),
                       _buildInputBox(' Item Name', itemNameValue, (value) {
                         setState(() {
                           itemNameValue = value; // Update the itemNameValue
