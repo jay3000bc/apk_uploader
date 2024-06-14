@@ -9,6 +9,11 @@ import 'dart:convert';
 import 'package:speech_to_text_search/Service/is_login.dart';
 import 'package:speech_to_text_search/navigation_bar.dart';
 
+
+
+
+
+
 String userDetailsAPI = "$baseUrl/user-detail";
 
 class UserDetail {
