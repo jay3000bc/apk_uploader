@@ -41,15 +41,17 @@ class TransactionService {
 }
 
 class TransactionListPage extends StatefulWidget {
+  const TransactionListPage({super.key});
+
   @override
-  _TransactionListPageState createState() => _TransactionListPageState();
+  State<TransactionListPage> createState() => _TransactionListPageState();
 }
 
 class _TransactionListPageState extends State<TransactionListPage> {
   int _selectedIndex = 3;
   String _searchQuery = '';
   String _selectedColumn = 'Invoice'; // Default selected column
-  List<String> _columnNames = ['Invoice', 'Transactions', 'Total', 'Date-time']; // List of column names
+  final List<String> _columnNames = ['Invoice', 'Transactions', 'Total', 'Date-time']; // List of column names
   List<Transaction> _transactions = []; // Store all transactions
   List<Transaction> _filteredTransactions = []; // Store filtered transactions
 
@@ -63,7 +65,7 @@ class _TransactionListPageState extends State<TransactionListPage> {
   }
 
   void _scrollToTop() {
-    WidgetsBinding.instance?.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
       if (scrollController.hasClients) {
         scrollController.jumpTo(0.0);
       }
@@ -136,16 +138,17 @@ class _TransactionListPageState extends State<TransactionListPage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvoked : (didPop)async {
         _selectedIndex = 0;
         // Navigate to NextPage when user tries to pop MyHomePage
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => SearchApp()),
+          MaterialPageRoute(builder: (context) => const SearchApp()),
         );
         // Return false to prevent popping the current route
-        return false;
+        return;
       },
       child: Scaffold(
         bottomNavigationBar: CustomNavigationBar(
@@ -159,13 +162,13 @@ class _TransactionListPageState extends State<TransactionListPage> {
         ),
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          title: Text(
+          title: const Text(
             'Sales & Refund',
             style: TextStyle(
-              color: const Color.fromARGB(255, 0, 0, 0),
+              color: Color.fromARGB(255, 0, 0, 0),
             ),
           ),
-          backgroundColor: Color.fromRGBO(243, 203, 71, 1),
+          backgroundColor: const Color.fromRGBO(243, 203, 71, 1),
         ),
         body: SingleChildScrollView(
           controller: scrollController,
@@ -174,9 +177,9 @@ class _TransactionListPageState extends State<TransactionListPage> {
             future: TransactionService.fetchTransactions(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator());
+                return const Center(child: CircularProgressIndicator());
               } else if (snapshot.hasError) {
-                return Center(child: Text('Failed to load transactions'));
+                return const Center(child: Text('Failed to load transactions'));
               } else {
                 _transactions = snapshot.data!;
                 _filteredTransactions = _searchTransactions(_searchQuery);
@@ -185,7 +188,7 @@ class _TransactionListPageState extends State<TransactionListPage> {
 
                 var sortedMonths = groupedTransactions.keys.toList()..sort((a, b) => DateFormat.yMMMM().parse(b).compareTo(DateFormat.yMMMM().parse(a)));
 
-                return Container(
+                return SizedBox(
                   width: MediaQuery.of(context).size.width,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -196,14 +199,14 @@ class _TransactionListPageState extends State<TransactionListPage> {
                           children: [
                             Expanded(
                               child: Container(
-                                padding: EdgeInsets.symmetric(horizontal: 12),
+                                padding: const EdgeInsets.symmetric(horizontal: 12),
                                 decoration: BoxDecoration(
                                   color: Colors.grey[200],
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: TextField(
                                   onChanged: _handleSearch,
-                                  decoration: InputDecoration(
+                                  decoration: const InputDecoration(
                                     hintText: 'Search',
                                     border: InputBorder.none,
                                     prefixIcon: Icon(Icons.search, color: Colors.grey),
@@ -211,17 +214,17 @@ class _TransactionListPageState extends State<TransactionListPage> {
                                 ),
                               ),
                             ),
-                            SizedBox(width: 10),
+                            const SizedBox(width: 10),
                             DropdownButton<String>(
                               value: _selectedColumn,
                               onChanged: _handleColumnSelect,
-                              style: TextStyle(color: Colors.black),
+                              style: const TextStyle(color: Colors.black),
                               underline: Container(),
-                              icon: Icon(Icons.arrow_drop_down, color: Colors.grey),
-                              items: _columnNames.map((_columnName) {
+                              icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                              items: _columnNames.map((columnName) {
                                 return DropdownMenuItem<String>(
-                                  value: _columnName,
-                                  child: Text(_columnName),
+                                  value: columnName,
+                                  child: Text(columnName),
                                 );
                               }).toList(),
                             ),
@@ -230,7 +233,7 @@ class _TransactionListPageState extends State<TransactionListPage> {
                       ),
                       ListView.builder(
                         shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
+                        physics: const NeverScrollableScrollPhysics(),
                         itemCount: sortedMonths.length,
                         itemBuilder: (context, index) {
                           String month = sortedMonths[index];
@@ -240,11 +243,11 @@ class _TransactionListPageState extends State<TransactionListPage> {
                             children: [
                               Container(
                                 color: Colors.grey[300],
-                                padding: EdgeInsets.symmetric(vertical: 8),
+                                padding: const EdgeInsets.symmetric(vertical: 8),
                                 child: Center(
                                   child: Text(
                                     month,
-                                    style: TextStyle(
+                                    style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                       fontSize: 16,
                                     ),
@@ -253,7 +256,7 @@ class _TransactionListPageState extends State<TransactionListPage> {
                               ),
                               DataTable(
                                 showCheckboxColumn: false,
-                                columns: [
+                                columns: const [
                                   DataColumn(label: Text('Invoice')),
                                   DataColumn(label: Text('Transactions')),
                                   DataColumn(label: Text('Total')),
@@ -263,14 +266,14 @@ class _TransactionListPageState extends State<TransactionListPage> {
                                   return DataRow(
                                     cells: [
                                       DataCell(Text(transaction.invoiceNumber)),
-                                      DataCell(Container(
+                                      DataCell(SizedBox(
                                         width: 100,
                                         child: Text(
                                           getProductNames(transaction.itemList),
                                         ),
                                       )),
                                       DataCell(Text(transaction.totalPrice)),
-                                      DataCell(Container(width: 70, child: Text(transaction.createdAt))),
+                                      DataCell(SizedBox(width: 70, child: Text(transaction.createdAt))),
                                     ],
                                     onSelectChanged: (isSelected) {
                                       if (isSelected != null && isSelected) {
@@ -298,47 +301,4 @@ class _TransactionListPageState extends State<TransactionListPage> {
       ),
     );
   }
-}
-
-class _TransactionDataSource extends DataTableSource {
-  final List<Transaction> _transactions;
-  final BuildContext context;
-
-  _TransactionDataSource(this._transactions, this.context);
-
-  @override
-  DataRow getRow(int index) {
-    final transaction = _transactions[index];
-    return DataRow(
-      cells: [
-        DataCell(Text(transaction.invoiceNumber)),
-        DataCell(Container(
-          width: 100,
-          child: Text(
-            getProductNames(transaction.itemList),
-          ),
-        )),
-        DataCell(Text(transaction.totalPrice)),
-        DataCell(Container(width: 70, child: Text(transaction.createdAt))),
-      ],
-      onSelectChanged: (isSelected) {
-        if (isSelected != null && isSelected) {
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (context) => TransactionDetailPage(transaction: transaction),
-            ),
-          );
-        }
-      },
-    );
-  }
-
-  @override
-  int get rowCount => _transactions.length;
-
-  @override
-  bool get isRowCountApproximate => false;
-
-  @override
-  int get selectedRowCount => 0;
 }

@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -36,8 +38,10 @@ class UserDetail {
 }
 
 class UserDetailForm extends StatefulWidget {
+  const UserDetailForm({super.key});
+
   @override
-  _UserDetailFormState createState() => _UserDetailFormState();
+  State<UserDetailForm> createState() => _UserDetailFormState();
 }
 
 class _UserDetailFormState extends State<UserDetailForm> {
@@ -57,15 +61,13 @@ class _UserDetailFormState extends State<UserDetailForm> {
 
   @override
   void initState() {
-    print("$baseUrl /user-detail");
-    print("$baseUrl/user-detail");
     super.initState();
     getUserDetail();
   }
 
   Future<void> pickLogoImage() async {
-    final ImagePicker _picker = ImagePicker();
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     setState(() {
       logoImageFile = image;
     });
@@ -91,40 +93,38 @@ class _UserDetailFormState extends State<UserDetailForm> {
       http.StreamedResponse response = await request.send();
 
       if (response.statusCode == 200) {
-        print(await response.stream.bytesToString());
         // Handle successful response
         showDialog(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text("Success"),
-              content: Text("Profile updated successfully."),
+              title: const Text("Success"),
+              content: const Text("Profile updated successfully."),
               actions: [
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: Text("OK"),
+                  child: const Text("OK"),
                 ),
               ],
             );
           },
         );
       } else {
-        print(response.reasonPhrase);
         // Handle error response
         showDialog(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text("Error"),
+              title: const Text("Error"),
               content: Text("Failed to update profile. ${response.reasonPhrase}"),
               actions: [
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: Text("OK"),
+                  child: const Text("OK"),
                 ),
               ],
             );
@@ -132,20 +132,19 @@ class _UserDetailFormState extends State<UserDetailForm> {
         );
       }
     } catch (e) {
-      print('Error: $e');
       // Handle exception
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text("Error"),
+            title: const Text("Error"),
             content: Text("An error occurred while updating profile. $e"),
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Text("OK"),
+                child: const Text("OK"),
               ),
             ],
           );
@@ -223,12 +222,12 @@ class _UserDetailFormState extends State<UserDetailForm> {
                 width: 50, // Set the width of the placeholder
                 height: 50, // Set the height of the placeholder
                 color: Colors.grey, // Placeholder color
-                child: Icon(
+                child: const Icon(
                   Icons.image_not_supported, // Placeholder icon
                   color: Colors.white, // Icon color
                 ),
               ),
-        SizedBox(width: 10), // Add some space between the button and the thumbnail
+        const SizedBox(width: 10), // Add some space between the button and the thumbnail
         // ElevatedButton(
         //   onPressed: pickLogoImage,
         //   child: Text('Change Logo'),
@@ -243,9 +242,9 @@ class _UserDetailFormState extends State<UserDetailForm> {
       children: <Widget>[
         ElevatedButton(
           onPressed: pickLogoImage,
-          child: Text('Pick Logo'),
+          child: const Text('Pick Logo'),
         ),
-        SizedBox(width: 10), // Add some space between the button and the thumbnail
+        const SizedBox(width: 10), // Add some space between the button and the thumbnail
         logoImageFile != null
             ? SizedBox(
                 width: 50, // Set the width of the thumbnail
@@ -260,7 +259,7 @@ class _UserDetailFormState extends State<UserDetailForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromRGBO(246, 247, 255, 1),
+      backgroundColor: const Color.fromRGBO(246, 247, 255, 1),
       bottomNavigationBar: CustomNavigationBar(
         onItemSelected: (index) {
           // Handle navigation item selection
@@ -272,55 +271,55 @@ class _UserDetailFormState extends State<UserDetailForm> {
       ),
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text(
+        title: const Text(
           'User Details',
           style: TextStyle(
-            color: const Color.fromARGB(255, 0, 0, 0),
+            color: Color.fromARGB(255, 0, 0, 0),
           ),
         ),
-        backgroundColor: Color.fromRGBO(243, 203, 71, 1), // Change this color to whatever you desire
+        backgroundColor: const Color.fromRGBO(243, 203, 71, 1), // Change this color to whatever you desire
       ),
       body: userDetail == null
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: EdgeInsets.all(20.0),
+              padding: const EdgeInsets.all(20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   textFieldCustom(nameController, false, 'Name', false),
-                  SizedBox(height: 10.0),
+                  const SizedBox(height: 10.0),
                   textFieldCustom(userNameController, false, 'Business Name', true),
-                  SizedBox(height: 10.0),
+                  const SizedBox(height: 10.0),
                   textFieldCustom(emailController, false, 'Email', true),
-                  SizedBox(height: 10.0),
+                  const SizedBox(height: 10.0),
                   textFieldCustom(phoneController, false, 'Mobile', true),
-                  SizedBox(height: 10.0),
+                  const SizedBox(height: 10.0),
                   textFieldCustom(addressController, false, 'Address', false),
-                  SizedBox(height: 10.0),
+                  const SizedBox(height: 10.0),
                   textFieldCustom(shopTypeController, false, 'Shop Type', false),
-                  SizedBox(height: 10.0),
+                  const SizedBox(height: 10.0),
                   textFieldCustom(gstinController, false, 'GSTIN Number', false),
-                  SizedBox(height: 10.0),
+                  const SizedBox(height: 10.0),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
-                      Text('Logo: '),
+                      const Text('Logo: '),
                       _buildLogoPicker(),
                       _logoPicker(), // Display current logo and replace logo button
                     ],
                   ),
-                  SizedBox(height: 10.0),
+                  const SizedBox(height: 10.0),
                   textFieldCustom(newPasswordController, true, 'New Password', false),
-                  SizedBox(height: 20.0),
+                  const SizedBox(height: 20.0),
                   ElevatedButton(
                     onPressed: _submitData,
                     // Implement your update logic here
 
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
-                      backgroundColor: Color(0xFF0B5ED7), // Change the color here
+                      backgroundColor: const Color(0xFF0B5ED7), // Change the color here
                     ),
-                    child: Text('Update Changes'),
+                    child: const Text('Update Changes'),
                   ),
                 ],
               ),

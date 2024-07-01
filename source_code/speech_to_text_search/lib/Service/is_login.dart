@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speech_to_text_search/Service/api_constants.dart';
+import 'package:speech_to_text_search/Service/result.dart';
 
 String userDetailsAPI = '$baseUrl/user-detail';
 
@@ -18,7 +19,6 @@ class APIService {
 
   static Future<void> getUserDetails(String? token, Function() showFailedDialog) async {
     if (token == null || token.isEmpty) {
-      print('Token is missing');
       return;
     }
 
@@ -33,29 +33,24 @@ class APIService {
       if (response.statusCode == 200) {
         var responseData = jsonDecode(response.body);
         if (responseData['status'] == 'success') {
-          // User details extracted successfully
-          var userData = responseData['data'];
-          // Extract user details here and use them as needed
-          print(userData);
+
         } else {
           showFailedDialog(); // Show dialog if response status is failed
         }
       } else if (response.statusCode == 401) {
-        print('Unauthorized: Token missing or unauthorized');
         showFailedDialog();
       } else {
-        print('Failed to get user details: ${response.reasonPhrase}');
+        Result.error("Book list not available");
         showFailedDialog();
       }
     } catch (error) {
-      print('Error getting user details: $error');
+      Result.error("Book list not available");
       showFailedDialog();
     }
   }
 
   static Future<int> getUserDetailsWithoutDialog(String? token) async {
     if (token == null || token.isEmpty) {
-      print('Token is missing');
       return 404; // Return a custom status code indicating token missing
     }
 
@@ -70,7 +65,6 @@ class APIService {
       Map<String, dynamic> userData = json.decode(response.body);
 
       if (userData['data'] == null) {
-        print('User data not found');
         return 404; // Return a custom status code indicating user data not found
       }
 
@@ -82,7 +76,7 @@ class APIService {
 
       return response.statusCode; // Return the response status code directly
     } catch (error) {
-      print('Error getting user details: $error');
+      Result.error("Book list not available");
       return 333; // Return a custom status code indicating an error
     }
   }

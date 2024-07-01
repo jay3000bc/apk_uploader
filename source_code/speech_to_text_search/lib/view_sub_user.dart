@@ -51,13 +51,15 @@ class SubUserService {
 }
 
 class SubUserListPage extends StatefulWidget {
+  const SubUserListPage({super.key});
+
   @override
-  _SubUserListPageState createState() => _SubUserListPageState();
+  State<SubUserListPage> createState() => _SubUserListPageState();
 }
 
 class _SubUserListPageState extends State<SubUserListPage> {
   int _rowsPerPage = PaginatedDataTable.defaultRowsPerPage;
-  int _page = 0;
+  final int _page = 0;
   late Future<List<SubUser>> _subUsersFuture;
 
   @override
@@ -70,38 +72,24 @@ class _SubUserListPageState extends State<SubUserListPage> {
     return SubUserService.fetchSubUsers(_page, _rowsPerPage);
   }
 
-  void _handleNextPage() {
-    setState(() {
-      _page++;
-    });
-  }
-
-  void _handlePreviousPage() {
-    if (_page > 0) {
-      setState(() {
-        _page--;
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text(
+        title: const Text(
           'Sub Users',
           style: TextStyle(
-            color: const Color.fromARGB(255, 0, 0, 0),
+            color: Color.fromARGB(255, 0, 0, 0),
           ),
         ),
-        backgroundColor: Color.fromRGBO(243, 203, 71, 1),
+        backgroundColor: const Color.fromRGBO(243, 203, 71, 1),
       ),
       body: FutureBuilder<List<SubUser>>(
         future: _subUsersFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
+            return const Center(
               child: CircularProgressIndicator(),
             );
           } else if (snapshot.hasError) {
@@ -115,7 +103,7 @@ class _SubUserListPageState extends State<SubUserListPage> {
                     _rowsPerPage = value!;
                   });
                 },
-                columns: [
+                columns: const [
                   DataColumn(label: Text('Name')),
                   DataColumn(label: Text('Mobile')),
                   DataColumn(label: Text('Address')),

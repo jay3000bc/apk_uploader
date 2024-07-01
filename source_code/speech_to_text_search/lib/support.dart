@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:speech_to_text_search/navigation_bar.dart';
 
 class ContactSupportPage extends StatefulWidget {
+  const ContactSupportPage({super.key});
+
   @override
-  _ContactSupportPageState createState() => _ContactSupportPageState();
+  State<ContactSupportPage> createState() => _ContactSupportPageState();
 }
 
 class _ContactSupportPageState extends State<ContactSupportPage> {
-  final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _messageController = TextEditingController();
@@ -28,16 +29,16 @@ class _ContactSupportPageState extends State<ContactSupportPage> {
       ),
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text(
+        title: const Text(
           'Support',
           style: TextStyle(
-            color: const Color.fromARGB(255, 0, 0, 0),
+            color: Color.fromARGB(255, 0, 0, 0),
           ),
         ),
-        backgroundColor: Color.fromRGBO(243, 203, 71, 1), // Change this color to whatever you desire
+        backgroundColor: const Color.fromRGBO(243, 203, 71, 1), // Change this color to whatever you desire
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      body: const Padding(
+        padding: EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

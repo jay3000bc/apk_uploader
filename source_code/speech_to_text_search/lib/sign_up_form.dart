@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:convert';
 import 'dart:io';
 
@@ -5,17 +7,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:speech_to_text_search/Service/api_constants.dart';
-import 'package:speech_to_text_search/constants.dart';
+import 'package:speech_to_text_search/Service/result.dart';
 import 'package:speech_to_text_search/login_profile.dart';
 import 'package:http/http.dart' as http;
 
 class SignUpScreen extends StatefulWidget {
+  const SignUpScreen({super.key});
+
   @override
-  _SignUpScreenState createState() => _SignUpScreenState();
+  State<SignUpScreen> createState() => _SignUpScreenState();
 }
 
 class _SignUpScreenState extends State<SignUpScreen> {
-  int _selectedIndex = 4;
   String? _selectedShopType;
   XFile? logoImageFile;
 
@@ -41,8 +44,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
   }
 
   Future<void> pickLogoImage() async {
-    final ImagePicker _picker = ImagePicker();
-    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(source: ImageSource.gallery);
     setState(() {
       logoImageFile = image;
     });
@@ -52,99 +55,94 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Container(
-          child: TextFormField(
-            controller: mobileNumberController,
-            keyboardType: TextInputType.phone,
-            decoration: InputDecoration(
-              prefixIcon: Icon(
-                Icons.phone,
-                color: const Color.fromARGB(255, 0, 0, 0),
-              ),
-              hintText: 'Enter your Mobile Number',
+        TextFormField(
+          controller: mobileNumberController,
+          keyboardType: TextInputType.phone,
+          decoration: const InputDecoration(
+            prefixIcon: Icon(
+              Icons.phone,
+              color: Color.fromARGB(255, 0, 0, 0),
             ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Mobile number is required';
-              }
-              return null;
-            },
+            hintText: 'Enter your Mobile Number',
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Mobile number is required';
+            }
+            return null;
+          },
         ),
       ],
     );
   }
 
   Widget _buildPasswordTF() {
-    bool _isObscure = true; // Flag to toggle password visibility
-
+    bool isObscure = true; // Flag to toggle password visibility
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        SizedBox(height: 10.0),
-        Container(
-          child: TextFormField(
-            controller: passwordController,
-            obscureText: _isObscure,
-            decoration: InputDecoration(
-              contentPadding: EdgeInsets.only(top: 14.0),
-              prefixIcon: Icon(
-                Icons.lock,
+        const SizedBox(height: 10.0),
+        TextFormField(
+          controller: passwordController,
+          obscureText: isObscure,
+          decoration: InputDecoration(
+            contentPadding: const EdgeInsets.only(top: 14.0),
+            prefixIcon: const Icon(
+              Icons.lock,
+              color: Color.fromARGB(255, 0, 0, 0),
+            ),
+            hintText: 'Enter your Password',
+            suffixIcon: IconButton(
+              icon: Icon(
+                isObscure ? Icons.visibility : Icons.visibility_off,
                 color: const Color.fromARGB(255, 0, 0, 0),
               ),
-              hintText: 'Enter your Password',
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _isObscure ? Icons.visibility : Icons.visibility_off,
-                  color: const Color.fromARGB(255, 0, 0, 0),
-                ),
-                onPressed: () {
-                  // Toggle password visibility
-                  setState(() {
-                    _isObscure = !_isObscure;
-                  });
-                },
-              ),
+              onPressed: () {
+                // Toggle password visibility
+                setState(() {
+                  isObscure = !isObscure;
+                });
+              },
             ),
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Password is required';
-              }
-              return null;
-            },
           ),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Password is required';
+            }
+            return null;
+          },
         ),
       ],
     );
   }
 
   Widget _buildConfirmPasswordTF() {
-    bool _isObscureConfirm = true;
+    bool isObscureConfirm = true;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        SizedBox(height: 10.0),
+        const SizedBox(height: 10.0),
         Container(
           alignment: Alignment.centerLeft,
           child: TextFormField(
             controller: confirmPasswordController,
-            obscureText: _isObscureConfirm,
+            obscureText: isObscureConfirm,
             decoration: InputDecoration(
-              contentPadding: EdgeInsets.only(top: 14.0),
-              prefixIcon: Icon(
+              contentPadding: const EdgeInsets.only(top: 14.0),
+              prefixIcon: const Icon(
                 Icons.lock,
-                color: const Color.fromARGB(255, 0, 0, 0),
+                color: Color.fromARGB(255, 0, 0, 0),
               ),
               hintText: 'Confirm your Password',
               suffixIcon: IconButton(
                 icon: Icon(
-                  _isObscureConfirm ? Icons.visibility : Icons.visibility_off,
+                  isObscureConfirm ? Icons.visibility : Icons.visibility_off,
                   color: const Color.fromARGB(255, 0, 0, 0),
                 ),
                 onPressed: () {
                   // Toggle password visibility
                   setState(() {
-                    _isObscureConfirm = !_isObscureConfirm;
+                    isObscureConfirm = !isObscureConfirm;
                   });
                 },
               ),
@@ -165,17 +163,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        SizedBox(height: 10.0),
+        const SizedBox(height: 10.0),
         Container(
           alignment: Alignment.centerLeft,
           child: TextFormField(
             controller: fullNameController,
             keyboardType: TextInputType.text,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               contentPadding: EdgeInsets.only(top: 14.0),
               prefixIcon: Icon(
                 Icons.person,
-                color: const Color.fromARGB(255, 0, 0, 0),
+                color: Color.fromARGB(255, 0, 0, 0),
               ),
               hintText: 'Enter your Full Name',
             ),
@@ -195,17 +193,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        SizedBox(height: 10.0),
+        const SizedBox(height: 10.0),
         Container(
           alignment: Alignment.centerLeft,
           child: TextFormField(
             controller: buisnessNameController,
             keyboardType: TextInputType.text,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               contentPadding: EdgeInsets.only(top: 14.0),
               prefixIcon: Icon(
                 Icons.person,
-                color: const Color.fromARGB(255, 0, 0, 0),
+                color: Color.fromARGB(255, 0, 0, 0),
               ),
               hintText: 'Enter a Buisness Name',
             ),
@@ -225,17 +223,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        SizedBox(height: 10.0),
+        const SizedBox(height: 10.0),
         Container(
           alignment: Alignment.centerLeft,
           child: TextFormField(
             controller: emailController,
             keyboardType: TextInputType.emailAddress,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               contentPadding: EdgeInsets.only(top: 14.0),
               prefixIcon: Icon(
                 Icons.email,
-                color: const Color.fromARGB(255, 0, 0, 0),
+                color: Color.fromARGB(255, 0, 0, 0),
               ),
               hintText: 'Enter your Email',
             ),
@@ -255,21 +253,21 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        SizedBox(height: 10.0),
+        const SizedBox(height: 10.0),
         Container(
           alignment: Alignment.centerLeft,
           child: TextFormField(
             controller: addressController,
             keyboardType: TextInputType.text,
-            style: TextStyle(
+            style: const TextStyle(
               color: Colors.white,
               fontFamily: 'OpenSans',
             ),
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               contentPadding: EdgeInsets.only(top: 14.0),
               prefixIcon: Icon(
                 Icons.location_on,
-                color: const Color.fromARGB(255, 0, 0, 0),
+                color: Color.fromARGB(255, 0, 0, 0),
               ),
               hintText: 'Enter your Address',
             ),
@@ -289,13 +287,13 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        SizedBox(height: 10.0),
+        const SizedBox(height: 10.0),
         DropdownButtonFormField<String>(
-          hint: Text(
+          hint: const Text(
             'Select Shop Type',
           ),
           value: _selectedShopType,
-          icon: Icon(Icons.arrow_downward),
+          icon: const Icon(Icons.arrow_downward),
           iconSize: 24,
           elevation: 16,
           onChanged: (String? newValue) {
@@ -322,7 +320,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   Widget _buildSignUpBtn() {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 25.0),
+      padding: const EdgeInsets.symmetric(vertical: 25.0),
       width: double.infinity,
       child: ElevatedButton(
         onPressed: () {
@@ -332,12 +330,12 @@ class _SignUpScreenState extends State<SignUpScreen> {
         },
         style: ElevatedButton.styleFrom(
           elevation: 5.0, backgroundColor: Colors.green,
-          padding: EdgeInsets.all(15.0),
+          padding: const EdgeInsets.all(15.0),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),
         ),
-        child: Text(
+        child: const Text(
           'SIGN UP',
           style: TextStyle(
             color: Colors.white,
@@ -356,11 +354,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => LoginScreen()), // Change to AddItemScreen()
+          MaterialPageRoute(builder: (context) => const LoginScreen()), // Change to AddItemScreen()
         );
       },
       child: RichText(
-        text: TextSpan(
+        text: const TextSpan(
           children: [
             TextSpan(
               text: 'I already have an account ',
@@ -389,17 +387,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        SizedBox(height: 10.0),
+        const SizedBox(height: 10.0),
         Container(
           alignment: Alignment.centerLeft,
           child: TextFormField(
             controller: gstinController,
             keyboardType: TextInputType.text,
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               contentPadding: EdgeInsets.only(top: 14.0),
               prefixIcon: Icon(
                 Icons.confirmation_number,
-                color: const Color.fromARGB(255, 0, 0, 0),
+                color: Color.fromARGB(255, 0, 0, 0),
               ),
               hintText: 'Enter GSTIN (Mandatory)',
             ),
@@ -415,48 +413,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
     );
   }
 
-  Widget _buildLogoUploadTF() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        SizedBox(height: 10.0),
-        Container(
-          alignment: Alignment.centerLeft,
-          decoration: kBoxDecorationStyle,
-          child: TextField(
-            readOnly: true,
-            onTap: () {
-              // Implement logic to handle logo upload
-            },
-            style: TextStyle(
-              color: Colors.white,
-              fontFamily: 'OpenSans',
-            ),
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.only(top: 14.0),
-              prefixIcon: Icon(
-                Icons.image,
-                color: Colors.white,
-              ),
-              hintText: 'Upload Logo (Optional)',
-              hintStyle: kHintTextStyle,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildLogoPicker() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         ElevatedButton(
           onPressed: pickLogoImage,
-          child: Text('Pick Logo Image'),
+          child: const Text('Pick Logo Image'),
         ),
-        SizedBox(width: 10), // Add some space between the button and the thumbnail
+        const SizedBox(width: 10), // Add some space between the button and the thumbnail
         logoImageFile != null
             ? SizedBox(
                 width: 50, // Set the width of the thumbnail
@@ -531,11 +496,10 @@ class _SignUpScreenState extends State<SignUpScreen> {
     try {
       var response = await request.send();
       var responseBody = await response.stream.bytesToString();
-      print(responseBody);
       // Call the function to show the response dialog
       showApiResponseDialog(context, jsonDecode(responseBody));
     } catch (error) {
-      print('Error: $error');
+      Result.error("Book list not available");
     }
   }
 
@@ -570,7 +534,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           content: Text(content),
           actions: <Widget>[
             ElevatedButton(
-              child: Text("Close"),
+              child: const Text("Close"),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -583,8 +547,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvoked : (didPop) async {
         final value = await showDialog<bool>(
             context: context,
             builder: (context) {
@@ -604,9 +569,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
               );
             });
         if (value != null) {
-          return Future.value(value);
+          return Future.value();
         } else {
-          return Future.value(false);
+          return Future.value();
         }
       },
       child: Scaffold(
@@ -616,7 +581,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
             onTap: () => FocusScope.of(context).unfocus(),
             child: Stack(
               children: <Widget>[
-                Container(
+                SizedBox(
                   height: double.infinity,
                   width: double.infinity,
                   child: ColorFiltered(
@@ -626,11 +591,11 @@ class _SignUpScreenState extends State<SignUpScreen> {
                     ),
                   ),
                 ),
-                Container(
+                SizedBox(
                   height: double.infinity,
                   child: SingleChildScrollView(
-                    physics: AlwaysScrollableScrollPhysics(),
-                    padding: EdgeInsets.symmetric(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    padding: const EdgeInsets.symmetric(
                       horizontal: 40.0,
                       vertical: 60.0,
                     ),
@@ -640,17 +605,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                         // mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          Text(
+                          const Text(
                             'Sign Up',
                             textAlign: TextAlign.left,
                             style: TextStyle(
-                              color: const Color.fromARGB(255, 0, 0, 0),
+                              color: Color.fromARGB(255, 0, 0, 0),
                               fontFamily: 'OpenSans',
                               fontSize: 40.0,
                             ),
                           ),
                           _buildSignInText(),
-                          SizedBox(height: 30.0),
+                          const SizedBox(height: 30.0),
 
                           _buildMobileNumberTF(),
                           _buildPasswordTF(),
@@ -662,7 +627,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           _buildGSTINTF(),
                           _buildShopTypeDropdown(),
                           // Added GSTIN field
-                          SizedBox(
+                          const SizedBox(
                             height: 10,
                           ),
                           _buildLogoPicker(),

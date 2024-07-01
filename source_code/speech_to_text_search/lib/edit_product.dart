@@ -3,15 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:speech_to_text_search/Service/api_constants.dart';
 import 'package:speech_to_text_search/Service/is_login.dart';
+import 'package:speech_to_text_search/Service/result.dart';
 import 'package:speech_to_text_search/login_profile.dart';
 
 class ProductEditPage extends StatefulWidget {
   final int productId;
 
-  ProductEditPage({required this.productId});
+  const ProductEditPage({super.key, required this.productId});
 
   @override
-  _ProductEditPageState createState() => _ProductEditPageState();
+  State<ProductEditPage> createState() => _ProductEditPageState();
 }
 
 class _ProductEditPageState extends State<ProductEditPage> {
@@ -75,14 +76,10 @@ class _ProductEditPageState extends State<ProductEditPage> {
     setState(() {
       isLoading = true;
     });
-    print("onTableFetch::::::");
-    print(widget.productId);
     try {
       var response = await http.get(Uri.parse('$baseUrl/item/${widget.productId}'), headers: {
         'Authorization': 'Bearer $token',
       });
-      print(jsonDecode(response.body));
-
       setState(() {
         isLoading = false;
       });
@@ -101,10 +98,10 @@ class _ProductEditPageState extends State<ProductEditPage> {
           shortUnitDropdownValue = jsonData['short_unit'];
         });
       } else {
-        print('Failed to fetch product details');
+        Result.error("Book list not available");
       }
     } catch (error) {
-      print('Error: $error');
+      Result.error("Book list not available");
     }
   }
 
@@ -114,18 +111,18 @@ class _ProductEditPageState extends State<ProductEditPage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Failed to Fetch User Details"),
-          content: Text("Unable to fetch user details. Please login again."),
+          title: const Text("Failed to Fetch User Details"),
+          content: const Text("Unable to fetch user details. Please login again."),
           actions: <Widget>[
             TextButton(
               onPressed: () {
                 // Navigate to the login page
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => LoginScreen()), // Change to AddItemScreen()
+                  MaterialPageRoute(builder: (context) => const LoginScreen()), // Change to AddItemScreen()
                 );
               },
-              child: Text("Login"),
+              child: const Text("Login"),
             ),
           ],
         );
@@ -174,26 +171,22 @@ class _ProductEditPageState extends State<ProductEditPage> {
           'tax2': tax2DropdownValue,
         }),
       );
-      print("error::");
-      print(jsonDecode(response.body));
       if (response.statusCode == 200) {
-        var jsonData = jsonDecode(response.body);
-        print('Product updated: $jsonData');
       } else {
-        print('Failed to update product');
+        Result.error("Book list not available");
       }
     } catch (error) {
-      print('Error: $error');
+      Result.error("Book list not available");
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromRGBO(246, 247, 255, 1),
+      backgroundColor: const Color.fromRGBO(246, 247, 255, 1),
       appBar: AppBar(
         leading: IconButton(
-          icon: Icon(
+          icon: const Icon(
             Icons.arrow_back_ios,
             color: Colors.black,
           ),
@@ -201,16 +194,16 @@ class _ProductEditPageState extends State<ProductEditPage> {
             Navigator.of(context).pop();
           },
         ),
-        title: Text(
+        title: const Text(
           'Item Detail',
           style: TextStyle(
-            color: const Color.fromARGB(255, 0, 0, 0),
+            color: Color.fromARGB(255, 0, 0, 0),
           ),
         ),
-        backgroundColor: Color.fromRGBO(243, 203, 71, 1), // Change this color to whatever you desire
+        backgroundColor: const Color.fromRGBO(243, 203, 71, 1), // Change this color to whatever you desire
       ),
       body: isLoading
-          ? Center(
+          ? const Center(
               child: CircularProgressIndicator(
                 valueColor: AlwaysStoppedAnimation<Color>(
                   Color.fromRGBO(243, 203, 71, 1),
@@ -223,15 +216,15 @@ class _ProductEditPageState extends State<ProductEditPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    SizedBox(
+                    const SizedBox(
                       height: 10,
                     ),
                     _buildTextField(itemNameController, 'Item Name'),
-                    SizedBox(
+                    const SizedBox(
                       height: 15,
                     ),
                     _buildTextField(quantityController, 'Stock Quantity'),
-                    SizedBox(
+                    const SizedBox(
                       height: 15,
                     ),
                     Row(
@@ -243,28 +236,26 @@ class _ProductEditPageState extends State<ProductEditPage> {
                             String fullUnit = units[0];
                             String shortUnit = units[1].substring(0, units[1].length - 1);
                             setState(() {
-                              print(fullUnit);
                               fullUnitDropdownValue = fullUnit; // Update the fullUnitDropdownValue
-                              print(shortUnit);
                               shortUnitDropdownValue = shortUnit; // Update the shortUnitDropdownValue
                             });
                           }),
                         )
                       ],
                     ),
-                    SizedBox(
+                    const SizedBox(
                       height: 15,
                     ),
                     Row(
                       children: [
                         Expanded(child: _buildTextField(mrpController, 'MRP')),
-                        SizedBox(width: 15),
+                        const SizedBox(width: 15),
                         Expanded(
                           child: _buildTextField(salePriceController, 'Sale Price'),
                         )
                       ],
                     ),
-                    SizedBox(
+                    const SizedBox(
                       height: 15,
                     ),
                     Row(children: [
@@ -275,17 +266,17 @@ class _ProductEditPageState extends State<ProductEditPage> {
                           tax1DropdownValue, // Add your tax options here
                           (value) {
                             setState(() {
-                              tax1DropdownValue = value!;
+                              tax1DropdownValue = value;
                             });
                           },
                         ),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         width: 15,
                       ),
                       Expanded(child: _buildTextField(rate1Controller, "Rate")),
                     ]),
-                    SizedBox(
+                    const SizedBox(
                       height: 15,
                     ),
                     Row(children: [
@@ -296,17 +287,17 @@ class _ProductEditPageState extends State<ProductEditPage> {
                           tax2DropdownValue, // Add your tax options here
                           (value) {
                             setState(() {
-                              tax2DropdownValue = value!;
+                              tax2DropdownValue = value;
                             });
                           },
                         ),
                       ),
-                      SizedBox(
+                      const SizedBox(
                         width: 15,
                       ),
                       Expanded(child: _buildTextField(rate2Controller, "Rate")),
                     ]),
-                    SizedBox(height: 20.0),
+                    const SizedBox(height: 20.0),
                     ElevatedButton(
                       onPressed: () {
                         _updateProduct();
@@ -316,7 +307,7 @@ class _ProductEditPageState extends State<ProductEditPage> {
                           Colors.green,
                         ), // Change color here
                       ),
-                      child: Text(
+                      child: const Text(
                         'Save Changes',
                         style: TextStyle(
                           color: Color.fromARGB(255, 255, 255, 255),

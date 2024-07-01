@@ -1,9 +1,11 @@
-import 'dart:convert';
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:speech_to_text_search/Service/api_constants.dart';
+import 'package:speech_to_text_search/Service/result.dart';
 import 'package:speech_to_text_search/account.dart';
 import 'package:speech_to_text_search/add_product.dart';
 import 'package:speech_to_text_search/Service/is_login.dart';
@@ -14,16 +16,21 @@ import 'package:speech_to_text_search/search_app.dart';
 import 'package:speech_to_text_search/sub_user_signup.dart';
 import 'package:speech_to_text_search/transaction_list.dart';
 import 'package:speech_to_text_search/update_inventory.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class Sidebar extends StatefulWidget {
+  const Sidebar({super.key});
+
   @override
-  _SidebarState createState() => _SidebarState();
+  State<Sidebar> createState() => _SidebarState();
 }
 
 class _SidebarState extends State<Sidebar> {
   String _name = '';
   String _userName = '';
   int _selectedIndex = 3;
+
+  final Uri _url = Uri.parse('https://dev.probill.app/forgot-password');
 
   @override
   void initState() {
@@ -41,151 +48,150 @@ class _SidebarState extends State<Sidebar> {
         _userName = userName!;
       });
     }
-    print(name);
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: WillPopScope(
-        onWillPop: () async {
+      body: PopScope(
+        canPop: false,
+        onPopInvoked : (didPop) async {
           _selectedIndex = 0;
           // Navigate to NextPage when user tries to pop MyHomePage
           Navigator.push(
             context,
-            MaterialPageRoute(builder: (context) => SearchApp()),
+            MaterialPageRoute(builder: (context) => const SearchApp()),
           );
           // Return false to prevent popping the current route
-          return false; // Return true to allow popping the route
+          return; // Return true to allow popping the route
         },
-        child: Container(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: <Widget>[
-              DrawerHeader(
-                decoration: BoxDecoration(
-                  color: Color.fromRGBO(243, 203, 71, 1),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CircleAvatar(
-                      radius: 40,
-                      backgroundImage: AssetImage('assets/user.png'),
-                      backgroundColor: Color.fromRGBO(243, 203, 71, 1),
+        child: ListView(
+          padding: EdgeInsets.zero,
+          children: <Widget>[
+            DrawerHeader(
+              decoration: const BoxDecoration(
+                color: Color.fromRGBO(243, 203, 71, 1),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const CircleAvatar(
+                    radius: 40,
+                    backgroundImage: AssetImage('assets/user.png'),
+                    backgroundColor: Color.fromRGBO(243, 203, 71, 1),
+                  ),
+                  Text(
+                    'Hello $_name',
+                    style: const TextStyle(
+                      color: Color.fromARGB(255, 0, 0, 0),
+                      fontSize: 22,
                     ),
-                    Text(
-                      'Hello $_name',
-                      style: TextStyle(
-                        color: const Color.fromARGB(255, 0, 0, 0),
-                        fontSize: 22,
-                      ),
+                  ),
+                  Text(
+                    _userName,
+                    style: const TextStyle(
+                      color: Color.fromARGB(255, 0, 0, 0),
+                      fontSize: 14,
                     ),
-                    Text(
-                      '$_userName',
-                      style: TextStyle(
-                        color: const Color.fromARGB(255, 0, 0, 0),
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
+            ),
 
-              ListTile(
-                leading: Icon(Icons.add),
-                title: Text('Add Inventory'),
-                onTap: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => AddInventory()),
-                  );
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.inventory_2_outlined),
-                title: Text('Update Inventory'),
-                onTap: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => ProductListPage()),
-                  );
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.document_scanner),
-                title: Text('Transactions'),
-                onTap: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => TransactionListPage()),
-                  );
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.person_add_rounded),
-                title: Text('User'),
-                onTap: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => SignUpSubUserScreen()),
-                  );
-                },
-              ),
+            ListTile(
+              leading: const Icon(Icons.add),
+              title: const Text('Add Inventory'),
+              onTap: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) =>  const AddInventory()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.inventory_2_outlined),
+              title: const Text('Update Inventory'),
+              onTap: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const ProductListPage()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.document_scanner),
+              title: const Text('Transactions'),
+              onTap: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const TransactionListPage()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.person_add_rounded),
+              title: const Text('User'),
+              onTap: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const SignUpSubUserScreen()),
+                );
+              },
+            ),
 
-              ListTile(
-                leading: Icon(Icons.settings),
-                title: Text('Preferences'),
-                onTap: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => PreferencesPage()),
-                  );
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.account_circle),
-                title: Text('Account'),
-                onTap: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (context) => UserDetailForm()),
-                  );
-                },
-              ),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('Preferences'),
+              onTap: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const PreferencesPage()),
+                );
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.account_circle),
+              title: const Text('Account'),
+              onTap: () {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const UserDetailForm()),
+                );
+              },
+            ),
 
-              ListTile(
-                leading: Icon(Icons.password),
-                title: Text('Change Password'),
-                onTap: () {
-                  // Navigator.pushReplacement(
-                  //   context,
-                  //   MaterialPageRoute(builder: (context) => PreferencesPage()),
-                  // );
-                },
-              ),
+            ListTile(
+              leading: const Icon(Icons.password),
+              title: const Text('Change Password'),
+              onTap: () {
+                _launchUrl(_url);
+                // Navigator.pushReplacement(
+                //   context,
+                //   MaterialPageRoute(builder: (context) => PreferencesPage()),
+                // );
+              },
+            ),
 
-              ListTile(
-                leading: Icon(Icons.account_balance_outlined),
-                title: Text('Subscription'),
-                onTap: () {
-                  // Navigator.pushReplacement(
-                  //   context,
-                  //   MaterialPageRoute(builder: (context) => PreferencesPage()),
-                  // );
-                },
-              ),
+            ListTile(
+              leading: const Icon(Icons.account_balance_outlined),
+              title: const Text('Subscription'),
+              onTap: () {
+                // Navigator.pushReplacement(
+                //   context,
+                //   MaterialPageRoute(builder: (context) => PreferencesPage()),
+                // );
+              },
+            ),
 
-              Divider(), // Add a horizontal line
-              ListTile(
-                leading: Icon(Icons.exit_to_app),
-                title: Text('Logout'),
-                onTap: () {
-                  _logout(context);
-                },
-              ),
-            ],
-          ),
+            const Divider(), // Add a horizontal line
+            ListTile(
+              leading: const Icon(Icons.exit_to_app),
+              title: const Text('Logout'),
+              onTap: () {
+                _logout(context);
+              },
+            ),
+          ],
         ),
       ),
       bottomNavigationBar: CustomNavigationBar(
@@ -200,11 +206,17 @@ class _SidebarState extends State<Sidebar> {
     );
   }
 
+  Future<void> _launchUrl(Uri url) async {
+    if (!await launchUrl(url)) {
+      throw Exception('Could not launch $url');
+    }
+  }
+
   void _logout(BuildContext context) async {
     EasyLoading.show(status: 'Logging out...');
     try {
       var token = await APIService.getToken();
-      final String apiUrl = '$baseUrl/logout';
+      const String apiUrl = '$baseUrl/logout';
       final response = await http.post(
         Uri.parse(apiUrl),
         headers: {
@@ -213,26 +225,24 @@ class _SidebarState extends State<Sidebar> {
       );
       EasyLoading.dismiss();
       if (response.statusCode == 200) {
-        final jsonData = json.decode(response.body);
         // Directly navigate to login screen
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => LoginScreen()),
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
         );
       } else {
-        final jsonData = json.decode(response.body);
         // Directly navigate to login screen
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => LoginScreen()),
+          MaterialPageRoute(builder: (context) => const LoginScreen()),
         );
       }
     } catch (e) {
-      print('Exception: $e');
+      Result.error("Book list not available");
       // Directly navigate to login screen
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(builder: (context) => LoginScreen()),
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
       );
     }
   }

@@ -1,10 +1,11 @@
-import 'dart:convert';
+// ignore_for_file: use_build_context_synchronously
 
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:speech_to_text_search/Service/api_constants.dart';
-import 'package:speech_to_text_search/login_profile.dart';
+import 'package:speech_to_text_search/Service/result.dart';
 import 'package:http/http.dart' as http;
 import 'package:speech_to_text_search/Service/is_login.dart';
 import 'package:speech_to_text_search/navigation_bar.dart';
@@ -12,8 +13,10 @@ import 'package:speech_to_text_search/search_app.dart';
 import 'package:speech_to_text_search/view_sub_user.dart';
 
 class SignUpSubUserScreen extends StatefulWidget {
+  const SignUpSubUserScreen({super.key});
+
   @override
-  _SignUpSubUserScreenState createState() => _SignUpSubUserScreenState();
+  State<SignUpSubUserScreen> createState() => _SignUpSubUserScreenState();
 }
 
 class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
@@ -26,10 +29,7 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
   Future<void> submitData() async {
     EasyLoading.show(status: 'Loading...');
     var token = await APIService.getToken();
-
-    print("token eytu:::$token");
     String apiUrl = '$baseUrl/add-new-user';
-
     // Prepare the request headers
     Map<String, String> headers = {
       'Authorization': 'Bearer $token', // Replace token with your actual token
@@ -51,16 +51,15 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
       if (response.statusCode == 200) {
         // Request successful
         var responseBody = await response.stream.bytesToString();
-        print(responseBody);
         // Call the function to show the response dialog
         showApiResponseDialog(context, jsonDecode(responseBody));
       } else {
         // Request failed
-        print('Failed with status code: ${response.statusCode}');
+        Result.error("Book list not available");
         EasyLoading.showError('Failed with status code: ${response.statusCode}');
       }
     } catch (error) {
-      print('Error: $error');
+      Result.error("Book list not available");
       EasyLoading.showError('Error: $error');
     } finally {
       EasyLoading.dismiss(); // Dismiss the loading indicator regardless of the request outcome
@@ -98,11 +97,11 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
           content: Text(content),
           actions: <Widget>[
             ElevatedButton(
-              child: Text("OK"),
+              child: const Text("OK"),
               onPressed: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => SearchApp()),
+                  MaterialPageRoute(builder: (context) => const SearchApp()),
                 );
               },
             ),
@@ -117,15 +116,15 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Text(
+        title: const Text(
           'Add User',
           style: TextStyle(
-            color: const Color.fromARGB(255, 0, 0, 0),
+            color: Color.fromARGB(255, 0, 0, 0),
           ),
         ),
-        backgroundColor: Color.fromRGBO(243, 203, 71, 1),
+        backgroundColor: const Color.fromRGBO(243, 203, 71, 1),
       ),
-      backgroundColor: Color.fromRGBO(246, 247, 255, 1),
+      backgroundColor: const Color.fromRGBO(246, 247, 255, 1),
       bottomNavigationBar: CustomNavigationBar(
         onItemSelected: (index) {
           // Handle navigation item selection
@@ -141,7 +140,7 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
           onTap: () => FocusScope.of(context).unfocus(),
           child: Stack(
             children: <Widget>[
-              Container(
+              SizedBox(
                 height: double.infinity,
                 width: double.infinity,
                 child: ColorFiltered(
@@ -151,36 +150,36 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
                   ),
                 ),
               ),
-              Container(
+              SizedBox(
                 height: double.infinity,
                 child: SingleChildScrollView(
-                  physics: AlwaysScrollableScrollPhysics(),
-                  padding: EdgeInsets.symmetric(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(
                     horizontal: 40.0,
                     vertical: 60.0,
                   ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
-                      SizedBox(height: 10.0),
+                      const SizedBox(height: 10.0),
                       ElevatedButton(
-                        child: Text("View User"),
+                        child: const Text("View User"),
                         onPressed: () {
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (context) => SubUserListPage()),
+                            MaterialPageRoute(builder: (context) => const SubUserListPage()),
                           );
                         },
                       ),
-                      SizedBox(height: 10.0),
+                      const SizedBox(height: 10.0),
                       _buildNameTF(),
                       _buildMobileTF(),
                       _buildPasswordTF(),
                       _buildConfirmPasswordTF(),
                       _buildAddressTF(),
-                      SizedBox(height: 40.0),
+                      const SizedBox(height: 40.0),
                       _buildSignUpBtn(),
-                      SizedBox(height: 10.0),
+                      const SizedBox(height: 10.0),
                       // _buildSignInText(),
                     ],
                   ),
@@ -197,7 +196,7 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        SizedBox(height: 10.0),
+        const SizedBox(height: 10.0),
         Container(
           alignment: Alignment.centerLeft,
           child: TextField(
@@ -210,9 +209,9 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
                 borderRadius: BorderRadius.circular(8.0),
                 borderSide: BorderSide.none,
               ),
-              prefixIcon: Icon(
+              prefixIcon: const Icon(
                 Icons.person,
-                color: const Color.fromARGB(255, 0, 0, 0),
+                color: Color.fromARGB(255, 0, 0, 0),
               ),
               hintText: 'Name',
             ),
@@ -226,7 +225,7 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        SizedBox(height: 10.0),
+        const SizedBox(height: 10.0),
         Container(
           alignment: Alignment.centerLeft,
           child: TextField(
@@ -239,10 +238,10 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
                 borderRadius: BorderRadius.circular(8.0),
                 borderSide: BorderSide.none,
               ),
-              contentPadding: EdgeInsets.only(top: 14.0),
-              prefixIcon: Icon(
+              contentPadding: const EdgeInsets.only(top: 14.0),
+              prefixIcon: const Icon(
                 Icons.phone,
-                color: const Color.fromARGB(255, 0, 0, 0),
+                color: Color.fromARGB(255, 0, 0, 0),
               ),
               hintText: 'Mobile',
             ),
@@ -253,41 +252,38 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
   }
 
   Widget _buildPasswordTF() {
-    bool _isObscure = true; // Flag to toggle password visibility
-
+    bool isObscure = true; // Flag to toggle password visibility
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        SizedBox(height: 10.0),
-        Container(
-          child: TextField(
-            controller: passwordController,
-            obscureText: _isObscure,
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8.0),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding: EdgeInsets.only(top: 14.0),
-              prefixIcon: Icon(
-                Icons.lock,
+        const SizedBox(height: 10.0),
+        TextField(
+          controller: passwordController,
+          obscureText: isObscure,
+          decoration: InputDecoration(
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(8.0),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: const EdgeInsets.only(top: 14.0),
+            prefixIcon: const Icon(
+              Icons.lock,
+              color: Color.fromARGB(255, 0, 0, 0),
+            ),
+            hintText: 'Password',
+            suffixIcon: IconButton(
+              icon: Icon(
+                isObscure ? Icons.visibility : Icons.visibility_off,
                 color: const Color.fromARGB(255, 0, 0, 0),
               ),
-              hintText: 'Password',
-              suffixIcon: IconButton(
-                icon: Icon(
-                  _isObscure ? Icons.visibility : Icons.visibility_off,
-                  color: const Color.fromARGB(255, 0, 0, 0),
-                ),
-                onPressed: () {
-                  // Toggle password visibility
-                  setState(() {
-                    _isObscure = !_isObscure;
-                  });
-                },
-              ),
+              onPressed: () {
+                // Toggle password visibility
+                setState(() {
+                  isObscure = !isObscure;
+                });
+              },
             ),
           ),
         ),
@@ -296,16 +292,16 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
   }
 
   Widget _buildConfirmPasswordTF() {
-    bool _isObscureConfirm = true;
+    bool isObscureConfirm = true;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        SizedBox(height: 10.0),
+        const SizedBox(height: 10.0),
         Container(
           alignment: Alignment.centerLeft,
           child: TextField(
             controller: confirmPasswordController,
-            obscureText: _isObscureConfirm,
+            obscureText: isObscureConfirm,
             decoration: InputDecoration(
               filled: true,
               fillColor: Colors.white,
@@ -313,21 +309,21 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
                 borderRadius: BorderRadius.circular(8.0),
                 borderSide: BorderSide.none,
               ),
-              contentPadding: EdgeInsets.only(top: 14.0),
-              prefixIcon: Icon(
+              contentPadding: const EdgeInsets.only(top: 14.0),
+              prefixIcon: const Icon(
                 Icons.lock,
-                color: const Color.fromARGB(255, 0, 0, 0),
+                color: Color.fromARGB(255, 0, 0, 0),
               ),
               hintText: 'Confirm Password',
               suffixIcon: IconButton(
                 icon: Icon(
-                  _isObscureConfirm ? Icons.visibility : Icons.visibility_off,
+                  isObscureConfirm ? Icons.visibility : Icons.visibility_off,
                   color: const Color.fromARGB(255, 0, 0, 0),
                 ),
                 onPressed: () {
                   // Toggle password visibility
                   setState(() {
-                    _isObscureConfirm = !_isObscureConfirm;
+                    isObscureConfirm = !isObscureConfirm;
                   });
                 },
               ),
@@ -342,14 +338,14 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        SizedBox(height: 10.0),
+        const SizedBox(height: 10.0),
         Container(
           alignment: Alignment.centerLeft,
           child: TextField(
             controller: addressController,
             keyboardType: TextInputType.text,
-            style: TextStyle(
-              color: const Color.fromARGB(255, 7, 7, 7),
+            style: const TextStyle(
+              color: Color.fromARGB(255, 7, 7, 7),
               fontFamily: 'OpenSans',
             ),
             decoration: InputDecoration(
@@ -359,10 +355,10 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
                 borderRadius: BorderRadius.circular(8.0),
                 borderSide: BorderSide.none,
               ),
-              contentPadding: EdgeInsets.only(top: 14.0),
-              prefixIcon: Icon(
+              contentPadding: const EdgeInsets.only(top: 14.0),
+              prefixIcon: const Icon(
                 Icons.location_on,
-                color: const Color.fromARGB(255, 0, 0, 0),
+                color: Color.fromARGB(255, 0, 0, 0),
               ),
               hintText: 'Address',
             ),
@@ -374,7 +370,7 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
 
   Widget _buildSignUpBtn() {
     return Container(
-      padding: EdgeInsets.symmetric(vertical: 25.0),
+      padding: const EdgeInsets.symmetric(vertical: 25.0),
       width: double.infinity,
       child: ElevatedButton(
         onPressed: () {
@@ -383,12 +379,12 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
         style: ElevatedButton.styleFrom(
           elevation: 5.0,
           backgroundColor: Colors.green,
-          padding: EdgeInsets.all(15.0),
+          padding: const EdgeInsets.all(15.0),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(0),
           ),
         ),
-        child: Text(
+        child: const Text(
           'Add User',
           style: TextStyle(
             color: Colors.white,
@@ -397,40 +393,6 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
             fontWeight: FontWeight.bold,
             fontFamily: 'OpenSans',
           ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSignInText() {
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => LoginScreen()), // Change to AddItemScreen()
-        );
-      },
-      child: RichText(
-        text: TextSpan(
-          children: [
-            TextSpan(
-              text: 'Already have an account? ',
-              style: TextStyle(
-                color: Color.fromARGB(255, 97, 97, 97),
-                fontSize: 18.0,
-                fontWeight: FontWeight.w400,
-              ),
-            ),
-            TextSpan(
-              text: 'Sign In',
-              style: TextStyle(
-                color: Color.fromRGBO(221, 79, 60, 1),
-                fontSize: 18.0,
-                fontWeight: FontWeight.bold,
-                decoration: TextDecoration.underline,
-              ),
-            ),
-          ],
         ),
       ),
     );

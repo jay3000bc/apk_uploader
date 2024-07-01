@@ -16,12 +16,14 @@ void main() {
         ChangeNotifierProvider(create: (context) => MicState()),
         ChangeNotifierProvider(create: (context) => QuantityMicState()),
       ],
-      child: MyApp(),
+      child: const MyApp(),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -32,14 +34,16 @@ class MyApp extends StatelessWidget {
           // You can also set other theme properties here if needed
           ),
       builder: EasyLoading.init(),
-      home: SplashScreen(),
+      home: const SplashScreen(),
     );
   }
 }
 
 class SplashScreen extends StatefulWidget {
+  const SplashScreen({super.key});
+
   @override
-  _SplashScreenState createState() => _SplashScreenState();
+  State<SplashScreen> createState() => _SplashScreenState();
 }
 
 class _SplashScreenState extends State<SplashScreen> {
@@ -85,21 +89,21 @@ class _SplashScreenState extends State<SplashScreen> {
   void _navigateToLoginScreen() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => LoginScreen()),
+      MaterialPageRoute(builder: (context) => const LoginScreen()),
     );
   }
 
   void _navigateToSearchApp() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => SearchApp()),
+      MaterialPageRoute(builder: (context) => const SearchApp()),
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromRGBO(243, 203, 71, 1),
+      backgroundColor: const Color.fromRGBO(243, 203, 71, 1),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -112,8 +116,8 @@ class _SplashScreenState extends State<SplashScreen> {
                 height: 150,
               ),
             ),
-            SizedBox(height: 20),
-            _isLoggedIn ? CircularProgressIndicator() : SizedBox(),
+            const SizedBox(height: 20),
+            _isLoggedIn ? const CircularProgressIndicator() : const SizedBox(),
           ],
         ),
       ),

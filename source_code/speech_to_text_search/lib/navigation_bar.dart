@@ -1,23 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:speech_to_text_search/add_product.dart';
 import 'package:speech_to_text_search/drawer.dart';
 import 'package:speech_to_text_search/refund.dart';
 import 'package:speech_to_text_search/search_app.dart';
 import 'package:speech_to_text_search/support.dart';
-import 'package:speech_to_text_search/transaction_list.dart';
 // Import the AddItem screen
 
 class CustomNavigationBar extends StatelessWidget {
   final Function(int) onItemSelected;
   final int selectedIndex;
 
-  CustomNavigationBar({required this.onItemSelected, required this.selectedIndex});
+  const CustomNavigationBar({super.key, required this.onItemSelected, required this.selectedIndex});
 
   @override
   Widget build(BuildContext context) {
     return NavigationBar(
       height: 100,
-      backgroundColor: Color.fromRGBO(2, 103, 112, 1),
+      backgroundColor: const Color.fromRGBO(2, 103, 112, 1),
       shadowColor: Colors.black,
       destinations: [
         GestureDetector(
@@ -25,7 +23,7 @@ class CustomNavigationBar extends StatelessWidget {
             onItemSelected(0);
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => SearchApp()), // Navigate to Home screen
+              MaterialPageRoute(builder: (context) => const SearchApp()), // Navigate to Home screen
             );
           },
           child: CustomNavigationItem(
@@ -36,7 +34,7 @@ class CustomNavigationBar extends StatelessWidget {
               onItemSelected(0);
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => SearchApp()), // Navigate to Home screen
+                MaterialPageRoute(builder: (context) => const SearchApp()), // Navigate to Home screen
               );
             },
           ),
@@ -46,7 +44,7 @@ class CustomNavigationBar extends StatelessWidget {
             onItemSelected(1);
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => Refund()), // Navigate to Dashboard screen
+              MaterialPageRoute(builder: (context) => const Refund()), // Navigate to Dashboard screen
             );
           },
           child: CustomNavigationItem(
@@ -57,7 +55,7 @@ class CustomNavigationBar extends StatelessWidget {
               onItemSelected(1);
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => Refund()), // Navigate to Dashboard screen
+                MaterialPageRoute(builder: (context) => const Refund()), // Navigate to Dashboard screen
               );
             },
           ),
@@ -67,7 +65,7 @@ class CustomNavigationBar extends StatelessWidget {
             onItemSelected(2);
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => ContactSupportPage()), // Navigate to Transaction screen
+              MaterialPageRoute(builder: (context) => const ContactSupportPage()), // Navigate to Transaction screen
             );
           },
           child: CustomNavigationItem(
@@ -78,7 +76,7 @@ class CustomNavigationBar extends StatelessWidget {
               onItemSelected(2);
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => ContactSupportPage()), // Navigate to Transaction screen
+                MaterialPageRoute(builder: (context) => const ContactSupportPage()), // Navigate to Transaction screen
               );
             },
           ),
@@ -88,7 +86,7 @@ class CustomNavigationBar extends StatelessWidget {
             onItemSelected(3);
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => Sidebar()), // Navigate to Sidebar screen
+              MaterialPageRoute(builder: (context) => const Sidebar()), // Navigate to Sidebar screen
             );
           },
           child: CustomNavigationItem(
@@ -99,7 +97,7 @@ class CustomNavigationBar extends StatelessWidget {
               onItemSelected(3);
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => Sidebar()), // Navigate to Sidebar screen
+                MaterialPageRoute(builder: (context) => const Sidebar()), // Navigate to Sidebar screen
               );
             },
           ),
@@ -128,35 +126,33 @@ class CustomNavigationItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(15),
-              decoration: BoxDecoration(
-                color: isSelected ? Colors.white : Color.fromRGBO(2, 103, 112, 1), // Background color for selected item
-                borderRadius: BorderRadius.circular(100),
-                border: Border.all(
-                  color: Colors.white, // Always have a border color
-                  width: 2, // Adjust border width as needed
-                ),
-              ),
-              child: Icon(
-                iconData,
-                color: isSelected ? Color.fromRGBO(2, 103, 112, 1) : Colors.white, // Icon color based on selection
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(15),
+            decoration: BoxDecoration(
+              color: isSelected ? Colors.white : const Color.fromRGBO(2, 103, 112, 1), // Background color for selected item
+              borderRadius: BorderRadius.circular(100),
+              border: Border.all(
+                color: Colors.white, // Always have a border color
+                width: 2, // Adjust border width as needed
               ),
             ),
-            SizedBox(height: 1.0),
-            Text(
-              label,
-              style: TextStyle(
-                color: Colors.white, // Text color based on selection
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, // Bold font for selected item
-              ),
+            child: Icon(
+              iconData,
+              color: isSelected ? const Color.fromRGBO(2, 103, 112, 1) : Colors.white, // Icon color based on selection
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 1.0),
+          Text(
+            label,
+            style: TextStyle(
+              color: Colors.white, // Text color based on selection
+              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, // Bold font for selected item
+            ),
+          ),
+        ],
       ),
     );
   }

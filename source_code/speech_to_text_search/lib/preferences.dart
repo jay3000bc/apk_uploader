@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:speech_to_text_search/Service/api_constants.dart';
@@ -9,8 +11,10 @@ import 'package:speech_to_text_search/navigation_bar.dart';
 import 'package:speech_to_text_search/search_app.dart';
 
 class PreferencesPage extends StatefulWidget {
+  const PreferencesPage({super.key});
+
   @override
-  _PreferencesPageState createState() => _PreferencesPageState();
+  State<PreferencesPage> createState() => _PreferencesPageState();
 }
 
 class _PreferencesPageState extends State<PreferencesPage> {
@@ -29,35 +33,25 @@ class _PreferencesPageState extends State<PreferencesPage> {
     });
 
     // Measure the starting time
-    final startTime = DateTime.now();
-
-    print("Starting API data fetching...");
-
     var token = await APIService.getToken();
 
     // Make API call to fetch user preferences
-    final String apiUrl = '$baseUrl/user-preferences';
+    const String apiUrl = '$baseUrl/user-preferences';
     final response = await http.get(Uri.parse(apiUrl), headers: {
       'Authorization': 'Bearer $token',
     });
-
-    // Measure the ending time
-    final endTime = DateTime.now();
-
-    // Calculate and print the time taken
-    final timeTaken = endTime.difference(startTime);
-    print("API data fetched in ${timeTaken.inMilliseconds} milliseconds");
-
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);
       final preferencesData = jsonData['data'];
-
       setState(() {
         maintainMRP = preferencesData['preference_mrp'] == 1 ? true : false;
-        showMRPInInvoice = preferencesData['preference_mrp_invoice'] == 1 ? true : false;
-        maintainStock = preferencesData['preference_quantity'] == 1 ? true : false;
+        showMRPInInvoice =
+            preferencesData['preference_mrp_invoice'] == 1 ? true : false;
+        maintainStock =
+            preferencesData['preference_quantity'] == 1 ? true : false;
         showHSNSACCode = preferencesData['preference_hsn'] == 1 ? true : false;
-        showHSNSACCodeInInvoice = preferencesData['preference_hsn_invoice'] == 1 ? true : false;
+        showHSNSACCodeInInvoice =
+            preferencesData['preference_hsn_invoice'] == 1 ? true : false;
       });
     } else {
       // Handle exceptions
@@ -67,8 +61,8 @@ class _PreferencesPageState extends State<PreferencesPage> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Error'),
-            content: Text('An error occurred. Please login and try again.'),
+            title: const Text('Error'),
+            content: const Text('An error occurred. Please login and try again.'),
             actions: <Widget>[
               TextButton(
                 onPressed: () {
@@ -76,10 +70,10 @@ class _PreferencesPageState extends State<PreferencesPage> {
                   // Redirect to login page
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => LoginScreen()),
+                    MaterialPageRoute(builder: (context) => const LoginScreen()),
                   );
                 },
-                child: Text('OK'),
+                child: const Text('OK'),
               ),
             ],
           );
@@ -96,7 +90,7 @@ class _PreferencesPageState extends State<PreferencesPage> {
       isLoading = true;
     });
     var token = await APIService.getToken();
-    final String apiUrl = '$baseUrl/api/prefernce';
+    const String apiUrl = '$baseUrl/prefernce';
     final response = await http.post(
       Uri.parse(apiUrl),
       headers: {
@@ -115,43 +109,36 @@ class _PreferencesPageState extends State<PreferencesPage> {
       isLoading = false;
     });
     if (response.statusCode == 200) {
-      final jsonData = json.decode(response.body);
-      // Handle success response
-      print(jsonData);
-
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Success'),
-            content: Text('User preferences updated successfully.'),
+            title: const Text('Success'),
+            content: const Text('User preferences updated successfully.'),
             actions: <Widget>[
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Text('OK'),
+                child: const Text('OK'),
               ),
             ],
           );
         },
       );
     } else {
-      final jsonData = json.decode(response.body);
-      // Handle error response
-      print(jsonData);
       showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Error'),
-            content: Text('Failed to update user preferences.'),
+            title: const Text('Error'),
+            content: const Text('Failed to update user preferences.'),
             actions: <Widget>[
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Text('OK'),
+                child: const Text('OK'),
               ),
             ],
           );
@@ -165,7 +152,8 @@ class _PreferencesPageState extends State<PreferencesPage> {
     super.initState();
 
     // _fetchUserPreferences();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _fetchUserPreferences());
+    WidgetsBinding.instance
+        .addPostFrameCallback((_) => _fetchUserPreferences());
   }
 
   @override
@@ -175,28 +163,30 @@ class _PreferencesPageState extends State<PreferencesPage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+        canPop: false,
+        onPopInvoked : (didPop)async {
         // Navigate to NextPage when user tries to pop MyHomePage
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => SearchApp()),
+          MaterialPageRoute(builder: (context) => const SearchApp()),
         );
         // Return false to prevent popping the current route
-        return false;
+        return;
       },
       child: Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          title: Text(
+          title: const Text(
             'Preferences',
             style: TextStyle(
-              color: const Color.fromARGB(255, 0, 0, 0),
+              color: Color.fromARGB(255, 0, 0, 0),
             ),
           ),
-          backgroundColor: Color.fromRGBO(243, 203, 71, 1), // Change this color to whatever you desire
+          backgroundColor: const Color.fromRGBO(
+              243, 203, 71, 1), // Change this color to whatever you desire
         ),
-        drawer: Sidebar(),
+        drawer: const Sidebar(),
         bottomNavigationBar: CustomNavigationBar(
           onItemSelected: (index) {
             // Handle navigation item selection
@@ -207,7 +197,7 @@ class _PreferencesPageState extends State<PreferencesPage> {
           selectedIndex: _selectedIndex,
         ),
         body: isLoading
-            ? Center(
+            ? const Center(
                 child: CircularProgressIndicator(
                   valueColor: AlwaysStoppedAnimation<Color>(
                     Color.fromRGBO(243, 203, 71, 1),
@@ -220,13 +210,15 @@ class _PreferencesPageState extends State<PreferencesPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      SizedBox(height: 30),
-                      buildCheckbox('Do you maintain MRP?', maintainMRP, (value) {
+                      const SizedBox(height: 30),
+                      buildCheckbox('Do you maintain MRP?', maintainMRP,
+                          (value) {
                         setState(() {
                           maintainMRP = value!;
                         });
                       }),
-                      buildCheckbox('Do you want to show MRP in invoice?', showMRPInInvoice, (value) {
+                      buildCheckbox('Do you want to show MRP in invoice?',
+                          showMRPInInvoice, (value) {
                         setState(() {
                           showMRPInInvoice = value!;
                         });
@@ -258,20 +250,20 @@ class _PreferencesPageState extends State<PreferencesPage> {
                           });
                         },
                       ),
-                      SizedBox(height: 20),
+                      const SizedBox(height: 20),
                       ElevatedButton(
                         onPressed: () {
                           _saveUserPreferences();
                         },
                         style: ButtonStyle(
                           backgroundColor: MaterialStateProperty.all<Color>(
-                            Color.fromRGBO(243, 203, 71, 1),
+                            const Color.fromRGBO(243, 203, 71, 1),
                           ), // Change color here
                         ),
-                        child: Text(
+                        child: const Text(
                           'Save Changes',
                           style: TextStyle(
-                            color: const Color.fromARGB(255, 0, 0, 0),
+                            color: Color.fromARGB(255, 0, 0, 0),
                           ),
                         ),
                       ),
@@ -283,11 +275,12 @@ class _PreferencesPageState extends State<PreferencesPage> {
     );
   }
 
-  Widget buildCheckbox(String title, bool value, ValueChanged<bool?> onChanged) {
+  Widget buildCheckbox(
+      String title, bool value, ValueChanged<bool?> onChanged) {
     return Row(
       children: [
         Checkbox(
-          activeColor: Color.fromRGBO(243, 203, 71, 1),
+          activeColor: const Color.fromRGBO(243, 203, 71, 1),
           value: value,
           onChanged: onChanged,
         ),
@@ -298,7 +291,7 @@ class _PreferencesPageState extends State<PreferencesPage> {
 }
 
 void main() {
-  runApp(MaterialApp(
+  runApp(const MaterialApp(
     home: PreferencesPage(),
   ));
 }

@@ -1,9 +1,12 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'dart:convert';
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:speech_to_text_search/Service/result.dart';
 import 'package:speech_to_text_search/drawer.dart';
 import 'package:speech_to_text_search/Service/is_login.dart';
 import 'package:speech_to_text_search/login_profile.dart';
@@ -30,8 +33,7 @@ class AddInventoryService {
       return responseData;
     } else {
       // Log the response body
-      var errorBody = await response.stream.bytesToString();
-      print('Error response body: $errorBody');
+       Result.error("Book list not available");
       return null;
     }
   }
@@ -43,7 +45,6 @@ class AddInventoryService {
       Uri.parse(downloadExcelAPI),
       headers: {'Authorization': 'Bearer $token'},
     );
-    print(response.body);
     if (response.statusCode == 200) {
       var responseData = json.decode(response.body);
       return responseData['file'];
@@ -54,34 +55,34 @@ class AddInventoryService {
 }
 
 class AddInventory extends StatefulWidget {
+  const AddInventory({super.key});
+
   @override
-  _AddInventoryState createState() => _AddInventoryState();
+  State<AddInventory> createState() => _AddInventoryState();
 }
 
 class _AddInventoryState extends State<AddInventory> {
   // Dummy data for the unit dropdown
-  List<String> fullUnits = ['Bags', 'Bottle', 'Box', 'Bundle', 'Can', 'Cartoon', 'Gram', 'Kilogram', 'Litre', 'Meter', 'Millilitre', 'Number', 'Pack', 'Pair', 'Piece', 'Roll', 'Square Feet', 'Square Meter'];
+  List<String> fullUnits = ['Full Unit', 'Bags', 'Bottle', 'Box', 'Bundle', 'Can', 'Cartoon', 'Gram', 'Kilogram', 'Litre', 'Meter', 'Millilitre', 'Number', 'Pack', 'Pair', 'Piece', 'Roll', 'Square Feet', 'Square Meter'];
 
-  List<String> shortUnits = ['BAG', 'BTL', 'BOX', 'BDL', 'CAN', 'CTN', 'GM', 'KG', 'LTR', 'MTR', 'ML', 'NUM', 'PCK', 'PRS', 'PCS', 'ROL', 'SQF', 'SQM'];
+  List<String> shortUnits = ['Short Unit *','BAG', 'BTL', 'BOX', 'BDL', 'CAN', 'CTN', 'GM', 'KG', 'LTR', 'MTR', 'ML', 'NUM', 'PCK', 'PRS', 'PCS', 'ROL', 'SQF', 'SQM'];
 
   List<Widget> taxRateRows = [];
   List<Key> taxRateRowKeys = [];
-  Map<String, TextEditingController> textControllers = {};
+  TextEditingController itemNameValueController = TextEditingController();
+  TextEditingController mrpValueController = TextEditingController();
+  TextEditingController salePriceValueController = TextEditingController();
+  TextEditingController stockQuantityValueController = TextEditingController();
+  TextEditingController codeHSNSACvalueController = TextEditingController();
+  TextEditingController rateOneValueController = TextEditingController();
+  TextEditingController rateTwoValueController = TextEditingController();
 
   Map<int, String> rateControllers = {};
   Map<int, String> taxControllers = {};
 
-  String fullUnitDropdownValue = '';
-  String shortUnitDropdownValue = '';
-
-  String itemNameValue = '';
-  String salePriceValue = '';
-  String stockQuntityValue = '';
-  String mrpValue = '';
-  String codeHSNSACvalue = '';
-
+  String? fullUnitDropdownValue;
+  String? shortUnitDropdownValue;
   int _selectedIndex = 3;
-
   bool maintainMRP = false;
   bool maintainStock = false;
   bool showHSNSACCode = false;
@@ -98,10 +99,8 @@ class _AddInventoryState extends State<AddInventory> {
     // Initialize the taxRateRows list with the first row
 
     rateControllers[0] = "";
-    taxControllers[0] = "";
+    taxControllers[0] = "GST";
     _initializeData();
-    // getToken();
-    // getUserDetails();
   }
 
   Future<void> _handleUpload() async {
@@ -119,14 +118,14 @@ class _AddInventoryState extends State<AddInventory> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text('Upload Response'),
+              title: const Text('Upload Response'),
               content: Text(response),
               actions: [
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: Text('OK'),
+                  child: const Text('OK'),
                 ),
               ],
             );
@@ -138,14 +137,14 @@ class _AddInventoryState extends State<AddInventory> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text('Upload Error'),
-              content: Text('Failed to upload the file.'),
+              title: const Text('Upload Error'),
+              content: const Text('Failed to upload the file.'),
               actions: [
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: Text('OK'),
+                  child: const Text('OK'),
                 ),
               ],
             );
@@ -156,7 +155,7 @@ class _AddInventoryState extends State<AddInventory> {
   }
 
   Future<void> _handleDownload() async {
-    final url = '$baseUrl/storage/media/exported_data.xlsx';
+    const url = '$baseUrl/storage/media/exported_data.xlsx';
     final response = await http.get(Uri.parse(url));
 
     if (response.statusCode == 200) {
@@ -173,14 +172,14 @@ class _AddInventoryState extends State<AddInventory> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text('Download Success'),
+              title: const Text('Download Success'),
               content: Text('File downloaded successfully to $filePath'),
               actions: [
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: Text('OK'),
+                  child: const Text('OK'),
                 ),
               ],
             );
@@ -191,14 +190,14 @@ class _AddInventoryState extends State<AddInventory> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text('Download Error'),
-              content: Text('Failed to access external storage.'),
+              title: const Text('Download Error'),
+              content: const Text('Failed to access external storage.'),
               actions: [
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: Text('OK'),
+                  child: const Text('OK'),
                 ),
               ],
             );
@@ -210,14 +209,14 @@ class _AddInventoryState extends State<AddInventory> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Download Error'),
-            content: Text('Failed to download the file.'),
+            title: const Text('Download Error'),
+            content: const Text('Failed to download the file.'),
             actions: [
               TextButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
-                child: Text('OK'),
+                child: const Text('OK'),
               ),
             ],
           );
@@ -226,7 +225,7 @@ class _AddInventoryState extends State<AddInventory> {
     }
   }
 
-  Widget _buildCombinedDropdown(String label, List<String> items, void Function(String?) onChanged) {
+  Widget _buildCombinedDropdown(List<String> items, void Function(String?) onChanged) {
     return DropdownButtonFormField<String>(
       decoration: InputDecoration(
         filled: true,
@@ -237,7 +236,8 @@ class _AddInventoryState extends State<AddInventory> {
           borderSide: BorderSide.none,
         ),
       ),
-      value: items[0], // Initial value
+      hint: const Text('Full Unit (Short Unit)' ' *',),
+      value: fullUnitDropdownValue == null ? null : '$fullUnitDropdownValue ($shortUnitDropdownValue)', // Initial value
       items: items.map((item) {
         return DropdownMenuItem<String>(
           value: item,
@@ -258,10 +258,9 @@ class _AddInventoryState extends State<AddInventory> {
     setState(() {
       isLoading = true;
     });
-    print("kibakibi");
     var token = await APIService.getToken();
     // Make API call to fetch user preferences
-    final String apiUrl = '$baseUrl/user-preferences';
+    const String apiUrl = '$baseUrl/user-preferences';
     final response = await http.get(Uri.parse(apiUrl), headers: {
       'Authorization': 'Bearer $token',
     });
@@ -278,16 +277,13 @@ class _AddInventoryState extends State<AddInventory> {
         showHSNSACCode = preferencesData['preference_hsn'] == 1 ? true : false;
       });
     } else {
-      // Handle exceptions
-
-      // ignore: use_build_context_synchronously
       showDialog(
         barrierDismissible: false,
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Error'),
-            content: Text('An error occurred. Please login and try again.'),
+            title: const Text('Error'),
+            content: const Text('An error occurred. Please login and try again.'),
             actions: <Widget>[
               TextButton(
                 onPressed: () {
@@ -295,10 +291,10 @@ class _AddInventoryState extends State<AddInventory> {
                   // Redirect to login page
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => LoginScreen()),
+                    MaterialPageRoute(builder: (context) => const LoginScreen()),
                   );
                 },
-                child: Text('OK'),
+                child: const Text('OK'),
               ),
             ],
           );
@@ -311,7 +307,6 @@ class _AddInventoryState extends State<AddInventory> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       token = prefs.getString('token');
-      print(token);
     });
   }
 
@@ -321,30 +316,31 @@ class _AddInventoryState extends State<AddInventory> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: false,
+      onPopInvoked : (didPop) async {
         _selectedIndex = 0;
         // Navigate to NextPage when user tries to pop MyHomePage
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => SearchApp()),
+          MaterialPageRoute(builder: (context) => const SearchApp()),
         );
         // Return false to prevent popping the current route
-        return false;
+        return;
       },
       child: Scaffold(
-        backgroundColor: Color.fromRGBO(246, 247, 255, 1),
+        backgroundColor: const Color.fromRGBO(246, 247, 255, 1),
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          title: Text(
+          title: const Text(
             'Add Inventory',
             style: TextStyle(
-              color: const Color.fromARGB(255, 0, 0, 0),
+              color: Color.fromARGB(255, 0, 0, 0),
             ),
           ),
-          backgroundColor: Color.fromRGBO(243, 203, 71, 1),
+          backgroundColor: const Color.fromRGBO(243, 203, 71, 1),
         ),
-        drawer: Sidebar(),
+        drawer: const Sidebar(),
         bottomNavigationBar: CustomNavigationBar(
           onItemSelected: (index) {
             // Handle navigation item selection
@@ -355,7 +351,7 @@ class _AddInventoryState extends State<AddInventory> {
           selectedIndex: _selectedIndex,
         ),
         body: isLoading
-            ? Center(
+            ? const Center(
                 child: CircularProgressIndicator(), // Show loading indicator
               )
             : SingleChildScrollView(
@@ -372,50 +368,48 @@ class _AddInventoryState extends State<AddInventory> {
                             ElevatedButton(
                               onPressed: _handleUpload,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Color(0xFF31D2F2),
+                                backgroundColor: const Color(0xFF31D2F2),
                                 foregroundColor: Colors.white, // white text color
                               ),
-                              child: Text('Upload'),
+                              child: const Text('Upload'),
                             ),
-                            SizedBox(width: 10),
+                            const SizedBox(width: 10),
                             ElevatedButton(
                               onPressed: _handleDownload,
                               style: ElevatedButton.styleFrom(
-                                foregroundColor: Colors.white, backgroundColor: Color(0xFF5C636A), // white text color
+                                foregroundColor: Colors.white, backgroundColor: const Color(0xFF5C636A), // white text color
                               ),
-                              child: Text('Download'),
+                              child: const Text('Download'),
                             ),
                           ],
                         ),
                       ),
                       // Item Name Input Box
-                      SizedBox(height: 15.0),
-                      _buildInputBox(' Item Name', itemNameValue, (value) {
+                      const SizedBox(height: 15.0),
+                      _buildInputBox(' Item Name', itemNameValueController, (value) {
                         setState(() {
-                          itemNameValue = value; // Update the itemNameValue
+                          itemNameValueController.text = value; // Update the itemNameValue
                         });
                       }),
 
-                      SizedBox(height: 20.0),
+                      const SizedBox(height: 20.0),
                       // Quantity in Stock
                       Row(children: [
                         Expanded(
-                          child: _buildCombinedDropdown('Unit', ['Full Unit (Short Unit)' + ' *', ...fullUnits.map((unit) => '$unit (${shortUnits[fullUnits.indexOf(unit)]})').toList()], (value) {
+                          child: _buildCombinedDropdown(fullUnits.map((unit) => '$unit (${shortUnits[fullUnits.indexOf(unit)]})').toList(), (value) {
                             // Split the selected value into full unit and short unit
                             List<String> units = value!.split(' (');
                             String fullUnit = units[0];
                             String shortUnit = units[1].substring(0, units[1].length - 1);
                             setState(() {
-                              print(fullUnit);
                               fullUnitDropdownValue = fullUnit; // Update the fullUnitDropdownValue
-                              print(shortUnit);
                               shortUnitDropdownValue = shortUnit; // Update the shortUnitDropdownValue
                             });
                           }),
                         )
                       ]),
 
-                      SizedBox(height: 20.0),
+                      const SizedBox(height: 20.0),
 
                       // Sale Price Input Box
                       Row(
@@ -423,9 +417,9 @@ class _AddInventoryState extends State<AddInventory> {
                           Flexible(
                             child: Visibility(
                               visible: maintainMRP,
-                              child: _buildInputBox(' MRP', mrpValue, (value) {
+                              child: _buildInputBox(' MRP', mrpValueController, (value) {
                                 setState(() {
-                                  mrpValue = value; // Update the mrpValue
+                                  mrpValueController.text = value; // Update the mrpValue
                                 });
                               }, isNumeric: true),
                             ),
@@ -433,9 +427,9 @@ class _AddInventoryState extends State<AddInventory> {
                           SizedBox(width: maintainMRP ? 16.0 : 0), // Add spacing if MRP is visible
                           Flexible(
                             // Use Flexible for salePriceValue as well
-                            child: _buildInputBox(' Sale price: Rs.', salePriceValue, (value) {
+                            child: _buildInputBox(' Sale price: Rs.', salePriceValueController, (value) {
                               setState(() {
-                                salePriceValue = value; // Update the itemNameValue
+                                salePriceValueController.text = value; // Update the itemNameValue
                               });
                             }, isNumeric: true),
                           ),
@@ -449,28 +443,28 @@ class _AddInventoryState extends State<AddInventory> {
 
                       // new emplementation
 
-                      SizedBox(height: 16.0),
+                      const SizedBox(height: 16.0),
                       Visibility(
                         visible: maintainStock,
-                        child: _buildInputBox(' Stock Quantity', stockQuntityValue, (value) {
+                        child: _buildInputBox(' Stock Quantity', stockQuantityValueController, (value) {
                           setState(() {
-                            stockQuntityValue = value; // Update the stockValue
+                            stockQuantityValueController.text = value; // Update the stockValue
                           });
                         }, isNumeric: true),
                       ),
-                      SizedBox(height: 16.0),
+                      const SizedBox(height: 16.0),
                       Visibility(
                         visible: showHSNSACCode,
-                        child: _buildInputBox(' HSN/ SAC Code', codeHSNSACvalue, (value) {
+                        child: _buildInputBox(' HSN/ SAC Code', codeHSNSACvalueController, (value) {
                           setState(() {
-                            codeHSNSACvalue = value; // Update the stockValue
+                            codeHSNSACvalueController.text = value; // Update the stockValue
                           });
                         }, isNumeric: true),
                       ),
 
                       // new emplementation
 
-                      SizedBox(height: 20.0),
+                      const SizedBox(height: 20.0),
 
                       Column(
                         children: [
@@ -478,26 +472,23 @@ class _AddInventoryState extends State<AddInventory> {
                             Column(
                               children: [
                                 taxRateRows[i],
-                                SizedBox(height: 8.0),
+                                const SizedBox(height: 8.0),
                               ],
                             ),
                         ],
                       ),
 
-                      SizedBox(height: 20.0),
+                      const SizedBox(height: 20.0),
 
                       // Add More Button
                       ElevatedButton(
                         onPressed: () {
                           submitData();
-                          // Submit functionality
-                          print('Submit Button Pressed');
-                          // TODO: Implement form submission logic
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.green, // Change the color here
                         ),
-                        child: Text(
+                        child: const Text(
                           'ADD',
                           style: TextStyle(
                             color: Colors.white,
@@ -512,14 +503,14 @@ class _AddInventoryState extends State<AddInventory> {
     );
   }
 
-  Widget _buildInputBox(String labelText, String identifier, void Function(String) updateIdentifier, {bool isNumeric = false}) {
+  Widget _buildInputBox(String labelText, TextEditingController textControllers, void Function(String) updateIdentifier, {bool isNumeric = false}) {
     return TextField(
-      controller: textControllers[identifier],
+      controller: textControllers,
       decoration: InputDecoration(
         filled: true,
         fillColor: Colors.white,
-        labelText: labelText + ' *', // Adding asterisk (*) to the label text
-        labelStyle: TextStyle(color: Colors.black), // Setting label text color to black
+        labelText: '$labelText *', // Adding asterisk (*) to the label text
+        labelStyle: const TextStyle(color: Colors.black), // Setting label text color to black
 
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8.0),
@@ -533,164 +524,191 @@ class _AddInventoryState extends State<AddInventory> {
     );
   }
 
-  Widget _buildDropdown(String labelText, List<String> dropdownItems, String unitDropdownValue, void Function(String) updateDropdownValue) {
-    return DropdownButtonFormField<String>(
-      // Set the value of the dropdown
-      items: dropdownItems.map((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value),
-        );
-      }).toList(),
-      onChanged: (String? value) {
-        // Call the callback function to update the dropdown value
-        updateDropdownValue(value!);
-      },
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: Colors.white,
-        labelText: labelText,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8.0),
-          borderSide: BorderSide.none,
-        ),
-      ),
-    );
-  }
-
 // Function to submit data
   void submitData() async {
-    print("item $itemNameValue");
+      if (token == null || token!.isEmpty) {
+        return;
+      }
 
-    if (token == null || token!.isEmpty) {
-      print('Token is missing');
-      return;
-    }
+    // // Validate Text Field's to check their required
+    // if (itemNameValueController.text.isEmpty ||
+    //     fullUnitDropdownValue == null ||
+    //     shortUnitDropdownValue == null ||
+    //     rateOneValueController.text.isEmpty ||
+    //     mrpValueController.text.isEmpty &&
+    //     salePriceValueController.text.isEmpty &&
+    //     codeHSNSACvalueController.text.isEmpty &&
+    //     rateTwoValueController.text.isEmpty
+    //     ) {
+    //   Fluttertoast.showToast(
+    //     msg: "All fields are required.",
+    //     toastLength: Toast.LENGTH_SHORT,
+    //     gravity: ToastGravity.BOTTOM,
+    //     timeInSecForIosWeb: 1,
+    //     textColor: Colors.white,
+    //     fontSize: 16.0
+    // );
+    //   return;
+    // }
 
-    Map<String, dynamic> postData = {
-      'item_name': itemNameValue,
-      'quantity': int.tryParse(stockQuntityValue),
-      'sale_price': int.tryParse(salePriceValue),
-      'full_unit': fullUnitDropdownValue,
-      'short_unit': shortUnitDropdownValue,
-      'mrp': mrpValue, // Add mrp
-      'hsn': codeHSNSACvalue,
-    };
+    // // Validate tax fields for dropdown
+    // for (var value in taxControllers.values) {
+    //   if (value.characters.isEmpty) {
+    //     Fluttertoast.showToast(
+    //         msg: "Taxes must be declared.",
+    //         toastLength: Toast.LENGTH_SHORT,
+    //         gravity: ToastGravity.BOTTOM,
+    //         timeInSecForIosWeb: 1,
+    //         textColor: Colors.white,
+    //         fontSize: 16.0
+    //     );
+    //     return;
+    //   }
+    // }
 
-    taxControllers.forEach((index, value) {
-      index = index + 1;
-      postData['tax$index'] = value;
-    });
+      Map<String, dynamic> postData = {
+        'item_name': itemNameValueController.text,
+        'quantity': int.tryParse(stockQuantityValueController.text),
+        'sale_price': int.tryParse(salePriceValueController.text),
+        'full_unit': fullUnitDropdownValue,
+        'short_unit': shortUnitDropdownValue,
+        'mrp': mrpValueController.text, // Add mrp
+        'hsn': codeHSNSACvalueController.text,
+      };
 
-    rateControllers.forEach((index, value) {
-      index = index + 1;
-      postData['rate$index'] = value;
-    });
+      // for(var value in taxControllers.values){
+          taxControllers.forEach((index, value) {
+            index = index + 1;
+            postData['tax$index'] = value;
+          });
+          // if(value.isEmpty){
+          //   return showDialog(
+          //     context: context,
+          //     builder: (BuildContext context) {
+          //       return AlertDialog(
+          //         title: const Text(""),
+          //         content: const Text("Must Fill The Tax Value"),
+          //         actions: [
+          //           TextButton(
+          //             onPressed: () {
+          //               Navigator.of(context).pop();
+          //             },
+          //             child: const Text("OK"),
+          //           ),
+          //         ],
+          //       );
+          //     },
+          //   );
+          // }
+        // }
 
-    try {
-      var response = await http.post(
-        Uri.parse('$baseUrl/add-item'),
-        body: jsonEncode(postData),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-      );
-
-      if (response.statusCode == 200) {
-        var responseData = jsonDecode(response.body);
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text("Success"),
-              content: Text("Item added successfully."),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    // Clear input fields
-                    setState(() {
-                      itemNameValue = '';
-                      salePriceValue = '';
-                      stockQuntityValue = '';
-                      mrpValue = '';
-                      codeHSNSACvalue = '';
-                      fullUnitDropdownValue = '';
-                      shortUnitDropdownValue = '';
-                      taxControllers.clear();
+      postData['rate1'] = rateOneValueController.text;
+      postData['rate2'] = rateTwoValueController.text;
+      try {
+        var response = await http.post(
+          Uri.parse('$baseUrl/add-item'),
+          body: jsonEncode(postData),
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        );
+        if (response.statusCode == 200) {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text("Success"),
+                content: const Text("Item added successfully."),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      // Clear input fields
+                      fullUnitDropdownValue = fullUnits[0];
+                      shortUnitDropdownValue = shortUnits[0];
+                      // taxControllers.clear();
                       rateControllers.clear();
                       taxRateRows.clear();
                       taxRateRowKeys.clear();
                       var key = GlobalKey();
                       taxRateRowKeys.add(key);
                       taxRateRows.add(_buildTaxRateRow(key, 0));
-                    });
-
-                    Navigator.of(context).pop(); // Close dialog
-                  },
-                  child: Text("OK"),
-                ),
-              ],
-            );
-          },
-        );
-      } else if (response.statusCode == 401) {
+                      itemNameValueController.clear();
+                      mrpValueController.clear();
+                      salePriceValueController.clear();
+                      stockQuantityValueController.clear();
+                      codeHSNSACvalueController.clear();
+                      rateOneValueController.clear();
+                      rateTwoValueController.clear();
+                      setState((){});
+                      Navigator.of(context).pop(); // Close dialog
+                    },
+                    child: const Text("OK"),
+                  ),
+                ],
+              );
+            },
+          );
+        } else if (response.statusCode == 401) {
+          Result.error("Book list not available");
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text("Unauthorized"),
+                content: const Text("Token missing or unauthorized."),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text("OK"),
+                  ),
+                ],
+              );
+            },
+          );
+        } else {
+          var errorData = jsonDecode(response.body);
+          Result.error("Book list not available");
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text("Error"),
+                content: Text("Error: ${errorData['message']}"),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text("OK"),
+                  ),
+                ],
+              );
+            },
+          );
+        }
+      } catch (error) {
+        Result.error("Book list not available");
         showDialog(
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: Text("Unauthorized"),
-              content: Text("Token missing or unauthorized."),
+              title: const Text("Error"),
+              content: Text("Error: $error"),
               actions: [
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).pop();
                   },
-                  child: Text("OK"),
-                ),
-              ],
-            );
-          },
-        );
-      } else {
-        var errorData = jsonDecode(response.body);
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: Text("Error"),
-              content: Text("Error: ${errorData['message']}"),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: Text("OK"),
+                  child: const Text("OK"),
                 ),
               ],
             );
           },
         );
       }
-    } catch (error) {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text("Error"),
-            content: Text("Error: $error"),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text("OK"),
-              ),
-            ],
-          );
-        },
-      );
-    }
   }
 
   void _showFailedDialog() {
@@ -699,18 +717,18 @@ class _AddInventoryState extends State<AddInventory> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text("Failed to Fetch User Details"),
-          content: Text("Unable to fetch user details. Please login again."),
+          title: const Text("Failed to Fetch User Details"),
+          content: const Text("Unable to fetch user details. Please login again."),
           actions: <Widget>[
             TextButton(
               onPressed: () {
                 // Navigate to the login page
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => LoginScreen()), // Change to AddItemScreen()
+                  MaterialPageRoute(builder: (context) => const LoginScreen()), // Change to AddItemScreen()
                 );
               },
-              child: Text("Login"),
+              child: const Text("Login"),
             ),
           ],
         );
@@ -722,6 +740,7 @@ class _AddInventoryState extends State<AddInventory> {
     bool isFirstRow = index == 0;
     bool isMaxRowsReached = taxRateRows.length >= 2;
     return Row(
+      key: key,
       children: [
         Expanded(
           child: DropdownButtonFormField<String>(
@@ -731,7 +750,7 @@ class _AddInventoryState extends State<AddInventory> {
                 taxControllers[index] = value!;
               });
             },
-            items: [
+            items: const [
               DropdownMenuItem<String>(
                 value: 'GST',
                 child: Text('GST'),
@@ -744,7 +763,7 @@ class _AddInventoryState extends State<AddInventory> {
             decoration: InputDecoration(
               filled: true,
               fillColor: Colors.white,
-              labelText: 'Tax' + ' *',
+              labelText: 'Tax' ' *',
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8.0),
                 borderSide: BorderSide.none,
@@ -752,19 +771,15 @@ class _AddInventoryState extends State<AddInventory> {
             ),
           ),
         ),
-        SizedBox(width: 16.0),
+        const SizedBox(width: 16.0),
         Expanded(
           child: TextField(
+            controller: index == 0 ? rateOneValueController : rateTwoValueController,
             keyboardType: TextInputType.number,
-            onChanged: (value) {
-              setState(() {
-                rateControllers[index] = value;
-              });
-            },
             decoration: InputDecoration(
               filled: true,
               fillColor: Colors.white,
-              labelText: 'Rate' + ' *',
+              labelText: 'Rate' ' *',
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8.0),
                 borderSide: BorderSide.none,
@@ -782,14 +797,14 @@ class _AddInventoryState extends State<AddInventory> {
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
-                      title: Text('Warning'),
-                      content: Text('You cannot add more than 2 tax rows.'),
+                      title: const Text('Warning'),
+                      content: const Text('You cannot add more than 2 tax rows.'),
                       actions: <Widget>[
                         TextButton(
                           onPressed: () {
                             Navigator.of(context).pop();
                           },
-                          child: Text('OK'),
+                          child: const Text('OK'),
                         ),
                       ],
                     );
@@ -812,21 +827,12 @@ class _AddInventoryState extends State<AddInventory> {
                 });
               }
             } catch (e) {
-              print('Error in onPressed: $e');
+              Result.error("Book list not available");
             }
           },
         ),
       ],
-      key: key,
     );
   }
 
-  void removeTaxRateRow(int index) {
-    setState(() {
-      taxRateRowKeys.removeAt(index);
-      taxRateRows.removeAt(index);
-      rateControllers.remove(index);
-      taxControllers.remove(index);
-    });
-  }
 }
