@@ -1110,18 +1110,19 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
 
 //New Code
   Widget _parseSpeech(String words, bool finalResult) {
-    RegExp regex = RegExp(r'(\w+(?:\s+\w+)*)\s+quantity\s+(\d+)\s*(\w+)?');
+    // RegExp regex = RegExp(r'(\w+(?:\s+\w+)*)\s+quantity\s+(\d+)\s*(\w+)?');
+    RegExp regex = RegExp(r'(.+?)\b quantity ((\d+(\.\d+)?)|\b\w+\b) (\b\w+\s*)+');
     Match? match = regex.firstMatch(words);
 
     if (match != null) {
       String product = match.group(1) ?? "";
       String quantity = match.group(2) ?? "";
-      String unitOfQuantity = match.group(3) ?? "";
+      String unitOfQuantity = match.group(5) ?? "";
 
-      if (product.isNotEmpty &&
-          quantity.isNotEmpty &&
-          unitOfQuantity != null &&
-          unitOfQuantity.isNotEmpty) {
+      // if (product.isNotEmpty &&
+      //     quantity.isNotEmpty &&
+      //     unitOfQuantity != null &&
+      //     unitOfQuantity.isNotEmpty) {
         productNameController.text = product;
         text2num(quantity);
         // quantityController.text = quantity;
@@ -1130,66 +1131,116 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
           newItems = (result as SuccessState).value;
           setState(() {});
         });
+
+      if (product.isEmpty) {
+        setState(() {
+          _errorMessage = 'Product is missing';
+          speak(_errorMessage);
+        });
+        return _productErrorWidget(_errorMessage);
+      }
+      if (quantity == null || quantity.isEmpty) {
+        setState(() {
+          _errorMessage = 'Quantity is missing';
+          speak(_errorMessage);
+        });
+        return _productErrorWidget(_errorMessage);
+      }
+      if (unitOfQuantity.isEmpty) {
+        setState(() {
+          _errorMessage = 'Unit is missing';
+          speak(_errorMessage);
+        });
+        return _productErrorWidget(_errorMessage);
+      }
         setState(() {
           _errorMessage = ''; // Clear error message on successful parsing
         });
-      } else if (unitOfQuantity == null || unitOfQuantity.isEmpty) {
-        setState(() {
-          _errorMessage = 'Unit is missing.';
-          if(finalResult == true){
-          speak(_errorMessage);}
-        });
-        return _productErrorWidget(_errorMessage);
-      }
-    }
+      // } else if (unitOfQuantity == null || unitOfQuantity.isEmpty) {
+      //   setState(() {
+      //     _errorMessage = 'Unit is missing.';
+      //     if(finalResult == true){
+      //     speak(_errorMessage);}
+      //   });
+      //   return _productErrorWidget(_errorMessage);
+      // }
+    }else{
     if(finalResult == true){
-      if (!words.contains('quantity')) {
+      if (words.contains('quantity')) {
+        if (words.startsWith('quantity')) {
+          setState(() {
+            _errorMessage = 'Product is missing';
+            speak(_errorMessage);
+          });
+          return _productErrorWidget(_errorMessage);
+        } else if (words.endsWith('quantity')) {
+          setState(() {
+            _errorMessage = 'Quantity and unit are missing';
+            speak(_errorMessage);
+          });
+          return _productErrorWidget(_errorMessage);
+        } else {
+          setState(() {
+            _errorMessage = 'unit is missing';
+            speak(_errorMessage);
+          });
+          return _productErrorWidget(_errorMessage);
+        }
+      } else {
         setState(() {
-          _errorMessage = 'Quantity word is missing.';
+          _errorMessage = 'Quantity word is missing';
           speak(_errorMessage);
         });
         return _productErrorWidget(_errorMessage);
       }
 
-      if (words.contains('quantity') && !words.contains(RegExp(r'\d+'))) {
-        setState(() {
-          _errorMessage = 'Quantity is missing.';
-          speak(_errorMessage);
-        });
-        return _productErrorWidget(_errorMessage);
-      }
-
-      if (words.contains(RegExp(r'quantity\s+\d+')) &&
-          !words.contains(RegExp(r'\w+$'))) {
-        setState(() {
-          _errorMessage = 'Unit is missing.';
-          speak(_errorMessage);
-        });
-        return _productErrorWidget(_errorMessage);
-      }
-
-      if (words.contains(RegExp(r'\d+\s*\w+$')) && !words.contains('quantity')) {
-        setState(() {
-          _errorMessage = 'Quantity word is missing.';
-          speak(_errorMessage);
-        });
-        return _productErrorWidget(_errorMessage);
-      }
-
-      if (words.startsWith('quantity')) {
-        setState(() {
-          _errorMessage = 'Product is missing.';
-          speak(_errorMessage);
-        });
-        return _productErrorWidget(_errorMessage);
-      }
-    }
+      // if (!words.contains('quantity')) {
+      //   setState(() {
+      //     _errorMessage = 'Quantity word is missing.';
+      //     speak(_errorMessage);
+      //   });
+      //   return _productErrorWidget(_errorMessage);
+      // }
+      //
+      // if (words.contains('quantity') && !words.contains(RegExp(r'\d+'))) {
+      //   setState(() {
+      //     _errorMessage = 'Quantity is missing.';
+      //     speak(_errorMessage);
+      //   });
+      //   return _productErrorWidget(_errorMessage);
+      // }
+      //
+      // if (words.contains(RegExp(r'quantity\s+\d+')) &&
+      //     !words.contains(RegExp(r'\w+$'))) {
+      //   setState(() {
+      //     _errorMessage = 'Unit is missing.';
+      //     speak(_errorMessage);
+      //   });
+      //   return _productErrorWidget(_errorMessage);
+      // }
+      //
+      // if (words.contains(RegExp(r'\d+\s*\w+$')) && !words.contains('quantity')) {
+      //   setState(() {
+      //     _errorMessage = 'Quantity word is missing.';
+      //     speak(_errorMessage);
+      //   });
+      //   return _productErrorWidget(_errorMessage);
+      // }
+      //
+      // if (words.startsWith('quantity')) {
+      //   setState(() {
+      //     _errorMessage = 'Product is missing.';
+      //     speak(_errorMessage);
+      //   });
+      //   return _productErrorWidget(_errorMessage);
+      // }
+    }}
     // if(match != null && finalResult == true){
     //   _errorMessage = 'Invalid input.';
     //   speak(_errorMessage);
     // }
     setState(() {});
-    return _productErrorWidget(_errorMessage);
+    return _productErrorWidget('');
   }
 
   Widget _productErrorWidget(error) {
@@ -1399,7 +1450,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
 
   int text2num(String s) {
     var small = {
-      'zero': 0, 'one': 1, 'won': 1, 'on': 1, 'en': 1, 'two': 2, 'to': 2, 'too': 2,
+      'zero': 0, 'one': 1, 'won': 1, 'on': 1, 'en': 1, 'two': 2, 'to': 2,'do': 2, 'too': 2,
       'three': 3, 'tree': 3, 'tre': 3, 'tray': 3, 'trae': 3, 'four': 4, 'for': 4,
       'fore': 4, 'fire': 4, 'five': 5, 'hive': 5, 'six': 6, 'sex': 6, 'seks': 6,
       'seven': 7, 'eight': 8, 'ate': 8, 'nine': 9, 'line': 9, 'nein': 9, 'neon': 9,

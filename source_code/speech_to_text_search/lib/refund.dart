@@ -1168,18 +1168,19 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
 //New Code
 
   Widget _parseSpeech(String words, bool finalResult) {
-    RegExp regex = RegExp(r'(\w+(?:\s+\w+)*)\s+quantity\s+(\d+)\s*(\w+)?');
+    // RegExp regex = RegExp(r'(\w+(?:\s+\w+)*)\s+quantity\s+(\d+)\s*(\w+)?');
+    RegExp regex = RegExp(r'(.+?)\b quantity ((\d+(\.\d+)?)|\b\w+\b) (\b\w+\s*)+');
     Match? match = regex.firstMatch(words);
 
     if (match != null) {
       String product = match.group(1) ?? "";
       String quantity = match.group(2) ?? "";
-      String unitOfQuantity = match.group(3) ?? "";
+      String unitOfQuantity = match.group(5) ?? "";
 
-      if (product.isNotEmpty &&
-          quantity.isNotEmpty &&
-          unitOfQuantity != null &&
-          unitOfQuantity.isNotEmpty) {
+      // if (product.isNotEmpty &&
+      //     quantity.isNotEmpty &&
+      //     unitOfQuantity != null &&
+      //     unitOfQuantity.isNotEmpty) {
         productNameController.text = product;
         quantityController.text = quantity;
         quantityNumeric = double.parse(quantity);
@@ -1187,61 +1188,110 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
           newItemList = (result as SuccessState).value;
           setState(() {});
         });
+        if (product.isEmpty) {
+          setState(() {
+            _errorMessage = 'Product is missing';
+            speak(_errorMessage);
+          });
+          return _productErrorWidget(_errorMessage);
+        }
+        if (quantity == null || quantity.isEmpty) {
+          setState(() {
+            _errorMessage = 'Quantity is missing';
+            speak(_errorMessage);
+          });
+          return _productErrorWidget(_errorMessage);
+        }
+        if (unitOfQuantity.isEmpty) {
+          setState(() {
+            _errorMessage = 'Unit is missing';
+            speak(_errorMessage);
+          });
+          return _productErrorWidget(_errorMessage);
+        }
         setState(() {
           _errorMessage = ''; // Clear error message on successful parsing
         });
-      } else if (unitOfQuantity == null || unitOfQuantity.isEmpty) {
-        setState(() {
-          _errorMessage = 'Unit is missing.';
-          if(finalResult == true){
-            speak(_errorMessage);}
-        });
-        return _productErrorWidget(_errorMessage);
-      }
-    }
+      // }
+      // else if (unitOfQuantity == null || unitOfQuantity.isEmpty) {
+      //   setState(() {
+      //     _errorMessage = 'Unit is missing.';
+      //     if(finalResult == true){
+      //       speak(_errorMessage);}
+      //   });
+      //   return _productErrorWidget(_errorMessage);
+      // }
+    }else{
+      if(finalResult == true){
+        if (words.contains('quantity')) {
+          if (words.startsWith('quantity')) {
+            setState(() {
+              _errorMessage = 'Product is missing';
+              speak(_errorMessage);
+            });
+            return _productErrorWidget(_errorMessage);
+          } else if (words.endsWith('quantity')) {
+            setState(() {
+              _errorMessage = 'Quantity and unit are missing';
+              speak(_errorMessage);
+            });
+            return _productErrorWidget(_errorMessage);
+          } else {
+            setState(() {
+              _errorMessage = 'unit is missing';
+              speak(_errorMessage);
+            });
+            return _productErrorWidget(_errorMessage);
+          }
+        } else {
+          setState(() {
+            _errorMessage = 'Quantity word is missing';
+            speak(_errorMessage);
+          });
+          return _productErrorWidget(_errorMessage);
+        }
 
-    if(finalResult == true){
-      if (!words.contains('quantity')) {
-        setState(() {
-          _errorMessage = 'Quantity word is missing.';
-          speak(_errorMessage);
-        });
-        return _productErrorWidget(_errorMessage);
-      }
-
-      if (words.contains('quantity') && !words.contains(RegExp(r'\d+'))) {
-        setState(() {
-          _errorMessage = 'Quantity is missing.';
-          speak(_errorMessage);
-        });
-        return _productErrorWidget(_errorMessage);
-      }
-
-      if (words.contains(RegExp(r'quantity\s+\d+')) &&
-          !words.contains(RegExp(r'\w+$'))) {
-        setState(() {
-          _errorMessage = 'Unit is missing.';
-          speak(_errorMessage);
-        });
-        return _productErrorWidget(_errorMessage);
-      }
-
-      if (words.contains(RegExp(r'\d+\s*\w+$')) && !words.contains('quantity')) {
-        setState(() {
-          _errorMessage = 'Quantity word is missing.';
-          speak(_errorMessage);
-        });
-        return _productErrorWidget(_errorMessage);
-      }
-
-      if (words.startsWith('quantity')) {
-        setState(() {
-          _errorMessage = 'Product is missing.';
-          speak(_errorMessage);
-        });
-        return _productErrorWidget(_errorMessage);
-      }
-    }
+        // if (!words.contains('quantity')) {
+        //   setState(() {
+        //     _errorMessage = 'Quantity word is missing.';
+        //     speak(_errorMessage);
+        //   });
+        //   return _productErrorWidget(_errorMessage);
+        // }
+        //
+        // if (words.contains('quantity') && !words.contains(RegExp(r'\d+'))) {
+        //   setState(() {
+        //     _errorMessage = 'Quantity is missing.';
+        //     speak(_errorMessage);
+        //   });
+        //   return _productErrorWidget(_errorMessage);
+        // }
+        //
+        // if (words.contains(RegExp(r'quantity\s+\d+')) &&
+        //     !words.contains(RegExp(r'\w+$'))) {
+        //   setState(() {
+        //     _errorMessage = 'Unit is missing.';
+        //     speak(_errorMessage);
+        //   });
+        //   return _productErrorWidget(_errorMessage);
+        // }
+        //
+        // if (words.contains(RegExp(r'\d+\s*\w+$')) && !words.contains('quantity')) {
+        //   setState(() {
+        //     _errorMessage = 'Quantity word is missing.';
+        //     speak(_errorMessage);
+        //   });
+        //   return _productErrorWidget(_errorMessage);
+        // }
+        //
+        // if (words.startsWith('quantity')) {
+        //   setState(() {
+        //     _errorMessage = 'Product is missing.';
+        //     speak(_errorMessage);
+        //   });
+        //   return _productErrorWidget(_errorMessage);
+        // }
+      }}
 
     setState(() {
       _errorMessage = 'Invalid input.';
