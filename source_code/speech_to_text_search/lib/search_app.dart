@@ -126,7 +126,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
       builder: (context, micState, quantityMicState, _) {
         return PopScope(
           canPop: false,
-          onPopInvoked : (didPop) async {
+          onPopInvoked: (didPop) async {
             final value = await showDialog<bool>(
                 context: context,
                 builder: (context) {
@@ -160,685 +160,656 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
               });
             },
             child: Scaffold(
-              drawer: const Sidebar(),
-              bottomNavigationBar: CustomNavigationBar(
-                onItemSelected: (index) {
-                  // Handle navigation item selection
-                  setState(() {
-                    _selectedIndex = index;
-                  });
-                },
-                selectedIndex: _selectedIndex,
-              ),
-              body: SingleChildScrollView(
-                child: SizedBox(
-                  height: MediaQuery.of(context).size.height -
-                      MediaQuery.of(context).padding.top,
-                  child: Stack(
-                    children: [
-                      Column(
-                        children: <Widget>[
-                          const SizedBox(
-                            height: 30,
-                          ),
-                          Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const SizedBox(
-                                  height:
-                                      20), // Adjust the spacing between the container and the text
-                              Visibility(
-                                visible: isListeningMic,
-                                child: const Text(
-                                  "I am Listening...",
-                                  style: TextStyle(
-                                    color: Colors.black,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          // Adjust the spacing between the container and the text
-
-                          validProductName
-                              ? const Padding(
-                                  padding: EdgeInsets.all(0.0),
-                                  child: Text(""),
-                                )
-                              : const Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.center,
-                                  children: [
-                                    Icon(
-                                      Icons.error,
-                                      color: Colors.red,
-                                    ),
-                                    Text(
-                                      "Product Not Found",
-                                      style: TextStyle(
-                                          fontSize: 20,
-                                          color: Colors.red),
-                                    ),
-                                  ],
-                                ),
-
-                          Padding(
-                            padding: const EdgeInsets.all(16.0),
-                            child: Column(
+                drawer: const Sidebar(),
+                bottomNavigationBar: CustomNavigationBar(
+                  onItemSelected: (index) {
+                    // Handle navigation item selection
+                    setState(() {
+                      _selectedIndex = index;
+                    });
+                  },
+                  selectedIndex: _selectedIndex,
+                ),
+                body: SingleChildScrollView(
+                  child: SizedBox(
+                    height: MediaQuery.of(context).size.height -
+                        MediaQuery.of(context).padding.top,
+                    child: Stack(
+                      children: [
+                        Column(
+                          children: <Widget>[
+                            const SizedBox(
+                              height: 30,
+                            ),
+                            Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                TextFormField(
-                                  controller: productNameController,
-                                  focusNode: _searchFocus,
-                                  onChanged: updateSuggestionList,
-                                  decoration: InputDecoration(
-                                    // border: OutlineInputBorder(
-                                    //   borderRadius: BorderRadius.circular(50.0),
-                                    // ),
-                                    enabledBorder:
-                                        const UnderlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Color.fromARGB(
-                                              255, 0, 0, 0)),
-                                    ),
-                                    focusedBorder:
-                                        const UnderlineInputBorder(
-                                      borderSide:
-                                          BorderSide(color: Colors.cyan),
-                                    ),
-                                    hintText: "  Type a Product...",
-                                    hintStyle: const TextStyle(
-                                        fontSize: 20.0,
-                                        color:
-                                            Color.fromRGBO(0, 0, 0, 1)),
-                                    suffixIcon: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Visibility(
-                                          visible: productNameController
-                                              .text.isNotEmpty,
-                                          child: IconButton(
-                                            padding:
-                                                const EdgeInsets.fromLTRB(
-                                                    40, 0, 0, 0),
-                                            icon: const Icon(
-                                              Icons.clear,
-                                              color: Color.fromRGBO(
-                                                  0, 0, 0, 1),
-                                            ),
-                                            onPressed: () {
-                                              // _searchFocus.unfocus();
-                                              setState(() {
-                                                newItems?.data?.clear();
-                                                clearProductName();
-                                                stopListening();
-                                              });
-                                            },
-                                          ),
-                                        ),
-                                      ],
+                                const SizedBox(
+                                    height:
+                                        20), // Adjust the spacing between the container and the text
+                                Visibility(
+                                  visible: isListeningMic,
+                                  child: const Text(
+                                    "I am Listening...",
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.bold,
                                     ),
                                   ),
                                 ),
-                                // _buildSuggestionDropdown(),
                               ],
                             ),
-                          ),
 
-                          Padding (
-                            padding: const EdgeInsets.all(16.0),
-                            child: SizedBox(
-                              width: double.infinity,
-                              height: 60, // Adjust the height as needed
-                              child: Stack(
-                                children: <Widget>[
-                                  // AutoCompleteTextField
-                                  Positioned(
-                                    top: 0,
-                                    left: 0,
-                                    right: 0,
-                                    child: AutoCompleteTextField<String>(
-                                      // Your existing AutoCompleteTextField code here
-                                      key: quantityKey,
-                                      controller: quantityController,
-                                      suggestions: const [
-                                        "1",
-                                        "2",
-                                        "3",
-                                        "4",
-                                        "5"
-                                      ], // Adjust as needed
-                                      clearOnSubmit: false,
-                                      keyboardType: TextInputType.number,
-                                      decoration: InputDecoration(
-                                        enabledBorder:
-                                            const UnderlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: Color.fromARGB(
-                                                  255, 0, 0, 0)),
-                                        ),
-                                        focusedBorder:
-                                            const UnderlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: Colors.cyan),
-                                        ),
-                                        hintText: "  Type a Quantity...",
-                                        hintStyle: const TextStyle(
-                                            fontSize: 20.0,
-                                            color: Color.fromRGBO(
-                                                0, 0, 0, 1)),
-                                        suffixIcon: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Visibility(
-                                              visible: quantityController
-                                                  .text.isNotEmpty,
-                                              child: IconButton(
-                                                padding: const EdgeInsets
-                                                    .fromLTRB(
-                                                    40, 0, 0, 0),
-                                                icon: const Icon(
-                                                    Icons.clear,
-                                                    color: Color.fromARGB(
-                                                        255, 0, 0, 0)),
-                                                onPressed: () {
-                                                  setState(() {
-                                                    // Clear product name and stop listening
-                                                    clearProductName();
+                            // Adjust the spacing between the container and the text
 
-                                                    stopListening();
-                                                    // Set quantityController.text to null or an empty string
-                                                    quantityController
-                                                            .text =
-                                                        ""; // or null
-                                                  });
-                                                },
-                                              ),
-                                            ),
-                                          ],
-                                        ),
+                            validProductName
+                                ? const Padding(
+                                    padding: EdgeInsets.all(0.0),
+                                    child: Text(""),
+                                  )
+                                : const Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.error,
+                                        color: Colors.red,
                                       ),
-                                      itemFilter: (String item, query) {
-                                        return item.startsWith(query);
-                                      },
-                                      itemSorter: (String a, String b) {
-                                        return a.compareTo(b);
-                                      },
-                                      itemSubmitted: (String item) {
-                                        quantityController.text = item;
-                                      },
-                                      itemBuilder: (BuildContext context,
-                                          String itemData) {
-                                        return ListTile(
-                                          title: Text(itemData),
-                                        );
-                                      },
-                                    ),
+                                      Text(
+                                        "Product Not Found",
+                                        style: TextStyle(
+                                            fontSize: 20, color: Colors.red),
+                                      ),
+                                    ],
                                   ),
-                                  // DropdownButton
-                                  Positioned(
-                                    top: 3,
-                                    right: 50,
-                                    child: DropdownButton<String>(
-                                      value:
-                                          _selectedQuantitySecondaryUnit,
-                                      onChanged: (newValue) {
-                                        setState(() {
-                                          _selectedQuantitySecondaryUnit =
-                                              newValue;
-                                          quantitySelectedValue = newValue ??
-                                              ''; // Update quantitySelectedValue with the selected value
-                                        });
-                                      },
-                                      items: _dropdownItemsQuantity
-                                          .map<DropdownMenuItem<String>>(
-                                              (String value) {
-                                        return DropdownMenuItem<String>(
-                                          value: value,
-                                          child: Text(value),
-                                        );
-                                      }).toList(),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                          const SizedBox(
-                            height: 8,
-                          ),
-                          // Display the total price for the selected product
 
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment
-                                .spaceEvenly, // Align buttons at the ends
-                            children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(50),
-                                  color: (productNameController
-                                              .text.isEmpty ||
-                                          quantityController.text.isEmpty)
-                                      ? const Color.fromRGBO(
-                                          210, 211, 211, 1)
-                                      : const Color(0xFF0B5ED7),
-                                ),
-                                padding: const EdgeInsets.all(5.0),
-                                child: MaterialButton(
-                                  onPressed: () async {
-                                    if (productNameController
-                                            .text.isNotEmpty &&
-                                        quantityController
-                                            .text.isNotEmpty) {
-                                      // Both productNameController and quantityController are not empty, proceed void handleStockStatus(String itemId, String quantity, String relatedUnit, String token) async {
-                                      String quantityValue =
-                                          quantityController.text;
-                                      int? stockStatus =
-                                          await checkStockStatus(
-                                              itemId,
-                                              quantityValue,
-                                              _selectedQuantitySecondaryUnit!,
-                                              token!);
-                                      if (stockStatus == 1) {
-                                        double? quantityValueforConvert =
-                                            double.tryParse(
-                                                quantityValue);
-                                        double quantityValueforTable =
-                                            convertQuantityBasedOnUnit(
-                                                _primaryUnit!,
-                                                _selectedQuantitySecondaryUnit!,
-                                                quantityValueforConvert!);
-                                        double? salePriceforTable =
-                                            double.tryParse(salePrice);
-                                        addProductTable(
-                                            itemNameforTable!,
-                                            quantityValueforTable,
-                                            _selectedQuantitySecondaryUnit!,
-                                            salePriceforTable!);
-                                      } else if (stockStatus == 0) {
-                                        showDialog(
-                                          context: context,
-                                          builder:
-                                              (BuildContext context) {
-                                            return AlertDialog(
-                                              title: const Text(
-                                                  "Out of Stock"),
-                                              content: Text(
-                                                  "You have only $availableStockValue left"),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () {
-                                                    Navigator.pop(
-                                                        context); // Close the dialog
-                                                  },
-                                                  child: const Text("OK"),
-                                                ),
-                                              ],
-                                            );
-                                          },
-                                        );
-                                      }
-                                    }
-                                  },
-                                  height: 10,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius:
-                                        BorderRadius.circular(50),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      "ADD",
-                                      style: TextStyle(
-                                          fontSize: 20,
-                                          color: (productNameController
-                                                      .text.isEmpty ||
-                                                  quantityController
-                                                      .text.isEmpty)
-                                              ? const Color.fromARGB(
-                                                  255, 0, 0, 0)
-                                              : const Color.fromARGB(
-                                                  255, 255, 255, 255),
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(
-                            height: 20,
-                          ),
-                          // if (_errorMessage.isNotEmpty)
-                          //   _productErrorWidget(_errorMessage),
-                          Visibility(
-                            visible: !itemForBillRows.isNotEmpty,
-                            child: const SizedBox(
-                              height: 100,
-                            ),
-                          ),
-                          Text(lastWords),
-                          Visibility(
-                            visible: !itemForBillRows.isNotEmpty,
-                            child: const Center(
+                            Padding(
+                              padding: const EdgeInsets.all(16.0),
                               child: Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.center,
                                 children: [
-                                  Text(
-                                    "Tap Mic and start by saying",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 25.0,
-                                      color: Color(
-                                          0xFFD79922), // Set color to #D79922
-                                    ),
-                                  ),
-                                  Text(
-                                    "\"Amul Butter quantity 2packs\"",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 25.0,
-                                      color: Color(
-                                          0xFFD79922), // Set color to #D79922
-                                    ),
-                                  ),
-                                  Text(
-                                    "select product and Add",
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 25.0,
-                                      color: Color(
-                                          0xFFD79922), // Set color to #D79922
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-
-                          // Inside the DataTable
-                          Visibility(
-                            visible: itemForBillRows.isNotEmpty,
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: DataTable(
-                                columnSpacing: 30.0,
-                                columns: const [
-                                  DataColumn(
-                                    label: Text(
-                                      "Item",
-                                      style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    numeric: false,
-                                  ),
-                                  DataColumn(
-                                    label: Text(
-                                      "Qty",
-                                      style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    numeric: false,
-                                  ),
-                                  DataColumn(
-                                    label: Text(
-                                      "Rate",
-                                      style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    numeric: false,
-                                  ),
-                                  DataColumn(
-                                    label: Text(
-                                      "Amount",
-                                      style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    numeric: false,
-                                  ),
-                                  DataColumn(
-                                    label: Text(
-                                      "",
-                                      style: TextStyle(
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.bold),
-                                    ),
-                                    numeric: false,
-                                  ),
-                                ],
-                                rows: List<DataRow>.generate(
-                                  itemForBillRows.length,
-                                  (index) => DataRow(cells: [
-                                    DataCell(
-                                      SizedBox(
-                                          width: 50,
-                                          child: Text(
-                                              itemForBillRows[index]
-                                                  ['itemName'])),
-                                    ),
-                                    DataCell(
-                                      SizedBox(
-                                          width: 40,
-                                          child: Text(
-                                              '${itemForBillRows[index]['quantity']} ${itemForBillRows[index]['selectedUnit']}')),
-                                    ),
-                                    DataCell(
-                                      SizedBox(
-                                        width: 70,
-                                        height: 40,
-                                        child: TextField(
-                                          decoration: InputDecoration(
-                                            hintText:
-                                                itemForBillRows[index]
-                                                        ['rate']
-                                                    .toString(),
-                                            filled: true,
-                                            fillColor:
-                                                const Color.fromARGB(
-                                                    255, 216, 216, 216),
-                                            // Adding asterisk (*) to the label text
-                                            labelStyle: const TextStyle(
-                                                color: Colors
-                                                    .black), // Setting label text color to black
-
-                                            border: OutlineInputBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(
-                                                      8.0),
-                                              borderSide:
-                                                  BorderSide.none,
+                                  TextFormField(
+                                    controller: productNameController,
+                                    focusNode: _searchFocus,
+                                    onChanged: updateSuggestionList,
+                                    decoration: InputDecoration(
+                                      // border: OutlineInputBorder(
+                                      //   borderRadius: BorderRadius.circular(50.0),
+                                      // ),
+                                      enabledBorder: const UnderlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color:
+                                                Color.fromARGB(255, 0, 0, 0)),
+                                      ),
+                                      focusedBorder: const UnderlineInputBorder(
+                                        borderSide:
+                                            BorderSide(color: Colors.cyan),
+                                      ),
+                                      hintText: "  Type a Product...",
+                                      hintStyle: const TextStyle(
+                                          fontSize: 20.0,
+                                          color: Color.fromRGBO(0, 0, 0, 1)),
+                                      suffixIcon: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Visibility(
+                                            visible: productNameController
+                                                .text.isNotEmpty,
+                                            child: IconButton(
+                                              padding:
+                                                  const EdgeInsets.fromLTRB(
+                                                      40, 0, 0, 0),
+                                              icon: const Icon(
+                                                Icons.clear,
+                                                color:
+                                                    Color.fromRGBO(0, 0, 0, 1),
+                                              ),
+                                              onPressed: () {
+                                                // _searchFocus.unfocus();
+                                                setState(() {
+                                                  newItems?.data?.clear();
+                                                  clearProductName();
+                                                  stopListening();
+                                                });
+                                              },
                                             ),
                                           ),
-                                          keyboardType:
-                                              TextInputType.number,
-                                          onChanged: (newRate) {
-                                            // Update the rate value in your data model
-                                            itemForBillRows[index]
-                                                    ['rate'] =
-                                                double.parse(newRate);
-                                            // Recalculate the amount
-                                            itemForBillRows[index]
-                                                    ['amount'] =
-                                                itemForBillRows[index]
-                                                        ['rate'] *
-                                                    itemForBillRows[
-                                                            index]
-                                                        ['quantity'];
-                                            // Trigger UI update
-                                            setState(() {});
-                                          },
-                                        ),
+                                        ],
                                       ),
                                     ),
-                                    DataCell(
-                                      SizedBox(
-                                          width: 50,
-                                          child: Text(
-                                              itemForBillRows[index]
-                                                      ['amount']
-                                                  .toString())),
-                                    ),
-                                    DataCell(
-                                      IconButton(
-                                        icon: const Icon(
-                                          Icons.delete,
-                                          color: Color.fromARGB(
-                                              255, 161, 11, 0),
+                                  ),
+                                  // _buildSuggestionDropdown(),
+                                ],
+                              ),
+                            ),
+
+                            Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: SizedBox(
+                                width: double.infinity,
+                                height: 60, // Adjust the height as needed
+                                child: Stack(
+                                  children: <Widget>[
+                                    // AutoCompleteTextField
+                                    Positioned(
+                                      top: 0,
+                                      left: 0,
+                                      right: 0,
+                                      child: AutoCompleteTextField<String>(
+                                        // Your existing AutoCompleteTextField code here
+                                        key: quantityKey,
+                                        controller: quantityController,
+                                        suggestions: const [
+                                          "1",
+                                          "2",
+                                          "3",
+                                          "4",
+                                          "5"
+                                        ], // Adjust as needed
+                                        clearOnSubmit: false,
+                                        keyboardType: TextInputType.number,
+                                        decoration: InputDecoration(
+                                          enabledBorder:
+                                              const UnderlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: Color.fromARGB(
+                                                    255, 0, 0, 0)),
+                                          ),
+                                          focusedBorder:
+                                              const UnderlineInputBorder(
+                                            borderSide:
+                                                BorderSide(color: Colors.cyan),
+                                          ),
+                                          hintText: "  Type a Quantity...",
+                                          hintStyle: const TextStyle(
+                                              fontSize: 20.0,
+                                              color:
+                                                  Color.fromRGBO(0, 0, 0, 1)),
+                                          suffixIcon: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Visibility(
+                                                visible: quantityController
+                                                    .text.isNotEmpty,
+                                                child: IconButton(
+                                                  padding:
+                                                      const EdgeInsets.fromLTRB(
+                                                          40, 0, 0, 0),
+                                                  icon: const Icon(Icons.clear,
+                                                      color: Color.fromARGB(
+                                                          255, 0, 0, 0)),
+                                                  onPressed: () {
+                                                    setState(() {
+                                                      // Clear product name and stop listening
+                                                      clearProductName();
+
+                                                      stopListening();
+                                                      // Set quantityController.text to null or an empty string
+                                                      quantityController.text =
+                                                          ""; // or null
+                                                    });
+                                                  },
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ),
-                                        onPressed: () {
-                                          // Delete the product at the current index when IconButton is pressed
-                                          deleteProductFromTable(index);
+                                        itemFilter: (String item, query) {
+                                          return item.startsWith(query);
+                                        },
+                                        itemSorter: (String a, String b) {
+                                          return a.compareTo(b);
+                                        },
+                                        itemSubmitted: (String item) {
+                                          quantityController.text = item;
+                                        },
+                                        itemBuilder: (BuildContext context,
+                                            String itemData) {
+                                          return ListTile(
+                                            title: Text(itemData),
+                                          );
                                         },
                                       ),
                                     ),
-                                  ]),
+                                    // DropdownButton
+                                    Positioned(
+                                      top: 3,
+                                      right: 50,
+                                      child: DropdownButton<String>(
+                                        value: _selectedQuantitySecondaryUnit,
+                                        onChanged: (newValue) {
+                                          setState(() {
+                                            _selectedQuantitySecondaryUnit =
+                                                newValue;
+                                            quantitySelectedValue = newValue ??
+                                                ''; // Update quantitySelectedValue with the selected value
+                                          });
+                                        },
+                                        items: _dropdownItemsQuantity
+                                            .map<DropdownMenuItem<String>>(
+                                                (String value) {
+                                          return DropdownMenuItem<String>(
+                                            value: value,
+                                            child: Text(value),
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                             ),
-                          ),
-                          Visibility(
-                            visible: itemForBillRows.isNotEmpty,
-                            child: Divider(
-                              // Thin break line
-                              thickness: 5.0,
-                              color: Colors.grey[300],
+                            const SizedBox(
+                              height: 8,
                             ),
-                          ),
-                          Visibility(
-                            visible: itemForBillRows.isNotEmpty,
-                            child: Row(
-                              mainAxisAlignment:
-                                  MainAxisAlignment.spaceAround,
-                              children: [
-                                const Padding(
-                                  padding: EdgeInsets.all(10.0),
-                                  child: Text(
-                                    "Grand Total: ",
-                                    style: TextStyle(
-                                      fontSize: 18.0,
-                                    ),
-                                  ),
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.all(16.0),
-                                  child: Text(
-                                    "₹${calculateOverallTotal()}",
-                                    style: const TextStyle(
-                                      fontSize: 18.0,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
+                            // Display the total price for the selected product
 
-                          Visibility(
-                            visible: itemForBillRows.isNotEmpty,
-                            child: Row(
+                            Row(
                               mainAxisAlignment: MainAxisAlignment
-                                  .start, // Align buttons evenly
+                                  .spaceEvenly, // Align buttons at the ends
                               children: [
-                                const SizedBox(
-                                  width: 20,
-                                ),
-                                ElevatedButton(
-                                  onPressed: () {
-                                    // Action for print button
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        const Color(0xFF0B5ED7),
-                                    foregroundColor:
-                                        Colors.white, // white text color
+                                Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(50),
+                                    color: (productNameController
+                                                .text.isEmpty ||
+                                            quantityController.text.isEmpty)
+                                        ? const Color.fromRGBO(210, 211, 211, 1)
+                                        : const Color(0xFF0B5ED7),
                                   ),
-                                  child: const Text("Print"),
-                                ),
-                                const SizedBox(
-                                  width: 10,
-                                ),
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        const Color(0xFF198754),
-                                    foregroundColor:
-                                        Colors.white, // white text color
+                                  padding: const EdgeInsets.all(5.0),
+                                  child: MaterialButton(
+                                    onPressed: () async {
+                                      if (productNameController
+                                              .text.isNotEmpty &&
+                                          quantityController.text.isNotEmpty) {
+                                        // Both productNameController and quantityController are not empty, proceed void handleStockStatus(String itemId, String quantity, String relatedUnit, String token) async {
+                                        String quantityValue =
+                                            quantityController.text;
+                                        int? stockStatus =
+                                            await checkStockStatus(
+                                                itemId,
+                                                quantityValue,
+                                                _selectedQuantitySecondaryUnit!,
+                                                token!);
+                                        if (stockStatus == 1) {
+                                          double? quantityValueforConvert =
+                                              double.tryParse(quantityValue);
+                                          double quantityValueforTable =
+                                              convertQuantityBasedOnUnit(
+                                                  _primaryUnit!,
+                                                  _selectedQuantitySecondaryUnit!,
+                                                  quantityValueforConvert!);
+                                          double? salePriceforTable =
+                                              double.tryParse(salePrice);
+                                          addProductTable(
+                                              itemNameforTable!,
+                                              quantityValueforTable,
+                                              _selectedQuantitySecondaryUnit!,
+                                              salePriceforTable!);
+                                        } else if (stockStatus == 0) {
+                                          showDialog(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return AlertDialog(
+                                                title:
+                                                    const Text("Out of Stock"),
+                                                content: Text(
+                                                    "You have only $availableStockValue left"),
+                                                actions: [
+                                                  TextButton(
+                                                    onPressed: () {
+                                                      Navigator.pop(
+                                                          context); // Close the dialog
+                                                    },
+                                                    child: const Text("OK"),
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          );
+                                        }
+                                      }
+                                    },
+                                    height: 10,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(50),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        "ADD",
+                                        style: TextStyle(
+                                            fontSize: 20,
+                                            color: (productNameController
+                                                        .text.isEmpty ||
+                                                    quantityController
+                                                        .text.isEmpty)
+                                                ? const Color.fromARGB(
+                                                    255, 0, 0, 0)
+                                                : const Color.fromARGB(
+                                                    255, 255, 255, 255),
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                    ),
                                   ),
-                                  onPressed: () {
-                                    saveData();
-                                  },
-                                  child: const Text("Save"),
                                 ),
                               ],
                             ),
-                          ),
-                        ],
-                      ),
-                      Positioned(
-                        bottom: 190,
-                        left: 1,
-                        right: 1,
-                        child: ErrorWidget(
-                          lastError: lastError,
-                          quantityWord: isquantityavailable,
-                        ),
-                      ),
-                      Positioned(
-                          left: 10,
-                          right: 10,
-                          bottom: 80,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                !_hasSpeech || speech.isListening
-                                    ? ""
-                                    : "Tap to speak",
-                                style: const TextStyle(
-                                  color: Colors.green,
+                            const SizedBox(
+                              height: 20,
+                            ),
+                            // if (_errorMessage.isNotEmpty)
+                            //   _productErrorWidget(_errorMessage),
+                            Visibility(
+                              visible: !itemForBillRows.isNotEmpty,
+                              child: const SizedBox(
+                                height: 100,
+                              ),
+                            ),
+                            Text(lastWords),
+                            Visibility(
+                              visible: !itemForBillRows.isNotEmpty,
+                              child: const Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      "Tap Mic and start by saying",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 25.0,
+                                        color: Color(
+                                            0xFFD79922), // Set color to #D79922
+                                      ),
+                                    ),
+                                    Text(
+                                      "\"Amul Butter quantity 2packs\"",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 25.0,
+                                        color: Color(
+                                            0xFFD79922), // Set color to #D79922
+                                      ),
+                                    ),
+                                    Text(
+                                      "select product and Add",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 25.0,
+                                        color: Color(
+                                            0xFFD79922), // Set color to #D79922
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
-                          )),
-                      Positioned(
-                          bottom: 230,
+                            ),
+
+                            // Inside the DataTable
+                            Visibility(
+                              visible: itemForBillRows.isNotEmpty,
+                              child: SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: DataTable(
+                                  columnSpacing: 30.0,
+                                  columns: const [
+                                    DataColumn(
+                                      label: Text(
+                                        "Item",
+                                        style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                      numeric: false,
+                                    ),
+                                    DataColumn(
+                                      label: Text(
+                                        "Qty",
+                                        style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      numeric: false,
+                                    ),
+                                    DataColumn(
+                                      label: Text(
+                                        "Rate",
+                                        style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      numeric: false,
+                                    ),
+                                    DataColumn(
+                                      label: Text(
+                                        "Amount",
+                                        style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      numeric: false,
+                                    ),
+                                    DataColumn(
+                                      label: Text(
+                                        "",
+                                        style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold),
+                                      ),
+                                      numeric: false,
+                                    ),
+                                  ],
+                                  rows: List<DataRow>.generate(
+                                    itemForBillRows.length,
+                                    (index) => DataRow(cells: [
+                                      DataCell(
+                                        SizedBox(
+                                            width: 50,
+                                            child: Text(itemForBillRows[index]
+                                                ['itemName'])),
+                                      ),
+                                      DataCell(
+                                        SizedBox(
+                                            width: 40,
+                                            child: Text(
+                                                '${itemForBillRows[index]['quantity']} ${itemForBillRows[index]['selectedUnit']}')),
+                                      ),
+                                      DataCell(
+                                        SizedBox(
+                                          width: 70,
+                                          height: 40,
+                                          child: TextField(
+                                            decoration: InputDecoration(
+                                              hintText: itemForBillRows[index]
+                                                      ['rate']
+                                                  .toString(),
+                                              filled: true,
+                                              fillColor: const Color.fromARGB(
+                                                  255, 216, 216, 216),
+                                              // Adding asterisk (*) to the label text
+                                              labelStyle: const TextStyle(
+                                                  color: Colors
+                                                      .black), // Setting label text color to black
+
+                                              border: OutlineInputBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(8.0),
+                                                borderSide: BorderSide.none,
+                                              ),
+                                            ),
+                                            keyboardType: TextInputType.number,
+                                            onChanged: (newRate) {
+                                              // Update the rate value in your data model
+                                              itemForBillRows[index]['rate'] =
+                                                  double.parse(newRate);
+                                              // Recalculate the amount
+                                              itemForBillRows[index]['amount'] =
+                                                  itemForBillRows[index]
+                                                          ['rate'] *
+                                                      itemForBillRows[index]
+                                                          ['quantity'];
+                                              // Trigger UI update
+                                              setState(() {});
+                                            },
+                                          ),
+                                        ),
+                                      ),
+                                      DataCell(
+                                        SizedBox(
+                                            width: 50,
+                                            child: Text(itemForBillRows[index]
+                                                    ['amount']
+                                                .toString())),
+                                      ),
+                                      DataCell(
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.delete,
+                                            color:
+                                                Color.fromARGB(255, 161, 11, 0),
+                                          ),
+                                          onPressed: () {
+                                            // Delete the product at the current index when IconButton is pressed
+                                            deleteProductFromTable(index);
+                                          },
+                                        ),
+                                      ),
+                                    ]),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            Visibility(
+                              visible: itemForBillRows.isNotEmpty,
+                              child: Divider(
+                                // Thin break line
+                                thickness: 5.0,
+                                color: Colors.grey[300],
+                              ),
+                            ),
+                            Visibility(
+                              visible: itemForBillRows.isNotEmpty,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
+                                children: [
+                                  const Padding(
+                                    padding: EdgeInsets.all(10.0),
+                                    child: Text(
+                                      "Grand Total: ",
+                                      style: TextStyle(
+                                        fontSize: 18.0,
+                                      ),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.all(16.0),
+                                    child: Text(
+                                      "₹${calculateOverallTotal()}",
+                                      style: const TextStyle(
+                                        fontSize: 18.0,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            Visibility(
+                              visible: itemForBillRows.isNotEmpty,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment
+                                    .start, // Align buttons evenly
+                                children: [
+                                  const SizedBox(
+                                    width: 20,
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () {
+                                      // Action for print button
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF0B5ED7),
+                                      foregroundColor:
+                                          Colors.white, // white text color
+                                    ),
+                                    child: const Text("Print"),
+                                  ),
+                                  const SizedBox(
+                                    width: 10,
+                                  ),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: const Color(0xFF198754),
+                                      foregroundColor:
+                                          Colors.white, // white text color
+                                    ),
+                                    onPressed: () {
+                                      saveData();
+                                    },
+                                    child: const Text("Save"),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                        Positioned(
+                          bottom: 190,
                           left: 1,
                           right: 1,
-                          child: !_hasSpeech || speech.isListening
-                              ? listeningAnimation()
-                              : const SizedBox()),
-                      Positioned.fill(
-                        bottom: 100,
-                        child: Align(
-                            alignment: Alignment.bottomCenter,
-                            child: microphoneButton()),
-                      ),
-                      Positioned(
-                        top: 128, // Adjust the position as needed
-                        left: 0,
-                        right: 0,
-                        child: Container(
-                            width:
-                                MediaQuery.of(context).size.width - 100,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(0),
+                          child: ErrorWidget(
+                            lastError: lastError,
+                            quantityWord: isquantityavailable,
+                          ),
+                        ),
+                        Positioned(
+                            left: 10,
+                            right: 10,
+                            bottom: 80,
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Text(
+                                  !_hasSpeech || speech.isListening
+                                      ? ""
+                                      : "Tap to speak",
+                                  style: const TextStyle(
+                                    color: Colors.green,
+                                  ),
+                                ),
+                              ],
+                            )),
+                        Positioned(
+                            bottom: 230,
+                            left: 1,
+                            right: 1,
+                            child: !_hasSpeech || speech.isListening
+                                ? listeningAnimation()
+                                : const SizedBox()),
+                        Positioned.fill(
+                          bottom: 100,
+                          child: Align(
+                              alignment: Alignment.bottomCenter,
+                              child: microphoneButton()),
+                        ),
+                        Positioned(
+                          top: 128, // Adjust the position as needed
+                          left: 0,
+                          right: 0,
+                          child: Container(
+                              width: MediaQuery.of(context).size.width - 100,
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(0),
 
-                              color: Colors
-                                  .grey.shade100, // Background color
-                            ),
-                            child: _buildSuggestionDropdown()),
-                      ),
-                    ],
+                                color: Colors.grey.shade100, // Background color
+                              ),
+                              child: _buildSuggestionDropdown()),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              )
-            ),
+                )),
           ),
         );
       },
@@ -1018,7 +989,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
       final recognizedWord = result.recognizedWords.toLowerCase();
       shouldOpenDropdown = true;
       validProductName = true;
-      _parseSpeech(recognizedWord,result.finalResult);
+      _parseSpeech(recognizedWord, result.finalResult);
     });
   }
 
@@ -1111,26 +1082,29 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
 //New Code
   Widget _parseSpeech(String words, bool finalResult) {
     // RegExp regex = RegExp(r'(\w+(?:\s+\w+)*)\s+quantity\s+(\d+)\s*(\w+)?');
-    RegExp regex = RegExp(r'(.+?)\b quantity ((\d+(\.\d+)?)|\b\w+\b) (\b\w+\s*)+');
+    RegExp regex = RegExp(
+        r'(\w+(?:\s+\w+)*)\s+quantity\s+((?:\d+\s*|(?:\w+\s*)+))\s+(packs|bags|bag|bottle|bottles|box|boxes|bundle|bundles|can|cans|cartoon|cartoons|cartan|gram|grams|gm|kilogram|kg|kilograms|litre|litres|ltr|meter|m|meters|ms|millilitre|ml|millilitres|number|numerbs|pack|packs|packet|packets|pair|pairs|piece|pieces|roll|rolls|squarefeet|sqf|squarefeets|sqfts|squaremeters|squaremeter)');
+    // RegExp regex = RegExp(r'(.+?)\b quantity ((\d+(\.\d+)?)|\b\w+\b) (\b\w+\s*)+');
     Match? match = regex.firstMatch(words);
 
     if (match != null) {
       String product = match.group(1) ?? "";
       String quantity = match.group(2) ?? "";
-      String unitOfQuantity = match.group(5) ?? "";
+      String unitOfQuantity = match.group(3) ?? "";
 
       // if (product.isNotEmpty &&
       //     quantity.isNotEmpty &&
       //     unitOfQuantity != null &&
       //     unitOfQuantity.isNotEmpty) {
-        productNameController.text = product;
-        text2num(quantity);
-        // quantityController.text = quantity;
-        // quantityNumeric = double.parse(quantity);
-        QuickSellApiCalling.fetchDataAndAssign(product, (result) {
-          newItems = (result as SuccessState).value;
-          setState(() {});
-        });
+      productNameController.text = product;
+      text2num(quantity);
+      extractAndCombineNumbers(text2num(quantity).toString());
+      // quantityController.text = quantity;
+      // quantityNumeric = double.parse(quantity);
+      QuickSellApiCalling.fetchDataAndAssign(product, (result) {
+        newItems = (result as SuccessState).value;
+        setState(() {});
+      });
 
       if (product.isEmpty) {
         setState(() {
@@ -1153,9 +1127,9 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
         });
         return _productErrorWidget(_errorMessage);
       }
-        setState(() {
-          _errorMessage = ''; // Clear error message on successful parsing
-        });
+      setState(() {
+        _errorMessage = ''; // Clear error message on successful parsing
+      });
       // } else if (unitOfQuantity == null || unitOfQuantity.isEmpty) {
       //   setState(() {
       //     _errorMessage = 'Unit is missing.';
@@ -1164,77 +1138,78 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
       //   });
       //   return _productErrorWidget(_errorMessage);
       // }
-    }else{
-    if(finalResult == true){
-      if (words.contains('quantity')) {
-        if (words.startsWith('quantity')) {
-          setState(() {
-            _errorMessage = 'Product is missing';
-            speak(_errorMessage);
-          });
-          return _productErrorWidget(_errorMessage);
-        } else if (words.endsWith('quantity')) {
-          setState(() {
-            _errorMessage = 'Quantity and unit are missing';
-            speak(_errorMessage);
-          });
-          return _productErrorWidget(_errorMessage);
+    } else {
+      if (finalResult == true) {
+        if (words.contains('quantity')) {
+          if (words.startsWith('quantity')) {
+            setState(() {
+              _errorMessage = 'Product is missing';
+              speak(_errorMessage);
+            });
+            return _productErrorWidget(_errorMessage);
+          } else if (words.endsWith('quantity')) {
+            setState(() {
+              _errorMessage = 'Quantity and unit are missing';
+              speak(_errorMessage);
+            });
+            return _productErrorWidget(_errorMessage);
+          } else {
+            setState(() {
+              _errorMessage = 'unit is missing';
+              speak(_errorMessage);
+            });
+            return _productErrorWidget(_errorMessage);
+          }
         } else {
           setState(() {
-            _errorMessage = 'unit is missing';
+            _errorMessage = 'Quantity word is missing';
             speak(_errorMessage);
           });
           return _productErrorWidget(_errorMessage);
         }
-      } else {
-        setState(() {
-          _errorMessage = 'Quantity word is missing';
-          speak(_errorMessage);
-        });
-        return _productErrorWidget(_errorMessage);
-      }
 
-      // if (!words.contains('quantity')) {
-      //   setState(() {
-      //     _errorMessage = 'Quantity word is missing.';
-      //     speak(_errorMessage);
-      //   });
-      //   return _productErrorWidget(_errorMessage);
-      // }
-      //
-      // if (words.contains('quantity') && !words.contains(RegExp(r'\d+'))) {
-      //   setState(() {
-      //     _errorMessage = 'Quantity is missing.';
-      //     speak(_errorMessage);
-      //   });
-      //   return _productErrorWidget(_errorMessage);
-      // }
-      //
-      // if (words.contains(RegExp(r'quantity\s+\d+')) &&
-      //     !words.contains(RegExp(r'\w+$'))) {
-      //   setState(() {
-      //     _errorMessage = 'Unit is missing.';
-      //     speak(_errorMessage);
-      //   });
-      //   return _productErrorWidget(_errorMessage);
-      // }
-      //
-      // if (words.contains(RegExp(r'\d+\s*\w+$')) && !words.contains('quantity')) {
-      //   setState(() {
-      //     _errorMessage = 'Quantity word is missing.';
-      //     speak(_errorMessage);
-      //   });
-      //   return _productErrorWidget(_errorMessage);
-      // }
-      //
-      // if (words.startsWith('quantity')) {
-      //   setState(() {
-      //     _errorMessage = 'Product is missing.';
-      //     speak(_errorMessage);
-      //   });
-      //   return _productErrorWidget(_errorMessage);
-      // }
-    }}
+        // if (!words.contains('quantity')) {
+        //   setState(() {
+        //     _errorMessage = 'Quantity word is missing.';
+        //     speak(_errorMessage);
+        //   });
+        //   return _productErrorWidget(_errorMessage);
+        // }
+        //
+        // if (words.contains('quantity') && !words.contains(RegExp(r'\d+'))) {
+        //   setState(() {
+        //     _errorMessage = 'Quantity is missing.';
+        //     speak(_errorMessage);
+        //   });
+        //   return _productErrorWidget(_errorMessage);
+        // }
+        //
+        // if (words.contains(RegExp(r'quantity\s+\d+')) &&
+        //     !words.contains(RegExp(r'\w+$'))) {
+        //   setState(() {
+        //     _errorMessage = 'Unit is missing.';
+        //     speak(_errorMessage);
+        //   });
+        //   return _productErrorWidget(_errorMessage);
+        // }
+        //
+        // if (words.contains(RegExp(r'\d+\s*\w+$')) && !words.contains('quantity')) {
+        //   setState(() {
+        //     _errorMessage = 'Quantity word is missing.';
+        //     speak(_errorMessage);
+        //   });
+        //   return _productErrorWidget(_errorMessage);
+        // }
+        //
+        // if (words.startsWith('quantity')) {
+        //   setState(() {
+        //     _errorMessage = 'Product is missing.';
+        //     speak(_errorMessage);
+        //   });
+        //   return _productErrorWidget(_errorMessage);
+        // }
+      }
+    }
     // if(match != null && finalResult == true){
     //   _errorMessage = 'Invalid input.';
     //   speak(_errorMessage);
@@ -1291,35 +1266,35 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
     // Assuming you have `itemId` and `token` available here
     List<String> fetchedItems =
         await QuickSellApiCalling.getQuantityUnits(itemId, token);
-      _dropdownItemsQuantity = fetchedItems;
-      if (_dropdownItemsQuantity.length == 1) {
-        _selectedQuantitySecondaryUnit = _dropdownItemsQuantity.first;
-        _primaryUnit = _selectedQuantitySecondaryUnit;
-      } else {
-        // If the recognized unit is not among the dropdown items, select the most similar one
-        String selectedUnit =
-            "Select Unit"; // Initialize selected unit as "Select Unit"
-        double maxSimilarity = 0; // Initialize maximum similarity score
+    _dropdownItemsQuantity = fetchedItems;
+    if (_dropdownItemsQuantity.length == 1) {
+      _selectedQuantitySecondaryUnit = _dropdownItemsQuantity.first;
+      _primaryUnit = _selectedQuantitySecondaryUnit;
+    } else {
+      // If the recognized unit is not among the dropdown items, select the most similar one
+      String selectedUnit =
+          "Select Unit"; // Initialize selected unit as "Select Unit"
+      double maxSimilarity = 0; // Initialize maximum similarity score
 
-        // Iterate through dropdown items and find the most similar unit
-        for (String unit in _dropdownItemsQuantity) {
-          double similarity = unit.toLowerCase().similarityTo(unitOfQuantity);
-          if (similarity > maxSimilarity) {
-            maxSimilarity = similarity;
-            selectedUnit = unit;
-          }
+      // Iterate through dropdown items and find the most similar unit
+      for (String unit in _dropdownItemsQuantity) {
+        double similarity = unit.toLowerCase().similarityTo(unitOfQuantity);
+        if (similarity > maxSimilarity) {
+          maxSimilarity = similarity;
+          selectedUnit = unit;
         }
+      }
 
-        // If "Select Unit" is not already in the dropdown, insert it at the beginning
-        if (!_dropdownItemsQuantity.contains("Select Unit")) {
-          _dropdownItemsQuantity.insert(0, "Select Unit");
-        }
-        // Set the selected unit
-        _selectedQuantitySecondaryUnit = selectedUnit;
-        // Assuming _primaryUnit is initialized elsewhere in your code
-        _primaryUnit = _dropdownItemsQuantity[1];
-        // Example: Set _primaryUnit to the second item in the dropdown
-        }
+      // If "Select Unit" is not already in the dropdown, insert it at the beginning
+      if (!_dropdownItemsQuantity.contains("Select Unit")) {
+        _dropdownItemsQuantity.insert(0, "Select Unit");
+      }
+      // Set the selected unit
+      _selectedQuantitySecondaryUnit = selectedUnit;
+      // Assuming _primaryUnit is initialized elsewhere in your code
+      _primaryUnit = _dropdownItemsQuantity[1];
+      // Example: Set _primaryUnit to the second item in the dropdown
+    }
     setState(() {});
   }
 
@@ -1360,7 +1335,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
   void updateSuggestionList(String recognizedWord) {
     QuickSellApiCalling.fetchDataAndAssign(productNameController.text,
         (result) {
-          newItems = (result as SuccessState).value;
+      newItems = (result as SuccessState).value;
     });
     setState(() {
       isSuggetion = true;
@@ -1393,7 +1368,8 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
   }
 
   Widget _buildSuggestionDropdown() {
-    double dropdownHeight = (newItems?.data?.length ?? 0)* 70.0; // Assuming each ListTile is 56 pixels in height
+    double dropdownHeight = (newItems?.data?.length ?? 0) *
+        70.0; // Assuming each ListTile is 56 pixels in height
     return (newItems?.data?.length ?? 0) > 0
         ? Container(
             decoration: BoxDecoration(
@@ -1426,15 +1402,17 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                         ),
                         title: Text(newItems?.data?[index].itemName ?? ''),
                         onTap: () {
-                          productNameController.text = newItems?.data?[index].itemName ?? '';
+                          productNameController.text =
+                              newItems?.data?[index].itemName ?? '';
                           itemId = itemIdforStock!;
                           assignQuantityFunction(itemIdforStock, token!);
-                            newItems?.data?.clear();
+                          newItems?.data?.clear();
                           setState(() {});
                         },
                       ),
                       if (index !=
-                          newItems!.data!.length - 1) // Add Divider between items, except for the last one
+                          newItems!.data!.length -
+                              1) // Add Divider between items, except for the last one
                         const Divider(
                           color: Colors.grey,
                           thickness: .2,
@@ -1450,16 +1428,67 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
 
   int text2num(String s) {
     var small = {
-      'zero': 0, 'one': 1, 'won': 1, 'on': 1, 'en': 1, 'two': 2, 'to': 2,'do': 2, 'too': 2,
-      'three': 3, 'tree': 3, 'tre': 3, 'tray': 3, 'trae': 3, 'four': 4, 'for': 4,
-      'fore': 4, 'fire': 4, 'five': 5, 'hive': 5, 'six': 6, 'sex': 6, 'seks': 6,
-      'seven': 7, 'eight': 8, 'ate': 8, 'nine': 9, 'line': 9, 'nein': 9, 'neon': 9,
-      'ten': 10, 'tin': 10, 'eleven': 11, 'elleve': 11, 'eleve': 11, 'twelve': 12,
-      'tolv': 12, 'toll': 12, 'tall': 12, 'doll': 12, 'thirteen': 13, 'tretten': 13,
-      'fourteen': 14, 'forteen': 14, 'foreteen': 14, 'fifteen': 15, 'sixteen': 16,
-      'sexteen': 16, 'seventeen': 17, 'eighteen': 18, 'nineteen': 19, 'lineteen': 19,
-      'twenty': 20, 'thirty': 30, 'forty': 40, 'fifty': 50, 'sixty': 60, 'seventy': 70,
-      'eighty': 80, 'ninety': 90
+      'zero': 0,
+      'one': 1,
+      'ek': 1,
+      'won': 1,
+      'on': 1,
+      'en': 1,
+      'two': 2,
+      'to': 2,
+      'do': 2,
+      'too': 2,
+      'three': 3,
+      'tree': 3,
+      'tre': 3,
+      'tray': 3,
+      'trae': 3,
+      'four': 4,
+      'for': 4,
+      'fore': 4,
+      'fire': 4,
+      'five': 5,
+      'hive': 5,
+      'six': 6,
+      'sex': 6,
+      'seks': 6,
+      'seven': 7,
+      'eight': 8,
+      'ate': 8,
+      'nine': 9,
+      'line': 9,
+      'nein': 9,
+      'neon': 9,
+      'ten': 10,
+      'tin': 10,
+      'eleven': 11,
+      'elleve': 11,
+      'eleve': 11,
+      'twelve': 12,
+      'tolv': 12,
+      'toll': 12,
+      'tall': 12,
+      'doll': 12,
+      'thirteen': 13,
+      'tretten': 13,
+      'fourteen': 14,
+      'forteen': 14,
+      'foreteen': 14,
+      'fifteen': 15,
+      'sixteen': 16,
+      'sexteen': 16,
+      'seventeen': 17,
+      'eighteen': 18,
+      'nineteen': 19,
+      'lineteen': 19,
+      'twenty': 20,
+      'thirty': 30,
+      'forty': 40,
+      'fifty': 50,
+      'sixty': 60,
+      'seventy': 70,
+      'eighty': 80,
+      'ninety': 90
     };
 
     var large = {
@@ -1497,11 +1526,96 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
     if (g != 0) {
       n += g;
     }
-    quantityController.text = n.toString();
-    quantityNumeric = double.parse(n.toString());
+    // quantityController.text = n.toString();
+    // quantityNumeric = double.parse(n.toString());
     setState(() {});
     return n;
   }
+
+  int extractAndCombineNumbers(String input) {
+    List<int> numbers = [];
+    RegExp regExp = RegExp(r'\d+');
+    Iterable<Match> matches = regExp.allMatches(input);
+    for (Match match in matches) {
+      numbers.add(int.parse(match.group(0)!));
+    }
+    // Combine numbers meaningfully
+    if (numbers.length == 1) {
+      String numberStr = numbers[0].toString();
+      // Check if the number contains a zero and split it accordingly
+      if (numberStr.contains('0') &&
+          numberStr[numberStr.length - 1] != '0' && numberStr.length > 4 ) {
+        int splitIndex = numberStr.lastIndexOf('0') + 1;
+        String part1 = numberStr.substring(0, splitIndex);
+        String part2 = numberStr.substring(splitIndex);
+        int totalSum = int.parse(part1) + int.parse(part2);
+        quantityController.text = totalSum.toString();
+        quantityNumeric = double.parse(totalSum.toString());
+        setState(() {});
+        return int.parse(part1) + int.parse(part2);
+      } else {
+        quantityController.text = numbers[0].toString();
+        quantityNumeric = double.parse(numbers[0].toString());
+        setState(() {});
+        return numbers[0];
+      }
+    } else if (numbers.length > 1) {
+      // Sentence like "Amul Butter Quantity 3000 38 pieces"
+      int sumNumber = numbers.reduce((value, element) => value + element);
+      quantityController.text = sumNumber.toString();
+      quantityNumeric = double.parse(sumNumber.toString());
+      setState(() {});
+      return numbers.reduce((value, element) => value + element);
+    } else {
+      return 0; // No numbers found
+    }
+  }
+
+  // int extractAndCombineNumbers(String input) {
+  //   List<int> numbers = [];
+  //   RegExp regExp = RegExp(r'\d+');
+  //   Iterable<Match> matches = regExp.allMatches(input);
+  //
+  //   // Extract numbers from input
+  //   for (Match match in matches) {
+  //     numbers.add(int.parse(match.group(0)!));
+  //   }
+  //
+  //   // Combine numbers meaningfully
+  //   if (numbers.isEmpty) {
+  //     return 0; // No numbers found
+  //   } else if (numbers.length == 1) {
+  //     // Directly return the single number found
+  //     quantityController.text = numbers[0].toString();
+  //     quantityNumeric = double.parse(numbers[0].toString());
+  //     setState(() {});
+  //     return numbers[0];
+  //   } else {
+  //     // Combine numbers in case of multiple numbers
+  //     // Special handling for combining based on specific conditions
+  //     String combinedNumberStr = numbers.join('');
+  //     if (combinedNumberStr.contains('0')&&
+  //         numbers[numbers.length - 1] != 0 ) {
+  //       // Split the combined number at the last '0' occurrence
+  //       int splitIndex = combinedNumberStr.lastIndexOf('0') + 1;
+  //       String part1 = combinedNumberStr.substring(0, splitIndex);
+  //       String part2 = combinedNumberStr.substring(splitIndex);
+  //       int totalSum = int.parse(part1) + int.parse(part2);
+  //       quantityController.text = totalSum.toString();
+  //       quantityNumeric = double.parse(totalSum.toString());
+  //       setState(() {});
+  //       return totalSum;
+  //     } else {
+  //       // Just sum all the numbers
+  //       int sumNumber = numbers.reduce((value, element) => value + element);
+  //       quantityController.text = sumNumber.toString();
+  //       quantityNumeric = double.parse(sumNumber.toString());
+  //       setState(() {});
+  //       return sumNumber;
+  //     }
+  //   }
+  // }
+
 }
 
 /// Display the current error status from the speech
