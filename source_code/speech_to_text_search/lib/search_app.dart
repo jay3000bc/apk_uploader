@@ -161,15 +161,15 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
             },
             child: Scaffold(
                 drawer: const Sidebar(),
-                bottomNavigationBar: CustomNavigationBar(
-                  onItemSelected: (index) {
-                    // Handle navigation item selection
-                    setState(() {
-                      _selectedIndex = index;
-                    });
-                  },
-                  selectedIndex: _selectedIndex,
-                ),
+                // bottomNavigationBar: CustomNavigationBar(
+                //   onItemSelected: (index) {
+                //     // Handle navigation item selection
+                //     setState(() {
+                //       _selectedIndex = index;
+                //     });
+                //   },
+                //   selectedIndex: _selectedIndex,
+                // ),
                 body: SingleChildScrollView(
                   child: SizedBox(
                     height: MediaQuery.of(context).size.height -
@@ -758,7 +758,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                           bottom: 190,
                           left: 1,
                           right: 1,
-                          child: ErrorWidget(
+                          child: ErrorWidgetView(
                             lastError: lastError,
                             quantityWord: isquantityavailable,
                           ),
@@ -1071,14 +1071,6 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
     });
   }
 
-  void cancelListening() {
-    _logEvent('cancel');
-    speech.cancel();
-    setState(() {
-      level = 0.0;
-    });
-  }
-
 //New Code
   Widget _parseSpeech(String words, bool finalResult) {
     // RegExp regex = RegExp(r'(\w+(?:\s+\w+)*)\s+quantity\s+(\d+)\s*(\w+)?');
@@ -1092,15 +1084,9 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
       String quantity = match.group(2) ?? "";
       String unitOfQuantity = match.group(3) ?? "";
 
-      // if (product.isNotEmpty &&
-      //     quantity.isNotEmpty &&
-      //     unitOfQuantity != null &&
-      //     unitOfQuantity.isNotEmpty) {
       productNameController.text = product;
       text2num(quantity);
       extractAndCombineNumbers(text2num(quantity).toString());
-      // quantityController.text = quantity;
-      // quantityNumeric = double.parse(quantity);
       QuickSellApiCalling.fetchDataAndAssign(product, (result) {
         newItems = (result as SuccessState).value;
         setState(() {});
@@ -1130,14 +1116,6 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
       setState(() {
         _errorMessage = ''; // Clear error message on successful parsing
       });
-      // } else if (unitOfQuantity == null || unitOfQuantity.isEmpty) {
-      //   setState(() {
-      //     _errorMessage = 'Unit is missing.';
-      //     if(finalResult == true){
-      //     speak(_errorMessage);}
-      //   });
-      //   return _productErrorWidget(_errorMessage);
-      // }
     } else {
       if (finalResult == true) {
         if (words.contains('quantity')) {
@@ -1167,53 +1145,8 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
           });
           return _productErrorWidget(_errorMessage);
         }
-
-        // if (!words.contains('quantity')) {
-        //   setState(() {
-        //     _errorMessage = 'Quantity word is missing.';
-        //     speak(_errorMessage);
-        //   });
-        //   return _productErrorWidget(_errorMessage);
-        // }
-        //
-        // if (words.contains('quantity') && !words.contains(RegExp(r'\d+'))) {
-        //   setState(() {
-        //     _errorMessage = 'Quantity is missing.';
-        //     speak(_errorMessage);
-        //   });
-        //   return _productErrorWidget(_errorMessage);
-        // }
-        //
-        // if (words.contains(RegExp(r'quantity\s+\d+')) &&
-        //     !words.contains(RegExp(r'\w+$'))) {
-        //   setState(() {
-        //     _errorMessage = 'Unit is missing.';
-        //     speak(_errorMessage);
-        //   });
-        //   return _productErrorWidget(_errorMessage);
-        // }
-        //
-        // if (words.contains(RegExp(r'\d+\s*\w+$')) && !words.contains('quantity')) {
-        //   setState(() {
-        //     _errorMessage = 'Quantity word is missing.';
-        //     speak(_errorMessage);
-        //   });
-        //   return _productErrorWidget(_errorMessage);
-        // }
-        //
-        // if (words.startsWith('quantity')) {
-        //   setState(() {
-        //     _errorMessage = 'Product is missing.';
-        //     speak(_errorMessage);
-        //   });
-        //   return _productErrorWidget(_errorMessage);
-        // }
       }
     }
-    // if(match != null && finalResult == true){
-    //   _errorMessage = 'Invalid input.';
-    //   speak(_errorMessage);
-    // }
     setState(() {});
     return _productErrorWidget('');
   }
@@ -1230,7 +1163,6 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
 
   Map<String, String> convertJsonToFormData(Map<String, dynamic> jsonData) {
     Map<String, String> formData = {};
-
     // Convert itemList
     if (jsonData.containsKey('itemList') && jsonData['itemList'] is List) {
       List itemList = jsonData['itemList'];
@@ -1246,11 +1178,9 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
             itemList[i]['isRefund'].toString(); // Include isRefund field
       }
     }
-
     // Add grand total and print
     formData['grand_total'] = jsonData['grand_total'].toString();
     formData['print'] = jsonData['print'].toString();
-
     return formData;
   }
 
@@ -1284,7 +1214,6 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
           selectedUnit = unit;
         }
       }
-
       // If "Select Unit" is not already in the dropdown, insert it at the beginning
       if (!_dropdownItemsQuantity.contains("Select Unit")) {
         _dropdownItemsQuantity.insert(0, "Select Unit");
@@ -1494,12 +1423,10 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
     var large = {
       'thousand': 1000,
     };
-
     var a = s.toLowerCase().split(RegExp(r'[\s-]+'));
     var n = 0;
     var g = 0;
     var lastSmall = 0; // To track the last small number found
-
     for (var w in a) {
       var x = small[w];
       if (x != null) {
@@ -1521,13 +1448,10 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
         debugPrint('Word found: $w');
       }
     }
-
     // Check if there's any remaining small number to add
     if (g != 0) {
       n += g;
     }
-    // quantityController.text = n.toString();
-    // quantityNumeric = double.parse(n.toString());
     setState(() {});
     return n;
   }
@@ -1570,58 +1494,12 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
       return 0; // No numbers found
     }
   }
-
-  // int extractAndCombineNumbers(String input) {
-  //   List<int> numbers = [];
-  //   RegExp regExp = RegExp(r'\d+');
-  //   Iterable<Match> matches = regExp.allMatches(input);
-  //
-  //   // Extract numbers from input
-  //   for (Match match in matches) {
-  //     numbers.add(int.parse(match.group(0)!));
-  //   }
-  //
-  //   // Combine numbers meaningfully
-  //   if (numbers.isEmpty) {
-  //     return 0; // No numbers found
-  //   } else if (numbers.length == 1) {
-  //     // Directly return the single number found
-  //     quantityController.text = numbers[0].toString();
-  //     quantityNumeric = double.parse(numbers[0].toString());
-  //     setState(() {});
-  //     return numbers[0];
-  //   } else {
-  //     // Combine numbers in case of multiple numbers
-  //     // Special handling for combining based on specific conditions
-  //     String combinedNumberStr = numbers.join('');
-  //     if (combinedNumberStr.contains('0')&&
-  //         numbers[numbers.length - 1] != 0 ) {
-  //       // Split the combined number at the last '0' occurrence
-  //       int splitIndex = combinedNumberStr.lastIndexOf('0') + 1;
-  //       String part1 = combinedNumberStr.substring(0, splitIndex);
-  //       String part2 = combinedNumberStr.substring(splitIndex);
-  //       int totalSum = int.parse(part1) + int.parse(part2);
-  //       quantityController.text = totalSum.toString();
-  //       quantityNumeric = double.parse(totalSum.toString());
-  //       setState(() {});
-  //       return totalSum;
-  //     } else {
-  //       // Just sum all the numbers
-  //       int sumNumber = numbers.reduce((value, element) => value + element);
-  //       quantityController.text = sumNumber.toString();
-  //       quantityNumeric = double.parse(sumNumber.toString());
-  //       setState(() {});
-  //       return sumNumber;
-  //     }
-  //   }
-  // }
-
 }
 
 /// Display the current error status from the speech
 /// recognizer
-class ErrorWidget extends StatelessWidget {
-  const ErrorWidget(
+class ErrorWidgetView extends StatelessWidget {
+  const ErrorWidgetView(
       {Key? key, required this.lastError, required this.quantityWord})
       : super(key: key);
 

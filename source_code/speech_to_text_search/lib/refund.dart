@@ -18,6 +18,7 @@ import 'package:speech_to_text_search/models/quick_sell_suggestion_model.dart';
 import 'package:speech_to_text_search/product_mic_state.dart';
 import 'package:speech_to_text_search/navigation_bar.dart';
 import 'package:speech_to_text_search/quantity_mic_state.dart';
+import 'package:speech_to_text_search/search_app.dart';
 import 'package:string_similarity/string_similarity.dart';
 import 'package:http/http.dart' as http;
 import 'package:speech_to_text/speech_recognition_error.dart';
@@ -758,8 +759,7 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
                                                   255, 161, 11, 0),
                                             ),
                                             onPressed: () {
-                                              // Delete the product at the current index when IconButton is pressed
-                                              deleteProductFromTable(index);
+                                                 deleteProductFromTable(index);
                                             },
                                           ),
                                         ),
@@ -831,7 +831,7 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
                     bottom: 150,
                     left: 1,
                     right: 1,
-                    child: ErrorWidget(
+                    child: ErrorWidgetView(
                       lastError: lastError,
                       quantityWord: isquantityavailable,
                     ),
@@ -1147,15 +1147,6 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
       level = 0.0;
     });
   }
-
-  void cancelListening() {
-    _logEvent('cancel');
-    speech.cancel();
-    setState(() {
-      level = 0.0;
-    });
-  }
-
 //New Code
 
   Widget _parseSpeech(String words, bool finalResult) {
@@ -1170,15 +1161,9 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
       String quantity = match.group(2) ?? "";
       String unitOfQuantity = match.group(3) ?? "";
 
-      // if (product.isNotEmpty &&
-      //     quantity.isNotEmpty &&
-      //     unitOfQuantity != null &&
-      //     unitOfQuantity.isNotEmpty) {
       productNameController.text = product;
       text2num(quantity);
       extractAndCombineNumbers(text2num(quantity).toString());
-      // quantityController.text = quantity;
-      // quantityNumeric = double.parse(quantity);
       RefundPageApi.fetchDataAndAssign(product, (result) {
         newItemList = (result as SuccessState).value;
         setState(() {});
@@ -1207,15 +1192,6 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
       setState(() {
         _errorMessage = ''; // Clear error message on successful parsing
       });
-      // }
-      // else if (unitOfQuantity == null || unitOfQuantity.isEmpty) {
-      //   setState(() {
-      //     _errorMessage = 'Unit is missing.';
-      //     if(finalResult == true){
-      //       speak(_errorMessage);}
-      //   });
-      //   return _productErrorWidget(_errorMessage);
-      // }
     } else {
       if (finalResult == true) {
         if (words.contains('quantity')) {
@@ -1245,47 +1221,6 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
           });
           return _productErrorWidget(_errorMessage);
         }
-
-        // if (!words.contains('quantity')) {
-        //   setState(() {
-        //     _errorMessage = 'Quantity word is missing.';
-        //     speak(_errorMessage);
-        //   });
-        //   return _productErrorWidget(_errorMessage);
-        // }
-        //
-        // if (words.contains('quantity') && !words.contains(RegExp(r'\d+'))) {
-        //   setState(() {
-        //     _errorMessage = 'Quantity is missing.';
-        //     speak(_errorMessage);
-        //   });
-        //   return _productErrorWidget(_errorMessage);
-        // }
-        //
-        // if (words.contains(RegExp(r'quantity\s+\d+')) &&
-        //     !words.contains(RegExp(r'\w+$'))) {
-        //   setState(() {
-        //     _errorMessage = 'Unit is missing.';
-        //     speak(_errorMessage);
-        //   });
-        //   return _productErrorWidget(_errorMessage);
-        // }
-        //
-        // if (words.contains(RegExp(r'\d+\s*\w+$')) && !words.contains('quantity')) {
-        //   setState(() {
-        //     _errorMessage = 'Quantity word is missing.';
-        //     speak(_errorMessage);
-        //   });
-        //   return _productErrorWidget(_errorMessage);
-        // }
-        //
-        // if (words.startsWith('quantity')) {
-        //   setState(() {
-        //     _errorMessage = 'Product is missing.';
-        //     speak(_errorMessage);
-        //   });
-        //   return _productErrorWidget(_errorMessage);
-        // }
       }
     }
 
@@ -1597,13 +1532,10 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
         debugPrint('Word found: $w');
       }
     }
-
     // Check if there's any remaining small number to add
     if (g != 0) {
       n += g;
     }
-    // quantityController.text = n.toString();
-    // quantityNumeric = double.parse(n.toString());
     setState(() {});
     return n;
   }
@@ -1645,32 +1577,5 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
     } else {
       return 0; // No numbers found
     }
-  }
-}
-
-/// Display the current error status from the speech
-/// recognizer
-class ErrorWidget extends StatelessWidget {
-  const ErrorWidget(
-      {Key? key, required this.lastError, required this.quantityWord})
-      : super(key: key);
-
-  final String lastError;
-  final bool quantityWord;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: <Widget>[
-        if (lastError != null && lastError.isNotEmpty)
-          const Center(
-            child: Text("Couldn't Recognize, Please say it Again!"),
-          ),
-        if (!quantityWord) // Check if flag is false
-          const Center(
-            child: Text(" "),
-          ),
-      ],
-    );
   }
 }
