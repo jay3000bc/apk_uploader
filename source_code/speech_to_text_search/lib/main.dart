@@ -8,7 +8,6 @@ import 'package:speech_to_text_search/login_profile.dart';
 import 'package:speech_to_text_search/Service/is_login.dart'; 
 import 'package:provider/provider.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:speech_to_text_search/utilities/floating_bottom_bar.dart';
 
 void main() {
   runApp(
@@ -97,7 +96,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void _navigateToSearchApp() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => FloatingBottomBar()),
+      MaterialPageRoute(builder: (context) => SearchApp()),
     );
   }
 

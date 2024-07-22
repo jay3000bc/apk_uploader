@@ -161,15 +161,15 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
             },
             child: Scaffold(
                 drawer: const Sidebar(),
-                // bottomNavigationBar: CustomNavigationBar(
-                //   onItemSelected: (index) {
-                //     // Handle navigation item selection
-                //     setState(() {
-                //       _selectedIndex = index;
-                //     });
-                //   },
-                //   selectedIndex: _selectedIndex,
-                // ),
+                bottomNavigationBar: CustomNavigationBar(
+                  onItemSelected: (index) {
+                    // Handle navigation item selection
+                    setState(() {
+                      _selectedIndex = index;
+                    });
+                  },
+                  selectedIndex: _selectedIndex,
+                ),
                 body: SingleChildScrollView(
                   child: SizedBox(
                     height: MediaQuery.of(context).size.height -
