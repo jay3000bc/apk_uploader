@@ -8,6 +8,7 @@ import 'package:speech_to_text_search/navigation_bar.dart';
 import 'package:speech_to_text_search/search_app.dart';
 
 import 'Service/api_constants.dart';
+import 'edit_product.dart';
 
 class Product {
   final int id;
@@ -196,7 +197,7 @@ class _ProductListPageState extends State<ProductListPage> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      onPopInvoked : (didPop)async {
+      onPopInvoked: (didPop) async {
         _selectedIndex = 0;
         // Navigate to NextPage when user tries to pop MyHomePage
         Navigator.push(
@@ -289,8 +290,8 @@ class _ProductListPageState extends State<ProductListPage> {
             //   ),
             // ),
             const Padding(
-              padding: EdgeInsets.only(
-                  left: 15, right: 15, top: 8.0, bottom: 8),
+              padding:
+                  EdgeInsets.only(left: 15, right: 15, top: 8.0, bottom: 8),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -318,7 +319,6 @@ class _ProductListPageState extends State<ProductListPage> {
                       );
               },
             )
-
                 // SingleChildScrollView(
                 //   scrollDirection: Axis.horizontal,
                 //   child: SingleChildScrollView(
@@ -375,26 +375,34 @@ class _ProductListPageState extends State<ProductListPage> {
   }
 
   Widget itemWidget(Product product) {
-    return Padding(
-      padding: const EdgeInsets.only(left: 15, right: 15, top: 4.0, bottom: 4),
-      child: Column(
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                product.itemName,
-                style: const TextStyle(fontSize: 14),
-              ),
-              Text(product.mrp, style: const TextStyle(fontSize: 14))
-            ],
-          ),
-          const Divider(
-            color: Colors.grey,
-            thickness: 1,
-          )
-        ],
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) => ProductEditPage(productId: product.id),
+        ));
+      },
+      child: Padding(
+        padding:
+            const EdgeInsets.only(left: 15, right: 15, top: 4.0, bottom: 4),
+        child: Column(
+          children: [
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  product.itemName,
+                  style: const TextStyle(fontSize: 14),
+                ),
+                Text(product.quantity, style: const TextStyle(fontSize: 14))
+              ],
+            ),
+            const Divider(
+              color: Colors.grey,
+              thickness: 1,
+            )
+          ],
+        ),
       ),
     );
   }

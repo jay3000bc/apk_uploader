@@ -48,6 +48,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
   String? itemNameforTable = '';
   String unitOfQuantity = '';
   double quantityNumeric = 0;
+  bool isInputThroughText = false;
 
   final FocusNode _searchFocus = FocusNode();
 
@@ -230,7 +231,10 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                   TextFormField(
                                     controller: productNameController,
                                     focusNode: _searchFocus,
-                                    onChanged: updateSuggestionList,
+                                    onChanged: (m){
+                                      isInputThroughText = true;
+                                      updateSuggestionList(m);
+                                    },
                                     decoration: InputDecoration(
                                       // border: OutlineInputBorder(
                                       //   borderRadius: BorderRadius.circular(50.0),
@@ -1087,6 +1091,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
       productNameController.text = product;
       text2num(quantity);
       extractAndCombineNumbers(text2num(quantity).toString());
+      isInputThroughText = false;
       QuickSellApiCalling.fetchDataAndAssign(product, (result) {
         newItems = (result as SuccessState).value;
         setState(() {});
@@ -1261,10 +1266,14 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
     return quantityValue;
   }
 
-  void updateSuggestionList(String recognizedWord) {
-    QuickSellApiCalling.fetchDataAndAssign(productNameController.text,
+  Future<void> updateSuggestionList(String recognizedWord) async {
+    await QuickSellApiCalling.fetchDataAndAssign(productNameController.text,
         (result) {
-      newItems = (result as SuccessState).value;
+      if(recognizedWord == ""){
+        newItems = null;
+      }else{
+        newItems = (result as SuccessState).value;
+      }
     });
     setState(() {
       isSuggetion = true;
@@ -1315,6 +1324,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                 borderRadius: BorderRadius.circular(0),
               ),
               child: ListView.builder(
+                padding: EdgeInsets.zero,
                 itemCount: newItems?.data?.length,
                 itemBuilder: (context, index) {
                   final itemIdforStock = newItems?.data?[index].id.toString();
@@ -1324,7 +1334,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                     children: [
                       ListTile(
                         trailing: Text(
-                          "$quantityNumeric$unit",
+                          isInputThroughText == true? ("${newItems?.data?[index].quantity ?? ''} ${newItems?.data?[index].shortUnit ?? ''}")  :"$quantityNumeric$unit",
                           style: const TextStyle(
                             color: Color.fromARGB(255, 61, 136, 17),
                           ),

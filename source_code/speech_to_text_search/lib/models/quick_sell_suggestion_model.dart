@@ -34,13 +34,15 @@ class Data {
   int? id;
   String? itemName;
   String? shortUnit;
+  String? quantity;
 
-  Data({this.id, this.itemName, this.shortUnit});
+  Data({this.id, this.itemName, this.shortUnit,this.quantity});
 
   Data.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     itemName = json['item_name'];
     shortUnit = json['short_unit'];
+    quantity = json['quantity'];
   }
 
   Map<String, dynamic> toJson() {
@@ -48,6 +50,7 @@ class Data {
     data['id'] = id;
     data['item_name'] = itemName;
     data['short_unit'] = shortUnit;
+    data['quantity'] = quantity;
     return data;
   }
 }
