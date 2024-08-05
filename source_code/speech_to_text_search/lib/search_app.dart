@@ -919,7 +919,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
         final Map<String, dynamic> responseData = json.decode(response.body);
         if (responseData.containsKey('stockStatus')) {
           // Assign quantity from response to availableStockValue if available
-          availableStockValue = responseData['data']?['quantity'] as String?;
+          // availableStockValue = responseData['data']?['quantity'] as String?;
           itemNameforTable = responseData['data']?['item_name'] as String?;
           // Parse stockStatus to int
           int? stockStatus = int.tryParse(responseData['stockStatus']);
@@ -1341,6 +1341,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                         ),
                         title: Text(newItems?.data?[index].itemName ?? ''),
                         onTap: () {
+                          availableStockValue = newItems?.data?[index].quantity;
                           productNameController.text =
                               newItems?.data?[index].itemName ?? '';
                           itemId = itemIdforStock!;

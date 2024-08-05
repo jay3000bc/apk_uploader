@@ -50,6 +50,7 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
   String? itemNameforTable = '';
   String unitOfQuantity = '';
   double quantityNumeric = 0;
+  bool isInputThroughText = false;
 
   QuickSellSuggestionModel? newItemList;
   final FocusNode _searchFocus = FocusNode();
@@ -233,7 +234,10 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
                                     TextFormField(
                                       controller: productNameController,
                                       focusNode: _searchFocus,
-                                      onChanged: updateSuggestionList,
+                                      onChanged: (m){
+                                        isInputThroughText = true;
+                                        updateSuggestionList(m);
+                                      },
                                       decoration: InputDecoration(
                                         // border: OutlineInputBorder(
                                         //   borderRadius: BorderRadius.circular(50.0),
@@ -876,7 +880,8 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
   }
 
   Future<void> saveData() async {
-    const String apiUrl = '$baseUrl/refund';
+    // const String apiUrl = '$baseUrl/refund';
+    const String apiUrl = '$baseUrl/billing-n-refund';
     double grandTotal = calculateOverallTotal(); // Calculate overall total
     Map<String, dynamic> requestBody = {
       'itemList': itemForBillRows,
@@ -991,7 +996,7 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
         final Map<String, dynamic> responseData = json.decode(response.body);
         if (responseData.containsKey('stockStatus')) {
           // Assign quantity from response to availableStockValue if available
-          availableStockValue = responseData['data']?['quantity'] as String?;
+          // availableStockValue = responseData['data']?['quantity'] as String?;
           itemNameforTable = responseData['data']?['item_name'] as String?;
           // Parse stockStatus to int
           int? stockStatus = int.tryParse(responseData['stockStatus']);
@@ -1164,6 +1169,7 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
       productNameController.text = product;
       text2num(quantity);
       extractAndCombineNumbers(text2num(quantity).toString());
+      isInputThroughText = false;
       RefundPageApi.fetchDataAndAssign(product, (result) {
         newItemList = (result as SuccessState).value;
         setState(() {});
@@ -1345,9 +1351,13 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
     return quantityValue;
   }
 
-  void updateSuggestionList(String recognizedWord) {
-    RefundPageApi.fetchDataAndAssign(productNameController.text, (result) {
-      newItemList = (result as SuccessState).value;
+  Future<void> updateSuggestionList(String recognizedWord) async {
+    await RefundPageApi.fetchDataAndAssign(productNameController.text, (result) {
+      if(recognizedWord == ""){
+        newItemList = null;
+      }else{
+        newItemList = (result as SuccessState).value;
+      }
     });
     setState(() {
       isSuggetion = true;
@@ -1398,6 +1408,7 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
                 borderRadius: BorderRadius.circular(0),
               ),
               child: ListView.builder(
+                padding: EdgeInsets.zero,
                 itemCount: newItemList?.data?.length,
                 itemBuilder: (context, index) {
                   final itemIdforStock = newItemList?.data?[index].id;
@@ -1407,13 +1418,14 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
                     children: [
                       ListTile(
                         trailing: Text(
-                          "$quantityNumeric$unit",
+                          isInputThroughText == true? ("${newItemList?.data?[index].quantity ?? ''} ${newItemList?.data?[index].shortUnit ?? ''}")  :"$quantityNumeric$unit",
                           style: const TextStyle(
                             color: Color.fromARGB(255, 61, 136, 17),
                           ),
                         ),
                         title: Text(newItemList?.data?[index].itemName ?? ""),
                         onTap: () {
+                          availableStockValue = newItemList?.data?[index].quantity;
                           productNameController.text =
                               newItemList?.data?[index].itemName ?? '';
                           itemId = itemIdforStock!.toString();
