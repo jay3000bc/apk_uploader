@@ -447,6 +447,11 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
                                                   _selectedQuantitySecondaryUnit!,
                                                   token!);
                                           if (stockStatus == 1) {
+                                            productNameController.clear();
+                                            quantityController.clear();
+                                            _dropdownItemsQuantity.insert(0, "Unit");
+                                            _selectedQuantitySecondaryUnit = _dropdownItemsQuantity[0]; // Reset to default value
+                                            quantitySelectedValue = '';
                                             double? quantityValueforConvert =
                                                 double.tryParse(quantityValue);
                                             double quantityValueforTable =
@@ -461,6 +466,8 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
                                                 quantityValueforTable,
                                                 _selectedQuantitySecondaryUnit!,
                                                 salePriceforTable!);
+                                            setState(() {
+                                            });
                                           } else if (stockStatus == 0) {
                                             showDialog(
                                               context: context,
@@ -532,6 +539,11 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
                                           if (stockStatus == 0 ||
                                               stockStatus == 1 ||
                                               stockStatus == 2) {
+                                            productNameController.clear();
+                                            quantityController.clear();
+                                            _dropdownItemsQuantity.insert(0, "Unit");
+                                            _selectedQuantitySecondaryUnit = _dropdownItemsQuantity[0]; // Reset to default value
+                                            quantitySelectedValue = '';
                                             double? quantityValueforConvert =
                                                 double.tryParse(quantityValue);
                                             double quantityValueforTable =
