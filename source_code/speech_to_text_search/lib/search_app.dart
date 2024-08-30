@@ -436,6 +436,12 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                                 _selectedQuantitySecondaryUnit!,
                                                 token!);
                                         if (stockStatus == 1) {
+                                          productNameController.clear();
+                                          quantityController.clear();
+                                          _dropdownItemsQuantity.insert(0, "Unit");
+                                          _selectedQuantitySecondaryUnit = _dropdownItemsQuantity[0]; // Reset to default value
+                                          quantitySelectedValue = '';
+                                          print(_dropdownItemsQuantity);
                                           double? quantityValueforConvert =
                                               double.tryParse(quantityValue);
                                           double quantityValueforTable =
@@ -450,6 +456,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                               quantityValueforTable,
                                               _selectedQuantitySecondaryUnit!,
                                               salePriceforTable!);
+                                          setState(() {});
                                         } else if (stockStatus == 0) {
                                           showDialog(
                                             context: context,
@@ -509,7 +516,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                 height: 100,
                               ),
                             ),
-                            Text(lastWords),
+                            // Text(lastWords),
                             Visibility(
                               visible: !itemForBillRows.isNotEmpty,
                               child: const Center(

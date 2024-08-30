@@ -30,7 +30,7 @@ class _SidebarState extends State<Sidebar> {
   String _userName = '';
   int _selectedIndex = 3;
 
-  final Uri _url = Uri.parse('https://dev.probill.app/forgot-password');
+  final Uri _url = Uri.parse('https://probill.app/forgot-password');
 
   @override
   void initState() {
