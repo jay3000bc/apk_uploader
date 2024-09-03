@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:provider/provider.dart';
 import 'package:speech_to_text/speech_to_text.dart';
@@ -17,6 +18,7 @@ import 'package:speech_to_text_search/models/quick_sell_suggestion_model.dart';
 import 'package:speech_to_text_search/product_mic_state.dart';
 import 'package:speech_to_text_search/navigation_bar.dart';
 import 'package:speech_to_text_search/quantity_mic_state.dart';
+import 'package:speech_to_text_search/transaction_details.dart';
 import 'package:string_similarity/string_similarity.dart';
 import 'package:http/http.dart' as http;
 import 'package:speech_to_text/speech_recognition_error.dart';
@@ -201,29 +203,6 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                 ),
                               ],
                             ),
-
-                            // Adjust the spacing between the container and the text
-
-                            validProductName
-                                ? const Padding(
-                                    padding: EdgeInsets.all(0.0),
-                                    child: Text(""),
-                                  )
-                                : const Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Icon(
-                                        Icons.error,
-                                        color: Colors.red,
-                                      ),
-                                      Text(
-                                        "Product Not Found",
-                                        style: TextStyle(
-                                            fontSize: 20, color: Colors.red),
-                                      ),
-                                    ],
-                                  ),
-
                             Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: Column(
@@ -233,6 +212,11 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                     focusNode: _searchFocus,
                                     onChanged: (m){
                                       isInputThroughText = true;
+                                      if(productNameController == ''){
+                                        validProductName = true;
+                                        setState(() {
+                                        });
+                                      }
                                       updateSuggestionList(m);
                                     },
                                     decoration: InputDecoration(
@@ -250,7 +234,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                       ),
                                       hintText: "  Type a Product...",
                                       hintStyle: const TextStyle(
-                                          fontSize: 20.0,
+                                          fontSize: 16.0,
                                           color: Color.fromRGBO(0, 0, 0, 1)),
                                       suffixIcon: Row(
                                         mainAxisSize: MainAxisSize.min,
@@ -287,10 +271,10 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                             ),
 
                             Padding(
-                              padding: const EdgeInsets.all(16.0),
+                              padding: const EdgeInsets.fromLTRB(16.0,0,16.0,0),
                               child: SizedBox(
                                 width: double.infinity,
-                                height: 60, // Adjust the height as needed
+                                height: 50, // Adjust the height as needed
                                 child: Stack(
                                   children: <Widget>[
                                     // AutoCompleteTextField
@@ -325,15 +309,14 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                           ),
                                           hintText: "  Type a Quantity...",
                                           hintStyle: const TextStyle(
-                                              fontSize: 20.0,
+                                              fontSize: 16.0,
                                               color:
                                                   Color.fromRGBO(0, 0, 0, 1)),
                                           suffixIcon: Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
                                               Visibility(
-                                                visible: quantityController
-                                                    .text.isNotEmpty,
+                                                visible: quantityController.text.isNotEmpty,
                                                 child: IconButton(
                                                   padding:
                                                       const EdgeInsets.fromLTRB(
@@ -393,7 +376,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                                 (String value) {
                                           return DropdownMenuItem<String>(
                                             value: value,
-                                            child: Text(value),
+                                            child: Text(value,style: TextStyle(fontSize: 16),),
                                           );
                                         }).toList(),
                                       ),
@@ -402,9 +385,28 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                 ),
                               ),
                             ),
-                            const SizedBox(
-                              height: 8,
+                            SizedBox(height: validProductName == true? 8:16,),
+                            // Adjust the spacing between the container and the text
+                            validProductName == true || productNameController.text == ''
+                                ? const Padding(
+                              padding: EdgeInsets.all(0.0),
+                              child: Text(""),
+                            )
+                                : const Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.error,
+                                  color: Colors.red,
+                                ),
+                                Text(
+                                  "Product Not Found",
+                                  style: TextStyle(
+                                      fontSize: 20, color: Colors.red),
+                                ),
+                              ],
                             ),
+                            SizedBox(height: validProductName == true? 0:16,),
                             // Display the total price for the selected product
 
                             Row(
@@ -412,8 +414,9 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                   .spaceEvenly, // Align buttons at the ends
                               children: [
                                 Container(
+                                  height: 45,
                                   decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(50),
+                                    borderRadius: BorderRadius.circular(25),
                                     color: (productNameController
                                                 .text.isEmpty ||
                                             quantityController.text.isEmpty)
@@ -435,13 +438,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                                 quantityValue,
                                                 _selectedQuantitySecondaryUnit!,
                                                 token!);
-                                        if (stockStatus == 1) {
-                                          productNameController.clear();
-                                          quantityController.clear();
-                                          _dropdownItemsQuantity.insert(0, "Unit");
-                                          _selectedQuantitySecondaryUnit = _dropdownItemsQuantity[0]; // Reset to default value
-                                          quantitySelectedValue = '';
-                                          print(_dropdownItemsQuantity);
+                                        if (stockStatus == 1 && validProductName == true) {
                                           double? quantityValueforConvert =
                                               double.tryParse(quantityValue);
                                           double quantityValueforTable =
@@ -456,6 +453,12 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                               quantityValueforTable,
                                               _selectedQuantitySecondaryUnit!,
                                               salePriceforTable!);
+                                          productNameController.clear();
+                                          quantityController.clear();
+                                          _dropdownItemsQuantity.insert(0, "Unit");
+                                          _selectedQuantitySecondaryUnit = _dropdownItemsQuantity[0]; // Reset to default value
+                                          quantitySelectedValue = '';
+                                          print(_dropdownItemsQuantity);
                                           setState(() {});
                                         } else if (stockStatus == 0) {
                                           showDialog(
@@ -481,7 +484,6 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                         }
                                       }
                                     },
-                                    height: 10,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(50),
                                     ),
@@ -489,7 +491,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                       child: Text(
                                         "ADD",
                                         style: TextStyle(
-                                            fontSize: 20,
+                                            fontSize: 18,
                                             color: (productNameController
                                                         .text.isEmpty ||
                                                     quantityController
@@ -527,7 +529,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                       "Tap Mic and start by saying",
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
-                                        fontSize: 25.0,
+                                        fontSize: 22.0,
                                         color: Color(
                                             0xFFD79922), // Set color to #D79922
                                       ),
@@ -536,7 +538,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                       "\"Amul Butter quantity 2packs\"",
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
-                                        fontSize: 25.0,
+                                        fontSize: 22.0,
                                         color: Color(
                                             0xFFD79922), // Set color to #D79922
                                       ),
@@ -545,7 +547,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                       "select product and Add",
                                       textAlign: TextAlign.center,
                                       style: TextStyle(
-                                        fontSize: 25.0,
+                                        fontSize: 22.0,
                                         color: Color(
                                             0xFFD79922), // Set color to #D79922
                                       ),
@@ -558,137 +560,165 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                             // Inside the DataTable
                             Visibility(
                               visible: itemForBillRows.isNotEmpty,
-                              child: SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: DataTable(
-                                  columnSpacing: 30.0,
-                                  columns: const [
-                                    DataColumn(
-                                      label: Text(
-                                        "Item",
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      numeric: false,
-                                    ),
-                                    DataColumn(
-                                      label: Text(
-                                        "Qty",
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      numeric: false,
-                                    ),
-                                    DataColumn(
-                                      label: Text(
-                                        "Rate",
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      numeric: false,
-                                    ),
-                                    DataColumn(
-                                      label: Text(
-                                        "Amount",
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      numeric: false,
-                                    ),
-                                    DataColumn(
-                                      label: Text(
-                                        "",
-                                        style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      numeric: false,
-                                    ),
-                                  ],
-                                  rows: List<DataRow>.generate(
-                                    itemForBillRows.length,
-                                    (index) => DataRow(cells: [
-                                      DataCell(
-                                        SizedBox(
-                                            width: 50,
-                                            child: Text(itemForBillRows[index]
-                                                ['itemName'])),
-                                      ),
-                                      DataCell(
-                                        SizedBox(
-                                            width: 40,
-                                            child: Text(
-                                                '${itemForBillRows[index]['quantity']} ${itemForBillRows[index]['selectedUnit']}')),
-                                      ),
-                                      DataCell(
-                                        SizedBox(
-                                          width: 70,
-                                          height: 40,
-                                          child: TextField(
-                                            decoration: InputDecoration(
-                                              hintText: itemForBillRows[index]
-                                                      ['rate']
-                                                  .toString(),
-                                              filled: true,
-                                              fillColor: const Color.fromARGB(
-                                                  255, 216, 216, 216),
-                                              // Adding asterisk (*) to the label text
-                                              labelStyle: const TextStyle(
-                                                  color: Colors
-                                                      .black), // Setting label text color to black
-
-                                              border: OutlineInputBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(8.0),
-                                                borderSide: BorderSide.none,
-                                              ),
-                                            ),
-                                            keyboardType: TextInputType.number,
-                                            onChanged: (newRate) {
-                                              // Update the rate value in your data model
-                                              itemForBillRows[index]['rate'] =
-                                                  double.parse(newRate);
-                                              // Recalculate the amount
-                                              itemForBillRows[index]['amount'] =
-                                                  itemForBillRows[index]
-                                                          ['rate'] *
-                                                      itemForBillRows[index]
-                                                          ['quantity'];
-                                              // Trigger UI update
-                                              setState(() {});
-                                            },
-                                          ),
-                                        ),
-                                      ),
-                                      DataCell(
-                                        SizedBox(
-                                            width: 50,
-                                            child: Text(itemForBillRows[index]
-                                                    ['amount']
-                                                .toString())),
-                                      ),
-                                      DataCell(
-                                        IconButton(
-                                          icon: const Icon(
-                                            Icons.delete,
-                                            color:
-                                                Color.fromARGB(255, 161, 11, 0),
-                                          ),
-                                          onPressed: () {
-                                            // Delete the product at the current index when IconButton is pressed
-                                            deleteProductFromTable(index);
-                                          },
-                                        ),
-                                      ),
-                                    ]),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      titleWidget(context, "Item",0.2),
+                                      titleWidget(context, "Qty",0.2),
+                                      titleWidget(context, "Rate",0.2),
+                                      titleWidget(context, "Amount",0.2),
+                                      titleWidget(context, '',0.1),
+                                    ],
                                   ),
-                                ),
+                                  const Divider(
+                                    color: Colors.grey,
+                                    thickness: 1,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Container(
+                                    height: itemForBillRows.length <= 2?itemForBillRows.length * 60 : 160,
+                                      padding: const EdgeInsets.only(left: 20.0),
+                                      child: ListView.builder(
+                                        padding: EdgeInsets.zero,
+                                        itemCount: itemForBillRows.length,
+                                        itemBuilder: (context, index) {
+                                          return searchPageItemWidget(itemForBillRows[index], context,index);
+                                        },
+                                      )),
+                                ],
                               ),
+                              // DataTable(
+                              //   columnSpacing: 30.0,
+                              //   columns: const [
+                              //     DataColumn(
+                              //       label: Text(
+                              //         "Item",
+                              //         style: TextStyle(
+                              //             fontSize: 14,
+                              //             fontWeight: FontWeight.bold),
+                              //         overflow: TextOverflow.ellipsis,
+                              //       ),
+                              //       numeric: false,
+                              //     ),
+                              //     DataColumn(
+                              //       label: Text(
+                              //         "Qty",
+                              //         style: TextStyle(
+                              //             fontSize: 14,
+                              //             fontWeight: FontWeight.bold),
+                              //       ),
+                              //       numeric: false,
+                              //     ),
+                              //     DataColumn(
+                              //       label: Text(
+                              //         "Rate",
+                              //         style: TextStyle(
+                              //             fontSize: 14,
+                              //             fontWeight: FontWeight.bold),
+                              //       ),
+                              //       numeric: false,
+                              //     ),
+                              //     DataColumn(
+                              //       label: Text(
+                              //         "Amount",
+                              //         style: TextStyle(
+                              //             fontSize: 14,
+                              //             fontWeight: FontWeight.bold),
+                              //       ),
+                              //       numeric: false,
+                              //     ),
+                              //     DataColumn(
+                              //       label: Text(
+                              //         "",
+                              //         style: TextStyle(
+                              //             fontSize: 14,
+                              //             fontWeight: FontWeight.bold),
+                              //       ),
+                              //       numeric: false,
+                              //     ),
+                              //   ],
+                              //   rows: List<DataRow>.generate(
+                              //     itemForBillRows.length,
+                              //     (index) => DataRow(cells: [
+                              //       DataCell(
+                              //         SizedBox(
+                              //             width: 50,
+                              //             child: Text(itemForBillRows[index]
+                              //                 ['itemName'])),
+                              //       ),
+                              //       DataCell(
+                              //         SizedBox(
+                              //             width: 40,
+                              //             child: Text(
+                              //                 '${itemForBillRows[index]['quantity']} ${itemForBillRows[index]['selectedUnit']}')),
+                              //       ),
+                              //       DataCell(
+                              //         SizedBox(
+                              //           width: 70,
+                              //           height: 40,
+                              //           child: TextField(
+                              //             decoration: InputDecoration(
+                              //               hintText: itemForBillRows[index]
+                              //                       ['rate']
+                              //                   .toString(),
+                              //               filled: true,
+                              //               fillColor: const Color.fromARGB(
+                              //                   255, 216, 216, 216),
+                              //               // Adding asterisk (*) to the label text
+                              //               labelStyle: const TextStyle(
+                              //                   color: Colors
+                              //                       .black), // Setting label text color to black
+                              //
+                              //               border: OutlineInputBorder(
+                              //                 borderRadius:
+                              //                     BorderRadius.circular(8.0),
+                              //                 borderSide: BorderSide.none,
+                              //               ),
+                              //             ),
+                              //             keyboardType: TextInputType.number,
+                              //             onChanged: (newRate) {
+                              //               // Update the rate value in your data model
+                              //               itemForBillRows[index]['rate'] =
+                              //                   double.parse(newRate);
+                              //               // Recalculate the amount
+                              //               itemForBillRows[index]['amount'] =
+                              //                   itemForBillRows[index]
+                              //                           ['rate'] *
+                              //                       itemForBillRows[index]
+                              //                           ['quantity'];
+                              //               // Trigger UI update
+                              //               setState(() {});
+                              //             },
+                              //           ),
+                              //         ),
+                              //       ),
+                              //       DataCell(
+                              //         SizedBox(
+                              //             width: 50,
+                              //             child: Text(itemForBillRows[index]
+                              //                     ['amount']
+                              //                 .toString())),
+                              //       ),
+                              //       DataCell(
+                              //         IconButton(
+                              //           icon: const Icon(
+                              //             Icons.delete,
+                              //             color:
+                              //                 Color.fromARGB(255, 161, 11, 0),
+                              //           ),
+                              //           onPressed: () {
+                              //             // Delete the product at the current index when IconButton is pressed
+                              //             deleteProductFromTable(index);
+                              //           },
+                              //         ),
+                              //       ),
+                              //     ]),
+                              //   ),
+                              // ),
                             ),
                             Visibility(
                               visible: itemForBillRows.isNotEmpty,
@@ -787,6 +817,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                       : "Tap to speak",
                                   style: const TextStyle(
                                     color: Colors.green,
+                                    fontSize: 12
                                   ),
                                 ),
                               ],
@@ -828,7 +859,9 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
   }
 
   Future<void> saveData() async {
-    const String apiUrl = '$baseUrl/billing-n-refund';
+    EasyLoading.show(status: 'loading...');
+
+    const String apiUrl = '$baseUrl/billing';
     double grandTotal = calculateOverallTotal(); // Calculate overall total
 // Determine print flag
 
@@ -849,6 +882,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
       );
 
       if (response.statusCode == 200) {
+        EasyLoading.dismiss();
         itemForBillRows.clear(); // Clear the list
         clearProductName(); // Call the clearProductName function
         // Show dialog
@@ -870,10 +904,12 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
         );
         // Optionally, you can handle further actions after saving the data
       } else {
+        EasyLoading.dismiss();
         debugPrint(response.body);
         // Handle error cases
       }
     } catch (e) {
+      EasyLoading.dismiss();
       Result.error("Book list not available");
       // Handle exceptions
     }
@@ -1000,6 +1036,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
       final recognizedWord = result.recognizedWords.toLowerCase();
       shouldOpenDropdown = true;
       validProductName = true;
+      setState(() {});
       _parseSpeech(recognizedWord, result.finalResult);
     });
   }
@@ -1048,8 +1085,8 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 2000),
       repeat: true,
       child: Container(
-          width: 100,
-          height: 100,
+          width: 80,
+          height: 80,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             boxShadow: [
@@ -1068,7 +1105,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
             child: const Icon(
               Icons.mic,
               color: Colors.white,
-              size: 40,
+              size: 35,
             ),
           )),
     );
@@ -1101,6 +1138,11 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
       isInputThroughText = false;
       QuickSellApiCalling.fetchDataAndAssign(product, (result) {
         newItems = (result as SuccessState).value;
+        if(newItems!.data!.isEmpty){
+          validProductName = false;
+        }else{
+          validProductName = true;
+        }
         setState(() {});
       });
 
@@ -1280,6 +1322,11 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
         newItems = null;
       }else{
         newItems = (result as SuccessState).value;
+        if(newItems!.data!.isEmpty){
+          validProductName = false;
+        }else{
+          validProductName = true;
+        }
       }
     });
     setState(() {
@@ -1511,6 +1558,109 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
     } else {
       return 0; // No numbers found
     }
+  }
+
+  itemDetailWidget(BuildContext context, String itemDetail, double d) {
+    return Container(
+      alignment: Alignment.center,
+      constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * d,
+          minWidth: MediaQuery.of(context).size.width * 0.1),
+      child: Text(
+        itemDetail,
+        style: const TextStyle(fontSize: 12),
+      ),
+    );
+  }
+
+  titleWidget(BuildContext context, String title, double d) {
+    return Container(
+      alignment: Alignment.center,
+      constraints:
+      BoxConstraints(maxWidth: MediaQuery.of(context).size.width * d),
+      child: Text(
+        title,
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+      ),
+    );
+  }
+
+  Widget searchPageItemWidget(Map<String, dynamic> item, BuildContext context, int index) {
+    return Column(
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            itemDetailWidget(context, '${itemForBillRows[index]['itemName']}',0.2),
+            itemDetailWidget(context, '${itemForBillRows[index]['quantity']} \n${itemForBillRows[index]['selectedUnit']}',0.2),
+            Container(
+              width: 60,
+              height: 50,
+              alignment: Alignment.center,
+              constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.2),
+              child: TextField(
+                 style: const TextStyle(fontSize: 12,),
+                decoration: InputDecoration(
+                  hintText: itemForBillRows[index]
+                  ['rate']
+                      .toString(),
+                  filled: true,
+                  fillColor: const Color.fromARGB(
+                      255, 216, 216, 216),
+                  // Adding asterisk (*) to the label text
+                  labelStyle: const TextStyle(
+                      color: Colors
+                          .black), // Setting label text color to black
+
+                  border: OutlineInputBorder(
+                    borderRadius:
+                    BorderRadius.circular(8.0),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+                onChanged: (newRate) {
+                  // Update the rate value in your data model
+                  itemForBillRows[index]['rate'] =
+                      double.parse(newRate);
+                  // Recalculate the amount
+                  itemForBillRows[index]['amount'] =
+                      itemForBillRows[index]
+                      ['rate'] *
+                          itemForBillRows[index]
+                          ['quantity'];
+                  // Trigger UI update
+                  setState(() {});
+                },
+              ),
+            ),
+            itemDetailWidget(context, '₹${item['amount']}',0.2),
+            Container(
+                alignment: Alignment.center,
+                constraints: BoxConstraints(
+                    maxWidth: MediaQuery.of(context).size.width * 0.1,),
+              child: IconButton(
+                icon: const Icon(
+                  Icons.delete,
+                  color:
+                  Color.fromARGB(255, 161, 11, 0),
+                ),
+                onPressed: () {
+                  // Delete the product at the current index when IconButton is pressed
+                  deleteProductFromTable(index);
+                },
+              ),
+            ),
+          ],
+        ),
+        const Divider(
+          color: Colors.grey,
+          thickness: 1,
+        )
+      ],
+    );
   }
 }
 

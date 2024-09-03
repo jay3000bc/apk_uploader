@@ -26,6 +26,9 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
   TextEditingController confirmPasswordController = TextEditingController();
   TextEditingController addressController = TextEditingController();
   int _selectedIndex = 3;
+  bool isObscureConfirm = true;
+  bool isObscure = true;
+
   Future<void> submitData() async {
     EasyLoading.show(status: 'Loading...');
     var token = await APIService.getToken();
@@ -54,19 +57,38 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
         // Call the function to show the response dialog
         showApiResponseDialog(context, jsonDecode(responseBody));
       } else {
-        // Request failed
+        // Request successful
+        var responseBody = await response.stream.bytesToString();
+        // Decode the response body
+        var decodedResponse = jsonDecode(responseBody);
+        String messageMobile =
+            decodedResponse['data']['mobile']?.join(', ') ?? '';
+        String messagePassword =
+            decodedResponse['data']['password']?.join(', ') ?? '';
+        String messageName = decodedResponse['data']['name']?.join(', ') ?? '';
+        String messageAddress =
+            decodedResponse['data']['address']?.join(', ') ?? '';
+        String finalMessage =
+            '$messageName\n$messageMobile\n$messagePassword\n$messageAddress';
+        callAlert(finalMessage);
+        // Call the function to show the response dialog
+        // showApiResponseDialog(context, jsonDecode(responseBody));
+        print(jsonDecode(responseBody));
         Result.error("Book list not available");
-        EasyLoading.showError('Failed with status code: ${response.statusCode}');
+        // EasyLoading.showError(
+        //     'Failed with status code: ${response.statusCode}');
       }
     } catch (error) {
       Result.error("Book list not available");
-      EasyLoading.showError('Error: $error');
+      // EasyLoading.showError('Error: $error');
     } finally {
-      EasyLoading.dismiss(); // Dismiss the loading indicator regardless of the request outcome
+      EasyLoading
+          .dismiss(); // Dismiss the loading indicator regardless of the request outcome
     }
   }
 
-  void showApiResponseDialog(BuildContext context, Map<String, dynamic> response) {
+  void showApiResponseDialog(
+      BuildContext context, Map<String, dynamic> response) {
     String title;
     String content;
 
@@ -74,7 +96,8 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
     if (response['status'] == 'success') {
       title = "Success";
       content = response['message'];
-    } else if (response['status'] == 'failed' && response['message'] == 'Validation Error!') {
+    } else if (response['status'] == 'failed' &&
+        response['message'] == 'Validation Error!') {
       title = "Validation Error";
       content = "Please check the following errors:\n";
 
@@ -87,28 +110,27 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
       title = "Error";
       content = response['message'] ?? "An unexpected error occurred";
     }
-
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(title),
-          content: Text(content),
-          actions: <Widget>[
-            ElevatedButton(
-              child: const Text("OK"),
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SearchApp()),
-                );
-              },
-            ),
-          ],
-        );
-      },
-    );
+    // showDialog(
+    //   context: context,
+    //   barrierDismissible: false,
+    //   builder: (BuildContext context) {
+    //     return AlertDialog(
+    //       title: Text(title),
+    //       content: Text(content),
+    //       actions: <Widget>[
+    //         ElevatedButton(
+    //           child: const Text("OK"),
+    //           onPressed: () {
+    //             Navigator.pushReplacement(
+    //               context,
+    //               MaterialPageRoute(builder: (context) => const SearchApp()),
+    //             );
+    //           },
+    //         ),
+    //       ],
+    //     );
+    //   },
+    // );
   }
 
   @override
@@ -167,7 +189,8 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
                         onPressed: () {
                           Navigator.pushReplacement(
                             context,
-                            MaterialPageRoute(builder: (context) => const SubUserListPage()),
+                            MaterialPageRoute(
+                                builder: (context) => const SubUserListPage()),
                           );
                         },
                       ),
@@ -252,7 +275,7 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
   }
 
   Widget _buildPasswordTF() {
-    bool isObscure = true; // Flag to toggle password visibility
+    // Flag to toggle password visibility
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -292,7 +315,6 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
   }
 
   Widget _buildConfirmPasswordTF() {
-    bool isObscureConfirm = true;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -322,9 +344,8 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
                 ),
                 onPressed: () {
                   // Toggle password visibility
-                  setState(() {
-                    isObscureConfirm = !isObscureConfirm;
-                  });
+                  isObscureConfirm = !isObscureConfirm;
+                  setState(() {});
                 },
               ),
             ),
@@ -374,7 +395,28 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
       width: double.infinity,
       child: ElevatedButton(
         onPressed: () {
-          submitData();
+          if (mobileController.text == '' ||
+              nameController.text == '' ||
+              passwordController.text == '' ||
+              confirmPasswordController.text == '' ||
+              addressController.text == '') {
+              callAlert("all fields are required");
+            // }
+            // // else if (confirmPasswordController.text !=
+            // //     passwordController.text) {
+            // //   callAlert("Password & Confirm Password Doesn't Match");
+            // // }
+            // // else if (passwordController.text.length < 8 ||
+            // //     confirmPasswordController.text.length < 8) {
+            // //   callAlert(
+            // //       "password & confirm password must contain at least 8 characters");
+            // // }
+            // else
+            //   if (addressController.text == '') {
+            //   callAlert("address is required");
+            } else {
+            submitData();
+          }
         },
         style: ElevatedButton.styleFrom(
           elevation: 5.0,
@@ -396,5 +438,22 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
         ),
       ),
     );
+  }
+
+  callAlert(String message) {
+    return showDialog<bool>(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Alert'),
+            content: Text(message),
+            actions: [
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Ok'),
+              ),
+            ],
+          );
+        });
   }
 }

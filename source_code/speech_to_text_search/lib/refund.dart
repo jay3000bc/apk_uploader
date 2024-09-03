@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:avatar_glow/avatar_glow.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 import 'package:provider/provider.dart';
 import 'package:speech_to_text/speech_to_text.dart';
@@ -161,6 +162,7 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
               });
             },
             child: Scaffold(
+              resizeToAvoidBottomInset: false,
               drawer: const Sidebar(),
               bottomNavigationBar: CustomNavigationBar(
                 onItemSelected: (index) {
@@ -203,30 +205,6 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
                                   ),
                                 ],
                               ),
-
-                              // Adjust the spacing between the container and the text
-
-                              validProductName
-                                  ? const Padding(
-                                      padding: EdgeInsets.all(0.0),
-                                      child: Text(""),
-                                    )
-                                  : const Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Icon(
-                                          Icons.error,
-                                          color: Colors.red,
-                                        ),
-                                        Text(
-                                          "Product Not Found",
-                                          style: TextStyle(
-                                              fontSize: 20, color: Colors.red),
-                                        ),
-                                      ],
-                                    ),
-
                               Padding(
                                 padding: const EdgeInsets.all(16.0),
                                 child: Column(
@@ -255,7 +233,7 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
                                         ),
                                         hintText: "  Type a Product...",
                                         hintStyle: const TextStyle(
-                                            fontSize: 20.0,
+                                            fontSize: 16.0,
                                             color: Color.fromRGBO(0, 0, 0, 1)),
                                         suffixIcon: Row(
                                           mainAxisSize: MainAxisSize.min,
@@ -295,7 +273,7 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
                                 padding: const EdgeInsets.all(16.0),
                                 child: SizedBox(
                                   width: double.infinity,
-                                  height: 60, // Adjust the height as needed
+                                  height: 50, // Adjust the height as needed
                                   child: Stack(
                                     children: <Widget>[
                                       // AutoCompleteTextField
@@ -330,7 +308,7 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
                                             ),
                                             hintText: "  Type a Quantity...",
                                             hintStyle: const TextStyle(
-                                                fontSize: 20.0,
+                                                fontSize: 16.0,
                                                 color:
                                                     Color.fromRGBO(0, 0, 0, 1)),
                                             suffixIcon: Row(
@@ -402,7 +380,7 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
                                                   (String value) {
                                             return DropdownMenuItem<String>(
                                               value: value,
-                                              child: Text(value),
+                                              child: Text(value,style: TextStyle(fontSize: 16),),
                                             );
                                           }).toList(),
                                         ),
@@ -411,16 +389,35 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
                                   ),
                                 ),
                               ),
-                              const SizedBox(
-                                height: 8,
-                              ),
                               // Display the total price for the selected product
-
+                              // SizedBox(height: validProductName == true? 0:8,),
+                              // Adjust the spacing between the container and the text
+                              validProductName == true || productNameController.text == ''
+                                  ? const Padding(
+                                padding: EdgeInsets.all(0.0),
+                                child: Text(""),
+                              )
+                                  : const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.error,
+                                    color: Colors.red,
+                                  ),
+                                  Text(
+                                    "Product Not Found",
+                                    style: TextStyle(
+                                        fontSize: 20, color: Colors.red),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: validProductName == true? 0:16,),
                               Row(
                                 mainAxisAlignment: MainAxisAlignment
                                     .spaceEvenly, // Align buttons at the ends
                                 children: [
                                   Container(
+                                    height:45,
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(50),
                                       color: (productNameController
@@ -447,11 +444,6 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
                                                   _selectedQuantitySecondaryUnit!,
                                                   token!);
                                           if (stockStatus == 1) {
-                                            productNameController.clear();
-                                            quantityController.clear();
-                                            _dropdownItemsQuantity.insert(0, "Unit");
-                                            _selectedQuantitySecondaryUnit = _dropdownItemsQuantity[0]; // Reset to default value
-                                            quantitySelectedValue = '';
                                             double? quantityValueforConvert =
                                                 double.tryParse(quantityValue);
                                             double quantityValueforTable =
@@ -466,6 +458,11 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
                                                 quantityValueforTable,
                                                 _selectedQuantitySecondaryUnit!,
                                                 salePriceforTable!);
+                                            productNameController.clear();
+                                            quantityController.clear();
+                                            _dropdownItemsQuantity.insert(0, "Unit");
+                                            _selectedQuantitySecondaryUnit = _dropdownItemsQuantity[0]; // Reset to default value
+                                            quantitySelectedValue = '';
                                             setState(() {
                                             });
                                           } else if (stockStatus == 0) {
@@ -500,7 +497,7 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
                                         child: Text(
                                           "ADD",
                                           style: TextStyle(
-                                              fontSize: 20,
+                                              fontSize: 18,
                                               color: (productNameController
                                                           .text.isEmpty ||
                                                       quantityController
@@ -515,6 +512,7 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
                                     ),
                                   ),
                                   Container(
+                                    height: 45,
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(50),
                                       color: Colors
@@ -536,14 +534,9 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
                                                   quantityValue,
                                                   _selectedQuantitySecondaryUnit!,
                                                   token!);
-                                          if (stockStatus == 0 ||
+                                          if ((stockStatus == 0 ||
                                               stockStatus == 1 ||
-                                              stockStatus == 2) {
-                                            productNameController.clear();
-                                            quantityController.clear();
-                                            _dropdownItemsQuantity.insert(0, "Unit");
-                                            _selectedQuantitySecondaryUnit = _dropdownItemsQuantity[0]; // Reset to default value
-                                            quantitySelectedValue = '';
+                                              stockStatus == 2) && validProductName == true) {
                                             double? quantityValueforConvert =
                                                 double.tryParse(quantityValue);
                                             double quantityValueforTable =
@@ -559,6 +552,13 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
                                                 quantityValueforTable,
                                                 _selectedQuantitySecondaryUnit!,
                                                 salePriceforTable!);
+                                            productNameController.clear();
+                                            quantityController.clear();
+                                            _dropdownItemsQuantity.insert(0, "Unit");
+                                            _selectedQuantitySecondaryUnit = _dropdownItemsQuantity[0]; // Reset to default value
+                                            quantitySelectedValue = '';
+                                            setState(() {
+                                            });
                                           } else if (stockStatus == 0) {
                                             showDialog(
                                               context: context,
@@ -591,7 +591,7 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
                                         child: Text(
                                           "REFUND",
                                           style: TextStyle(
-                                              fontSize: 20,
+                                              fontSize: 18,
                                               color: Colors.white,
                                               fontWeight: FontWeight.bold),
                                         ),
@@ -619,7 +619,7 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
                                         "Tap Mic and start by saying",
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
-                                          fontSize: 25.0,
+                                          fontSize: 22.0,
                                           color: Color(
                                               0xFFD79922), // Set color to #D79922
                                         ),
@@ -628,7 +628,7 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
                                         "\"Amul Butter quantity 2packs\"",
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
-                                          fontSize: 25.0,
+                                          fontSize: 22.0,
                                           color: Color(
                                               0xFFD79922), // Set color to #D79922
                                         ),
@@ -637,7 +637,7 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
                                         "select product and Add",
                                         textAlign: TextAlign.center,
                                         style: TextStyle(
-                                          fontSize: 25.0,
+                                          fontSize: 22.0,
                                           color: Color(
                                               0xFFD79922), // Set color to #D79922
                                         ),
@@ -646,143 +646,175 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
                                   ),
                                 ),
                               ),
-
+                              SizedBox(height: 20,),
                               // Inside the DataTable
                               Visibility(
                                 visible: itemForBillRows.isNotEmpty,
-                                child: SingleChildScrollView(
-                                  scrollDirection: Axis.horizontal,
-                                  child: DataTable(
-                                    columnSpacing: 30.0,
-                                    columns: const [
-                                      DataColumn(
-                                        label: Text(
-                                          "Item",
-                                          style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        numeric: false,
-                                      ),
-                                      DataColumn(
-                                        label: Text(
-                                          "Qty",
-                                          style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        numeric: false,
-                                      ),
-                                      DataColumn(
-                                        label: Text(
-                                          "Rate",
-                                          style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        numeric: false,
-                                      ),
-                                      DataColumn(
-                                        label: Text(
-                                          "Amount",
-                                          style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        numeric: false,
-                                      ),
-                                      DataColumn(
-                                        label: Text(
-                                          "",
-                                          style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        numeric: false,
-                                      ),
-                                    ],
-                                    rows: List<DataRow>.generate(
-                                      itemForBillRows.length,
-                                      (index) => DataRow(cells: [
-                                        DataCell(
-                                          SizedBox(
-                                              width: 50,
-                                              child: Text(itemForBillRows[index]
-                                                  ['itemName'])),
-                                        ),
-                                        DataCell(
-                                          SizedBox(
-                                              width: 40,
-                                              child: Text(
-                                                  '${itemForBillRows[index]['quantity']} ${itemForBillRows[index]['selectedUnit']}')),
-                                        ),
-                                        DataCell(
-                                          SizedBox(
-                                            width: 70,
-                                            height: 40,
-                                            child: TextField(
-                                              decoration: InputDecoration(
-                                                hintText: itemForBillRows[index]
-                                                        ['rate']
-                                                    .toString(),
-                                                filled: true,
-                                                fillColor: const Color.fromARGB(
-                                                    255, 216, 216, 216),
-                                                // Adding asterisk (*) to the label text
-                                                labelStyle: const TextStyle(
-                                                    color: Colors
-                                                        .black), // Setting label text color to black
-
-                                                border: OutlineInputBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          8.0),
-                                                  borderSide: BorderSide.none,
-                                                ),
-                                              ),
-                                              keyboardType:
-                                                  TextInputType.number,
-                                              onChanged: (newRate) {
-                                                // Update the rate value in your data model
-                                                itemForBillRows[index]['rate'] =
-                                                    double.parse(newRate);
-                                                // Recalculate the amount
-                                                itemForBillRows[index]
-                                                        ['amount'] =
-                                                    itemForBillRows[index]
-                                                            ['rate'] *
-                                                        itemForBillRows[index]
-                                                            ['quantity'];
-                                                // Trigger UI update
-                                                setState(() {});
-                                              },
-                                            ),
-                                          ),
-                                        ),
-                                        DataCell(
-                                          SizedBox(
-                                              width: 50,
-                                              child: Text(itemForBillRows[index]
-                                                      ['amount']
-                                                  .toString())),
-                                        ),
-                                        DataCell(
-                                          IconButton(
-                                            icon: const Icon(
-                                              Icons.delete,
-                                              color: Color.fromARGB(
-                                                  255, 161, 11, 0),
-                                            ),
-                                            onPressed: () {
-                                                 deleteProductFromTable(index);
-                                            },
-                                          ),
-                                        ),
-                                      ]),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        titleWidget(context, "Item"),
+                                        titleWidget(context, "Qty"),
+                                        titleWidget(context, "Rate"),
+                                        titleWidget(context, "Amount"),
+                                        titleWidget(context, ''),
+                                      ],
                                     ),
-                                  ),
+                                    const Divider(
+                                      color: Colors.grey,
+                                      thickness: 1,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Container(
+                                        height: itemForBillRows.length <= 2?itemForBillRows.length * 60 : 140,
+                                        padding: const EdgeInsets.only(left: 20.0,right: 20.0),
+                                        child: ListView.builder(
+                                          padding: EdgeInsets.zero,
+                                          itemCount: itemForBillRows.length,
+                                          itemBuilder: (context, index) {
+                                            return searchPageItemWidget(itemForBillRows[index], context,index);
+                                          },
+                                        )),
+                                    const Divider(
+                                      color: Colors.grey,
+                                      thickness: 1,
+                                    ),
+                                  ],
                                 ),
+                                // DataTable(
+                                //   columnSpacing: 30.0,
+                                //   columns: const [
+                                //     DataColumn(
+                                //       label: Text(
+                                //         "Item",
+                                //         style: TextStyle(
+                                //             fontSize: 14,
+                                //             fontWeight: FontWeight.bold),
+                                //         overflow: TextOverflow.ellipsis,
+                                //       ),
+                                //       numeric: false,
+                                //     ),
+                                //     DataColumn(
+                                //       label: Text(
+                                //         "Qty",
+                                //         style: TextStyle(
+                                //             fontSize: 14,
+                                //             fontWeight: FontWeight.bold),
+                                //       ),
+                                //       numeric: false,
+                                //     ),
+                                //     DataColumn(
+                                //       label: Text(
+                                //         "Rate",
+                                //         style: TextStyle(
+                                //             fontSize: 14,
+                                //             fontWeight: FontWeight.bold),
+                                //       ),
+                                //       numeric: false,
+                                //     ),
+                                //     DataColumn(
+                                //       label: Text(
+                                //         "Amount",
+                                //         style: TextStyle(
+                                //             fontSize: 14,
+                                //             fontWeight: FontWeight.bold),
+                                //       ),
+                                //       numeric: false,
+                                //     ),
+                                //     DataColumn(
+                                //       label: Text(
+                                //         "",
+                                //         style: TextStyle(
+                                //             fontSize: 14,
+                                //             fontWeight: FontWeight.bold),
+                                //       ),
+                                //       numeric: false,
+                                //     ),
+                                //   ],
+                                //   rows: List<DataRow>.generate(
+                                //     itemForBillRows.length,
+                                //     (index) => DataRow(cells: [
+                                //       DataCell(
+                                //         SizedBox(
+                                //             width: 50,
+                                //             child: Text(itemForBillRows[index]
+                                //                 ['itemName'])),
+                                //       ),
+                                //       DataCell(
+                                //         SizedBox(
+                                //             width: 40,
+                                //             child: Text(
+                                //                 '${itemForBillRows[index]['quantity']} ${itemForBillRows[index]['selectedUnit']}')),
+                                //       ),
+                                //       DataCell(
+                                //         SizedBox(
+                                //           width: 70,
+                                //           height: 40,
+                                //           child: TextField(
+                                //             decoration: InputDecoration(
+                                //               hintText: itemForBillRows[index]
+                                //                       ['rate']
+                                //                   .toString(),
+                                //               filled: true,
+                                //               fillColor: const Color.fromARGB(
+                                //                   255, 216, 216, 216),
+                                //               // Adding asterisk (*) to the label text
+                                //               labelStyle: const TextStyle(
+                                //                   color: Colors
+                                //                       .black), // Setting label text color to black
+                                //
+                                //               border: OutlineInputBorder(
+                                //                 borderRadius:
+                                //                     BorderRadius.circular(
+                                //                         8.0),
+                                //                 borderSide: BorderSide.none,
+                                //               ),
+                                //             ),
+                                //             keyboardType:
+                                //                 TextInputType.number,
+                                //             onChanged: (newRate) {
+                                //               // Update the rate value in your data model
+                                //               itemForBillRows[index]['rate'] =
+                                //                   double.parse(newRate);
+                                //               // Recalculate the amount
+                                //               itemForBillRows[index]
+                                //                       ['amount'] =
+                                //                   itemForBillRows[index]
+                                //                           ['rate'] *
+                                //                       itemForBillRows[index]
+                                //                           ['quantity'];
+                                //               // Trigger UI update
+                                //               setState(() {});
+                                //             },
+                                //           ),
+                                //         ),
+                                //       ),
+                                //       DataCell(
+                                //         SizedBox(
+                                //             width: 50,
+                                //             child: Text(itemForBillRows[index]
+                                //                     ['amount']
+                                //                 .toString())),
+                                //       ),
+                                //       DataCell(
+                                //         IconButton(
+                                //           icon: const Icon(
+                                //             Icons.delete,
+                                //             color: Color.fromARGB(
+                                //                 255, 161, 11, 0),
+                                //           ),
+                                //           onPressed: () {
+                                //                deleteProductFromTable(index);
+                                //           },
+                                //         ),
+                                //       ),
+                                //     ]),
+                                //   ),
+                                // ),
                               ),
 
                               Visibility(
@@ -855,7 +887,7 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
                   Positioned(
                       left: 10,
                       right: 10,
-                      bottom: 20,
+                      bottom: 30,
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -865,6 +897,7 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
                                 : "Tap to speak",
                             style: const TextStyle(
                               color: Colors.green,
+                                fontSize: 12
                             ),
                           ),
                         ],
@@ -892,6 +925,7 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
   }
 
   Future<void> saveData() async {
+    EasyLoading.show(status: 'loading...');
     // const String apiUrl = '$baseUrl/refund';
     const String apiUrl = '$baseUrl/billing-n-refund';
     double grandTotal = calculateOverallTotal(); // Calculate overall total
@@ -912,9 +946,9 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
       );
 
       if (response.statusCode == 200) {
+        EasyLoading.dismiss();
         itemForBillRows.clear(); // Clear the list
         clearProductName(); // Call the clearProductName function
-
         // Show dialog
         showDialog(
           context: context,
@@ -934,10 +968,12 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
         );
         // Optionally, you can handle further actions after saving the data
       } else {
+        EasyLoading.dismiss();
         Result.error("Book list not available");
         // Handle error cases
       }
     } catch (e) {
+      EasyLoading.dismiss();
       Result.error("Book list not available");
       // Handle exceptions
     }
@@ -1131,8 +1167,8 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
       duration: const Duration(milliseconds: 2000),
       repeat: true,
       child: Container(
-          width: 100,
-          height: 100,
+          width: 80,
+          height: 80,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             boxShadow: [
@@ -1151,7 +1187,7 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
             child: const Icon(
               Icons.mic,
               color: Colors.white,
-              size: 40,
+              size: 35,
             ),
           )),
     );
@@ -1184,6 +1220,11 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
       isInputThroughText = false;
       RefundPageApi.fetchDataAndAssign(product, (result) {
         newItemList = (result as SuccessState).value;
+        if(newItemList!.data!.isEmpty){
+          validProductName = false;
+        }else{
+          validProductName = true;
+        }
         setState(() {});
       });
       if (product.isEmpty) {
@@ -1369,6 +1410,11 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
         newItemList = null;
       }else{
         newItemList = (result as SuccessState).value;
+        if(newItemList!.data!.isEmpty){
+          validProductName = false;
+        }else{
+          validProductName = true;
+        }
       }
     });
     setState(() {
@@ -1602,4 +1648,100 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
       return 0; // No numbers found
     }
   }
+
+  itemDetailWidget(BuildContext context, String itemDetail) {
+    return Container(
+      alignment: Alignment.center,
+      constraints: BoxConstraints(
+          maxWidth: MediaQuery.of(context).size.width * 0.17,
+          minWidth: MediaQuery.of(context).size.width * 0.1),
+      child: Text(
+        itemDetail,
+        style: const TextStyle(fontSize: 12),
+      ),
+    );
+  }
+
+  titleWidget(BuildContext context, String title) {
+    return Container(
+      alignment: Alignment.center,
+      constraints:
+      BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.17),
+      child: Text(
+        title,
+        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+      ),
+    );
+  }
+
+  Widget searchPageItemWidget(Map<String, dynamic> item, BuildContext context, int index) {
+    return Column(
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            itemDetailWidget(context, '${itemForBillRows[index]['itemName']}'),
+            itemDetailWidget(context, '${itemForBillRows[index]['quantity']} \n${itemForBillRows[index]['selectedUnit']}'),
+            SizedBox(
+              width: 60,
+              height: 50,
+              child: TextField(
+                style: TextStyle(fontSize: 12,),
+                decoration: InputDecoration(
+                  hintText: itemForBillRows[index]
+                  ['rate']
+                      .toString(),
+                  filled: true,
+                  fillColor: const Color.fromARGB(
+                      255, 216, 216, 216),
+                  // Adding asterisk (*) to the label text
+                  labelStyle: const TextStyle(
+                      color: Colors
+                          .black), // Setting label text color to black
+
+                  border: OutlineInputBorder(
+                    borderRadius:
+                    BorderRadius.circular(8.0),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                keyboardType: TextInputType.number,
+                onChanged: (newRate) {
+                  // Update the rate value in your data model
+                  itemForBillRows[index]['rate'] =
+                      double.parse(newRate);
+                  // Recalculate the amount
+                  itemForBillRows[index]['amount'] =
+                      itemForBillRows[index]
+                      ['rate'] *
+                          itemForBillRows[index]
+                          ['quantity'];
+                  // Trigger UI update
+                  setState(() {});
+                },
+              ),
+            ),
+            itemDetailWidget(context, '₹${item['amount']}'),
+            IconButton(
+              icon: const Icon(
+                Icons.delete,
+                color:
+                Color.fromARGB(255, 161, 11, 0),
+              ),
+              onPressed: () {
+                // Delete the product at the current index when IconButton is pressed
+                deleteProductFromTable(index);
+              },
+            ),
+          ],
+        ),
+        const Divider(
+          color: Colors.grey,
+          thickness: 1,
+        )
+      ],
+    );
+  }
+
 }
