@@ -1,15 +1,14 @@
-
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:speech_to_text_search/Service/api_constants.dart';
-import 'package:speech_to_text_search/Service/is_login.dart';
-import 'package:speech_to_text_search/Service/result.dart';
+import 'package:speech_to_text_search/service/api_constants.dart';
+import 'package:speech_to_text_search/service/is_login.dart';
+import 'package:speech_to_text_search/service/result.dart';
 import 'package:speech_to_text_search/api_calling/quick_sell_api.dart';
 import 'package:speech_to_text_search/models/quick_sell_suggestion_model.dart';
 
 class RefundPageApi {
-
- static Future<void> fetchDataAndAssign(String itemName, NetworkResponseHandler networkResponseHandler) async {
+  static Future<void> fetchDataAndAssign(
+      String itemName, NetworkResponseHandler networkResponseHandler) async {
     String? token;
 
     try {
@@ -25,22 +24,22 @@ class RefundPageApi {
         final Map<String, dynamic> responseData = json.decode(response.body);
         if (responseData['status'] == 'success') {
           Map<String, dynamic> decoded = json.decode(response.body);
-          QuickSellSuggestionModel data = QuickSellSuggestionModel.fromJson(decoded);
+          QuickSellSuggestionModel data =
+              QuickSellSuggestionModel.fromJson(decoded);
           networkResponseHandler(Result.success(data));
-        }
-        else {
+        } else {
           Result.error("Book list not available");
         }
       } else {
         Result.error("Book list not available");
       }
-    }
-    catch(e) {
+    } catch (e) {
       Result.error("Book list not available");
     }
   }
 
-  static   Future<List<String>> getQuantityUnits(String itemId, String token) async {
+  static Future<List<String>> getQuantityUnits(
+      String itemId, String token) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/related-units'),
@@ -74,5 +73,4 @@ class RefundPageApi {
       return [];
     }
   }
-
 }

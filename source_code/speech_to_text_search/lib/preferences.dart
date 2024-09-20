@@ -3,12 +3,12 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:speech_to_text_search/Service/api_constants.dart';
-import 'package:speech_to_text_search/drawer.dart';
+import 'package:speech_to_text_search/pages/drawer.dart';
 import 'package:speech_to_text_search/Service/is_login.dart';
-import 'package:speech_to_text_search/login_profile.dart';
+import 'package:speech_to_text_search/pages/login_profile.dart';
 import 'package:http/http.dart' as http;
-import 'package:speech_to_text_search/navigation_bar.dart';
-import 'package:speech_to_text_search/search_app.dart';
+import 'package:speech_to_text_search/components/navigation_bar.dart';
+import 'package:speech_to_text_search/pages/search_app.dart';
 
 class PreferencesPage extends StatefulWidget {
   const PreferencesPage({super.key});

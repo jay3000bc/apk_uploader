@@ -8,7 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:speech_to_text_search/Service/api_constants.dart';
 import 'package:speech_to_text_search/Service/result.dart';
-import 'package:speech_to_text_search/login_profile.dart';
+import 'package:speech_to_text_search/pages/login_profile.dart';
 import 'package:http/http.dart' as http;
 
 class SignUpScreen extends StatefulWidget {

@@ -8,9 +8,9 @@ import 'package:speech_to_text_search/Service/api_constants.dart';
 import 'package:speech_to_text_search/Service/result.dart';
 import 'package:http/http.dart' as http;
 import 'package:speech_to_text_search/Service/is_login.dart';
-import 'package:speech_to_text_search/navigation_bar.dart';
-import 'package:speech_to_text_search/search_app.dart';
-import 'package:speech_to_text_search/view_sub_user.dart';
+import 'package:speech_to_text_search/components/navigation_bar.dart';
+import 'package:speech_to_text_search/pages/search_app.dart';
+import 'package:speech_to_text_search/pages/view_sub_user.dart';
 
 class SignUpSubUserScreen extends StatefulWidget {
   const SignUpSubUserScreen({super.key});
@@ -110,27 +110,7 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
       title = "Error";
       content = response['message'] ?? "An unexpected error occurred";
     }
-    // showDialog(
-    //   context: context,
-    //   barrierDismissible: false,
-    //   builder: (BuildContext context) {
-    //     return AlertDialog(
-    //       title: Text(title),
-    //       content: Text(content),
-    //       actions: <Widget>[
-    //         ElevatedButton(
-    //           child: const Text("OK"),
-    //           onPressed: () {
-    //             Navigator.pushReplacement(
-    //               context,
-    //               MaterialPageRoute(builder: (context) => const SearchApp()),
-    //             );
-    //           },
-    //         ),
-    //       ],
-    //     );
-    //   },
-    // );
+
   }
 
   @override

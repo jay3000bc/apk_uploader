@@ -1,15 +1,15 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:speech_to_text_search/models/quick_sell_suggestion_model.dart';
-import '../Service/api_constants.dart';
-import '../Service/is_login.dart';
-import '../Service/result.dart';
+import '../service/api_constants.dart';
+import '../service/is_login.dart';
+import '../service/result.dart';
 
 typedef NetworkResponseHandler = void Function(Result result);
 
-class QuickSellApiCalling{
-
-  static Future<List<String>> getQuantityUnits(String itemId, String token) async {
+class QuickSellApiCalling {
+  static Future<List<String>> getQuantityUnits(
+      String itemId, String token) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/related-units'),
@@ -43,8 +43,8 @@ class QuickSellApiCalling{
     }
   }
 
-
-  static Future<void> fetchDataAndAssign(String productName, NetworkResponseHandler networkResponseHandler) async {
+  static Future<void> fetchDataAndAssign(
+      String productName, NetworkResponseHandler networkResponseHandler) async {
     String? token;
     try {
       token = await APIService.getToken();
@@ -59,7 +59,8 @@ class QuickSellApiCalling{
         final Map<String, dynamic> responseData = json.decode(response.body);
         if (responseData['status'] == 'success') {
           Map<String, dynamic> decoded = json.decode(response.body);
-          QuickSellSuggestionModel data = QuickSellSuggestionModel.fromJson(decoded);
+          QuickSellSuggestionModel data =
+              QuickSellSuggestionModel.fromJson(decoded);
           networkResponseHandler(Result.success(data));
         } else {
           Result.error("Book list not available");
@@ -71,5 +72,4 @@ class QuickSellApiCalling{
       Result.error("Book list not available");
     }
   }
-
 }

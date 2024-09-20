@@ -4,18 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_easyloading/flutter_easyloading.dart';
-import 'package:speech_to_text_search/Service/api_constants.dart';
-import 'package:speech_to_text_search/Service/result.dart';
-import 'package:speech_to_text_search/account.dart';
-import 'package:speech_to_text_search/add_product.dart';
-import 'package:speech_to_text_search/Service/is_login.dart';
-import 'package:speech_to_text_search/login_profile.dart';
-import 'package:speech_to_text_search/navigation_bar.dart';
+import 'package:speech_to_text_search/Service/internet_checker.dart';
+import 'package:speech_to_text_search/service/api_constants.dart';
+import 'package:speech_to_text_search/service/result.dart';
+import 'package:speech_to_text_search/service/account.dart';
+import 'package:speech_to_text_search/pages/add_product.dart';
+import 'package:speech_to_text_search/service/is_login.dart';
+import 'package:speech_to_text_search/pages/login_profile.dart';
+import 'package:speech_to_text_search/components/navigation_bar.dart';
 import 'package:speech_to_text_search/preferences.dart';
-import 'package:speech_to_text_search/search_app.dart';
-import 'package:speech_to_text_search/sub_user_signup.dart';
-import 'package:speech_to_text_search/transaction_list.dart';
-import 'package:speech_to_text_search/update_inventory.dart';
+import 'package:speech_to_text_search/pages/search_app.dart';
+import 'package:speech_to_text_search/pages/sub_user_signup.dart';
+import 'package:speech_to_text_search/pages/transaction_list.dart';
+import 'package:speech_to_text_search/pages/view_inventory.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class Sidebar extends StatefulWidget {
@@ -55,7 +56,7 @@ class _SidebarState extends State<Sidebar> {
     return Scaffold(
       body: PopScope(
         canPop: false,
-        onPopInvoked : (didPop) async {
+        onPopInvoked: (didPop) async {
           _selectedIndex = 0;
           // Navigate to NextPage when user tries to pop MyHomePage
           Navigator.push(
@@ -72,29 +73,35 @@ class _SidebarState extends State<Sidebar> {
               decoration: const BoxDecoration(
                 color: Color.fromRGBO(243, 203, 71, 1),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const CircleAvatar(
-                    radius: 40,
-                    backgroundImage: AssetImage('assets/user.png'),
-                    backgroundColor: Color.fromRGBO(243, 203, 71, 1),
-                  ),
-                  Text(
-                    'Hello $_name',
-                    style: const TextStyle(
-                      color: Color.fromARGB(255, 0, 0, 0),
-                      fontSize: 22,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Align(
+                      alignment: Alignment.center,
+                      child: Internetchecker(),
                     ),
-                  ),
-                  Text(
-                    _userName,
-                    style: const TextStyle(
-                      color: Color.fromARGB(255, 0, 0, 0),
-                      fontSize: 14,
+                    const CircleAvatar(
+                      radius: 40,
+                      backgroundImage: AssetImage('assets/user.png'),
+                      backgroundColor: Color.fromRGBO(243, 203, 71, 1),
                     ),
-                  ),
-                ],
+                    Text(
+                      'Hello $_name',
+                      style: const TextStyle(
+                        color: Color.fromARGB(255, 0, 0, 0),
+                        fontSize: 22,
+                      ),
+                    ),
+                    Text(
+                      _userName,
+                      style: const TextStyle(
+                        color: Color.fromARGB(255, 0, 0, 0),
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
 
@@ -104,7 +111,7 @@ class _SidebarState extends State<Sidebar> {
               onTap: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) =>  const AddInventory()),
+                  MaterialPageRoute(builder: (context) => const AddInventory()),
                 );
               },
             ),
@@ -114,7 +121,8 @@ class _SidebarState extends State<Sidebar> {
               onTap: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => const ProductListPage()),
+                  MaterialPageRoute(
+                      builder: (context) => const ProductListPage()),
                 );
               },
             ),
@@ -124,7 +132,8 @@ class _SidebarState extends State<Sidebar> {
               onTap: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => const TransactionListPage()),
+                  MaterialPageRoute(
+                      builder: (context) => const TransactionListPage()),
                 );
               },
             ),
@@ -134,7 +143,8 @@ class _SidebarState extends State<Sidebar> {
               onTap: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => const SignUpSubUserScreen()),
+                  MaterialPageRoute(
+                      builder: (context) => const SignUpSubUserScreen()),
                 );
               },
             ),
@@ -145,7 +155,8 @@ class _SidebarState extends State<Sidebar> {
               onTap: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => const PreferencesPage()),
+                  MaterialPageRoute(
+                      builder: (context) => const PreferencesPage()),
                 );
               },
             ),
@@ -155,7 +166,8 @@ class _SidebarState extends State<Sidebar> {
               onTap: () {
                 Navigator.pushReplacement(
                   context,
-                  MaterialPageRoute(builder: (context) => const UserDetailForm()),
+                  MaterialPageRoute(
+                      builder: (context) => const UserDetailForm()),
                 );
               },
             ),
@@ -193,15 +205,6 @@ class _SidebarState extends State<Sidebar> {
             ),
           ],
         ),
-      ),
-      bottomNavigationBar: CustomNavigationBar(
-        onItemSelected: (index) {
-          // Handle navigation item selection
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        selectedIndex: _selectedIndex,
       ),
     );
   }

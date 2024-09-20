@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:speech_to_text_search/pages/drawer.dart';
 import 'package:speech_to_text_search/models/transaction.dart';
 import 'dart:convert';
 import 'package:speech_to_text_search/Service/is_login.dart';
-import 'package:speech_to_text_search/navigation_bar.dart';
-import 'package:speech_to_text_search/search_app.dart';
-import 'package:speech_to_text_search/transaction_details.dart';
-import 'Service/api_constants.dart';
+import 'package:speech_to_text_search/components/navigation_bar.dart';
+import 'package:speech_to_text_search/pages/search_app.dart';
+import 'package:speech_to_text_search/pages/transaction_details.dart';
+import '../Service/api_constants.dart';
 import 'package:intl/intl.dart';
 
 String getProductNames(List<Map<String, dynamic>> itemList) {
@@ -28,12 +29,14 @@ class TransactionService {
       },
       body: json.encode({
         'start': 0,
-        'length': 1000, // Fetch a large number of transactions to handle all data
+        'length':
+            1000, // Fetch a large number of transactions to handle all data
       }),
     );
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);
-      return List<Transaction>.from(jsonData['data'].map((x) => Transaction.fromJson(x)));
+      return List<Transaction>.from(
+          jsonData['data'].map((x) => Transaction.fromJson(x)));
     } else {
       throw Exception('Failed to load Transactions');
     }
@@ -51,7 +54,12 @@ class _TransactionListPageState extends State<TransactionListPage> {
   int _selectedIndex = 3;
   String _searchQuery = '';
   String _selectedColumn = 'Invoice'; // Default selected column
-  final List<String> _columnNames = ['Invoice', 'Transactions', 'Total', 'Date-time']; // List of column names
+  final List<String> _columnNames = [
+    'Invoice',
+    'Transactions',
+    'Total',
+    'Date-time'
+  ]; // List of column names
   List<Transaction> _transactions = []; // Store all transactions
   List<Transaction> _filteredTransactions = []; // Store filtered transactions
 
@@ -73,10 +81,12 @@ class _TransactionListPageState extends State<TransactionListPage> {
   }
 
   Future<void> _fetchTransactions() async {
-    List<Transaction> transactions = await TransactionService.fetchTransactions();
+    List<Transaction> transactions =
+        await TransactionService.fetchTransactions();
 
     // Sort transactions by date in descending order
-    transactions.sort((a, b) => DateTime.parse(b.createdAt).compareTo(DateTime.parse(a.createdAt)));
+    transactions.sort((a, b) =>
+        DateTime.parse(b.createdAt).compareTo(DateTime.parse(a.createdAt)));
 
     setState(() {
       _transactions = transactions;
@@ -106,7 +116,9 @@ class _TransactionListPageState extends State<TransactionListPage> {
           case 'Invoice':
             return transaction.invoiceNumber.toLowerCase().contains(query);
           case 'Transactions':
-            return getProductNames(transaction.itemList).toLowerCase().contains(query);
+            return getProductNames(transaction.itemList)
+                .toLowerCase()
+                .contains(query);
           case 'Total':
             return transaction.totalPrice.toLowerCase().contains(query);
           case 'Date-time':
@@ -118,10 +130,12 @@ class _TransactionListPageState extends State<TransactionListPage> {
     }
   }
 
-  Map<String, List<Transaction>> _groupTransactionsByMonth(List<Transaction> transactions) {
+  Map<String, List<Transaction>> _groupTransactionsByMonth(
+      List<Transaction> transactions) {
     Map<String, List<Transaction>> groupedTransactions = {};
     for (var transaction in transactions) {
-      String month = DateFormat.yMMMM().format(DateTime.parse(transaction.createdAt));
+      String month =
+          DateFormat.yMMMM().format(DateTime.parse(transaction.createdAt));
       if (!groupedTransactions.containsKey(month)) {
         groupedTransactions[month] = [];
       }
@@ -130,7 +144,8 @@ class _TransactionListPageState extends State<TransactionListPage> {
 
     // Sort transactions within each month by invoice number in descending order
     groupedTransactions.forEach((month, monthTransactions) {
-      monthTransactions.sort((a, b) => b.invoiceNumber.compareTo(a.invoiceNumber));
+      monthTransactions
+          .sort((a, b) => b.invoiceNumber.compareTo(a.invoiceNumber));
     });
 
     return groupedTransactions;
@@ -140,7 +155,7 @@ class _TransactionListPageState extends State<TransactionListPage> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      onPopInvoked : (didPop)async {
+      onPopInvoked: (didPop) async {
         _selectedIndex = 0;
         // Navigate to NextPage when user tries to pop MyHomePage
         Navigator.push(
@@ -160,8 +175,9 @@ class _TransactionListPageState extends State<TransactionListPage> {
           },
           selectedIndex: _selectedIndex,
         ),
+        drawer: const Sidebar(),
         appBar: AppBar(
-          automaticallyImplyLeading: false,
+          toolbarHeight: 40,
           title: const Text(
             'Sales & Refund',
             style: TextStyle(
@@ -184,9 +200,13 @@ class _TransactionListPageState extends State<TransactionListPage> {
                 _transactions = snapshot.data!;
                 _filteredTransactions = _searchTransactions(_searchQuery);
 
-                var groupedTransactions = _groupTransactionsByMonth(_filteredTransactions);
+                var groupedTransactions =
+                    _groupTransactionsByMonth(_filteredTransactions);
 
-                var sortedMonths = groupedTransactions.keys.toList()..sort((a, b) => DateFormat.yMMMM().parse(b).compareTo(DateFormat.yMMMM().parse(a)));
+                var sortedMonths = groupedTransactions.keys.toList()
+                  ..sort((a, b) => DateFormat.yMMMM()
+                      .parse(b)
+                      .compareTo(DateFormat.yMMMM().parse(a)));
 
                 return SizedBox(
                   width: MediaQuery.of(context).size.width,
@@ -199,7 +219,8 @@ class _TransactionListPageState extends State<TransactionListPage> {
                           children: [
                             Expanded(
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 12),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 12),
                                 decoration: BoxDecoration(
                                   color: Colors.grey[200],
                                   borderRadius: BorderRadius.circular(8),
@@ -209,7 +230,8 @@ class _TransactionListPageState extends State<TransactionListPage> {
                                   decoration: const InputDecoration(
                                     hintText: 'Search',
                                     border: InputBorder.none,
-                                    prefixIcon: Icon(Icons.search, color: Colors.grey),
+                                    prefixIcon:
+                                        Icon(Icons.search, color: Colors.grey),
                                   ),
                                 ),
                               ),
@@ -220,7 +242,8 @@ class _TransactionListPageState extends State<TransactionListPage> {
                               onChanged: _handleColumnSelect,
                               style: const TextStyle(color: Colors.black),
                               underline: Container(),
-                              icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
+                              icon: const Icon(Icons.arrow_drop_down,
+                                  color: Colors.grey),
                               items: _columnNames.map((columnName) {
                                 return DropdownMenuItem<String>(
                                   value: columnName,
@@ -237,13 +260,15 @@ class _TransactionListPageState extends State<TransactionListPage> {
                         itemCount: sortedMonths.length,
                         itemBuilder: (context, index) {
                           String month = sortedMonths[index];
-                          List<Transaction> monthTransactions = groupedTransactions[month]!;
+                          List<Transaction> monthTransactions =
+                              groupedTransactions[month]!;
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Container(
                                 color: Colors.grey[300],
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 8),
                                 child: Center(
                                   child: Text(
                                     month,
@@ -273,13 +298,17 @@ class _TransactionListPageState extends State<TransactionListPage> {
                                         ),
                                       )),
                                       DataCell(Text(transaction.totalPrice)),
-                                      DataCell(SizedBox(width: 70, child: Text(transaction.createdAt))),
+                                      DataCell(SizedBox(
+                                          width: 70,
+                                          child: Text(transaction.createdAt))),
                                     ],
                                     onSelectChanged: (isSelected) {
                                       if (isSelected != null && isSelected) {
                                         Navigator.of(context).push(
                                           MaterialPageRoute(
-                                            builder: (context) => TransactionDetailPage(transaction: transaction),
+                                            builder: (context) =>
+                                                TransactionDetailPage(
+                                                    transaction: transaction),
                                           ),
                                         );
                                       }

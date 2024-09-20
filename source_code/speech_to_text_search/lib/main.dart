@@ -1,13 +1,19 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+
 import 'package:speech_to_text_search/product_mic_state.dart';
 import 'package:speech_to_text_search/quantity_mic_state.dart';
-import 'package:speech_to_text_search/search_app.dart';
-import 'package:speech_to_text_search/login_profile.dart';
-import 'package:speech_to_text_search/Service/is_login.dart'; 
+import 'package:speech_to_text_search/pages/search_app.dart';
+import 'package:speech_to_text_search/pages/login_profile.dart';
+import 'package:speech_to_text_search/service/is_login.dart';
 import 'package:provider/provider.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:speech_to_text_search/service/local_database.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Add this import
 
 void main() {
   runApp(
@@ -29,10 +35,11 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-          // colorScheme: ColorScheme.light().copyWith(primary: Color(0xFF233376)),
-          // Set primary color here
-          // You can also set other theme properties here if needed
-          ),
+        colorScheme: const ColorScheme.light()
+            .copyWith(primary: const Color(0xFFF2CC44)),
+        // Set primary color here
+        // You can also set other theme properties here if needed
+      ),
       builder: EasyLoading.init(),
       home: const SplashScreen(),
     );
@@ -52,7 +59,49 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _checkPermissionsAndLogin();
+    _checkInternet();
+  }
+
+  Future<void> _checkInternet() async {
+    bool result = await InternetConnection().hasInternetAccess;
+    if (result) {
+      print('Internet available');
+      _checkPermissionsAndLogin();
+      LocalDatabase.instance.clearTable();
+      LocalDatabase.instance.fetchDataAndStoreLocally();
+    } else {
+      _noInternetDialog();
+    }
+  }
+
+  void _noInternetDialog() {
+    showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder: (context) => AlertDialog(
+              title: const Text('No Internet Connection'),
+              content: const Text(
+                  'Please check your internet connection and try again.'),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    _checkInternet();
+                  },
+                  child: const Text('Retry'),
+                ),
+                TextButton(
+                    onPressed: () {
+                      if (Platform.isAndroid) {
+                        SystemNavigator.pop();
+                      }
+                      if (Platform.isIOS) {
+                        exit(0);
+                      }
+                    },
+                    child: const Text('Exit')),
+              ],
+            ));
   }
 
   Future<void> _checkPermissionsAndLogin() async {
@@ -70,11 +119,13 @@ class _SplashScreenState extends State<SplashScreen> {
   Future<void> _handleLogin() async {
     String? token = await APIService.getToken();
     if (token != null) {
-      int statusReturnCode = await APIService.getUserDetailsWithoutDialog(token);
+      int statusReturnCode =
+          await APIService.getUserDetailsWithoutDialog(token);
       if (statusReturnCode == 404 || statusReturnCode == 333) {
         _navigateToLoginScreen();
       } else if (statusReturnCode == 200) {
         _navigateToSearchApp();
+        await _setLoggedInStatus(true); // Ensure this is awaited
       } else {
         _navigateToLoginScreen();
       }
@@ -84,6 +135,16 @@ class _SplashScreenState extends State<SplashScreen> {
     setState(() {
       _isLoggedIn = true;
     });
+  }
+
+  Future<void> _setLoggedInStatus(bool isLoggedIn) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLoggedIn', isLoggedIn); // Ensure this is awaited
+  }
+
+  Future<bool> _getLoggedInStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('isLoggedIn') ?? false;
   }
 
   void _navigateToLoginScreen() {
@@ -96,7 +157,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void _navigateToSearchApp() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => SearchApp()),
+      MaterialPageRoute(builder: (context) => const SearchApp()),
     );
   }
 

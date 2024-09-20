@@ -6,9 +6,10 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:speech_to_text_search/Service/api_constants.dart';
+import 'package:speech_to_text_search/Service/local_database.dart';
 import 'package:speech_to_text_search/Service/result.dart';
-import 'package:speech_to_text_search/search_app.dart';
-import 'package:speech_to_text_search/sign_up_form.dart';
+import 'package:speech_to_text_search/pages/search_app.dart';
+import 'package:speech_to_text_search/pages/sign_up_form.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -31,7 +32,8 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  void showApiResponseDialog(BuildContext context, Map<String, dynamic> response) {
+  void showApiResponseDialog(
+      BuildContext context, Map<String, dynamic> response) {
     String title;
     String content;
 
@@ -44,7 +46,8 @@ class _LoginScreenState extends State<LoginScreen> {
         context,
         MaterialPageRoute(builder: (context) => const SearchApp()),
       );
-    } else if (response['status'] == 'failed' && response['message'] == 'Validation Error!') {
+    } else if (response['status'] == 'failed' &&
+        response['message'] == 'Validation Error!') {
       title = "Validation Error";
       content = "Please check the following errors:\n";
 
@@ -53,10 +56,12 @@ class _LoginScreenState extends State<LoginScreen> {
       errors.forEach((field, messages) {
         content += "$field: ${messages[0]}\n";
       });
-    } else if (response['status'] == 'failed' && response['message'] == 'Invalid credentials') {
+    } else if (response['status'] == 'failed' &&
+        response['message'] == 'Invalid credentials') {
       title = "Invalid Credentials";
       content = "Please check your mobile number and password.";
-    } else if (response['status'] == 'failed' && response['message'] == 'User Not Found') {
+    } else if (response['status'] == 'failed' &&
+        response['message'] == 'User Not Found') {
       title = "User Not Found";
       content = "Please check your mobile number and try again.";
     } else {
@@ -95,14 +100,17 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   bool _isPhoneNumberErrorVisible() {
-    return phoneNumberController.text != null && phoneNumberController.text.isNotEmpty && (phoneNumberController.text.length < 10 || phoneNumberController.text.length > 10);
+    return phoneNumberController.text != null &&
+        phoneNumberController.text.isNotEmpty &&
+        (phoneNumberController.text.length < 10 ||
+            phoneNumberController.text.length > 10);
   }
 
   @override
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      onPopInvoked : (didPop) async {
+      onPopInvoked: (didPop) async {
         final value = await showDialog<bool>(
             context: context,
             builder: (context) {
@@ -116,11 +124,10 @@ class _LoginScreenState extends State<LoginScreen> {
                 content: const Text('Do You Want to Exit'),
                 actions: [
                   ElevatedButton(
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all<Color>(
-                        const Color.fromRGBO(243, 203, 71, 1),
-                      ), // Change color here
-                    ),
+                    style: const ButtonStyle(
+
+                        // Change color here
+                        ),
                     onPressed: () => Navigator.of(context).pop(false),
                     child: const Text(
                       'No',
@@ -130,9 +137,9 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                   ElevatedButton(
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all<Color>(
-                        const Color.fromRGBO(243, 71, 71, 1),
+                    style: const ButtonStyle(
+                      backgroundColor: WidgetStatePropertyAll<Color>(
+                        Color.fromRGBO(243, 71, 71, 1),
                       ), // Change color here
                     ),
                     onPressed: () => Navigator.of(context).pop(true),
@@ -179,7 +186,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         TextFormField(
                           style: const TextStyle(fontSize: 30.0),
                           validator: (value) {
-                            if (value == null || value.isEmpty || value.length < 10 || value.length > 10 || int.tryParse(value) == null) {
+                            if (value == null ||
+                                value.isEmpty ||
+                                value.length < 10 ||
+                                value.length > 10 ||
+                                int.tryParse(value) == null) {
                               return 'Must be 10-digit Number';
                             }
 
@@ -245,14 +256,16 @@ class _LoginScreenState extends State<LoginScreen> {
                               EasyLoading.show(status: 'Logging in...');
                               try {
                                 // Retrieve user input from text fields
-                                String phoneNumberSt = phoneNumberController.text;
+                                String phoneNumberSt =
+                                    phoneNumberController.text;
                                 String password = passwordController.text;
                                 int? phoneNumInt = int.tryParse(phoneNumberSt);
 
                                 // Validate the input if needed
 
                                 // Call the login function with user input
-                                Map<String, dynamic> response = await loginUser(phoneNumInt!, password);
+                                Map<String, dynamic> response =
+                                    await loginUser(phoneNumInt!, password);
                                 EasyLoading.dismiss();
 
                                 // Show dialog based on the API response
@@ -260,19 +273,29 @@ class _LoginScreenState extends State<LoginScreen> {
                                 // Check the status in the API response
                                 if (response['status'] == 'success') {
                                   // Successful login
-                                  await storeTokenAndUser(response['data']['token'], response['data']['user']);
+                                  await storeTokenAndUser(
+                                      response['data']['token'],
+                                      response['data']['user']);
                                   // Navigate to the next screen, for example:
                                   // Navigator.push(
                                   //   context,
                                   //   MaterialPageRoute(builder: (context) => ()),
                                   // );
-                                } else if (response['status'] == 'failed' && response['message'] == 'Validation Error!') {
+                                  LocalDatabase.instance.clearTable();
+                                  LocalDatabase.instance
+                                      .fetchDataAndStoreLocally();
+                                } else if (response['status'] == 'failed' &&
+                                    response['message'] ==
+                                        'Validation Error!') {
                                   // Validation error, display error messages
-                                  Map<String, dynamic> errors = response['data'];
+                                  Map<String, dynamic> errors =
+                                      response['data'];
                                   errors.forEach((field, messages) {
                                     // You can display these error messages to the user
                                   });
-                                } else if (response['status'] == 'failed' && response['message'] == 'Invalid credentials') {
+                                } else if (response['status'] == 'failed' &&
+                                    response['message'] ==
+                                        'Invalid credentials') {
                                   // Invalid credentials error, display error message
                                   debugPrint('Invalid credentials');
                                   // You can display this error message to the user
@@ -291,7 +314,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(25),
                             ),
-                            padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 16.0),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 32.0, vertical: 16.0),
                           ),
                           child: const Text(
                             'Login',
@@ -309,7 +333,9 @@ class _LoginScreenState extends State<LoginScreen> {
                               onPressed: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => const SignUpScreen()), // Change to AddItemScreen()
+                                  MaterialPageRoute(
+                                      builder: (context) =>
+                                          const SignUpScreen()), // Change to AddItemScreen()
                                 );
                               },
                               child: const Text(
@@ -336,7 +362,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
   // Assuming you have access to the context in this class
   // and showApiResponseDialog function is defined somewhere
-  Future<Map<String, dynamic>> loginUser(int phoneNumber, String password) async {
+  Future<Map<String, dynamic>> loginUser(
+      int phoneNumber, String password) async {
     final response = await http.post(
       Uri.parse("$baseUrl/login"),
       headers: {
@@ -391,7 +418,8 @@ class _LoginScreenState extends State<LoginScreen> {
           break;
         default:
           // Handle other status codes
-          errorResponse['message'] = 'Failed to login. Status code: ${response.statusCode}';
+          errorResponse['message'] =
+              'Failed to login. Status code: ${response.statusCode}';
           break;
       }
 
@@ -403,7 +431,8 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 }
 
-Future<void> storeTokenAndUser(String token, Map<String, dynamic> userData) async {
+Future<void> storeTokenAndUser(
+    String token, Map<String, dynamic> userData) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   await prefs.setString('token', token);
   await prefs.setString('user', userData.toString());

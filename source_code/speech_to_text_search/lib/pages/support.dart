@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:speech_to_text_search/navigation_bar.dart';
+import 'package:speech_to_text_search/components/navigation_bar.dart';
 
 class ContactSupportPage extends StatefulWidget {
   const ContactSupportPage({super.key});
@@ -18,6 +18,14 @@ class _ContactSupportPageState extends State<ContactSupportPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
+        onPressed: () {},
+        shape: const CircleBorder(),
+        child: const Icon(Icons.phone),
+      ),
       bottomNavigationBar: CustomNavigationBar(
         onItemSelected: (index) {
           // Handle navigation item selection
@@ -35,7 +43,8 @@ class _ContactSupportPageState extends State<ContactSupportPage> {
             color: Color.fromARGB(255, 0, 0, 0),
           ),
         ),
-        backgroundColor: const Color.fromRGBO(243, 203, 71, 1), // Change this color to whatever you desire
+        backgroundColor: const Color.fromRGBO(
+            243, 203, 71, 1), // Change this color to whatever you desire
       ),
       body: const Padding(
         padding: EdgeInsets.all(16.0),

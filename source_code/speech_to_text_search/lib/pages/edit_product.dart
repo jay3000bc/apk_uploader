@@ -4,7 +4,7 @@ import 'package:http/http.dart' as http;
 import 'package:speech_to_text_search/Service/api_constants.dart';
 import 'package:speech_to_text_search/Service/is_login.dart';
 import 'package:speech_to_text_search/Service/result.dart';
-import 'package:speech_to_text_search/login_profile.dart';
+import 'package:speech_to_text_search/pages/login_profile.dart';
 
 class ProductEditPage extends StatefulWidget {
   final int productId;
@@ -29,9 +29,47 @@ class _ProductEditPageState extends State<ProductEditPage> {
   late String tax1DropdownValue;
   late String tax2DropdownValue;
 
-  List<String> fullUnits = ['Bags', 'Bottle', 'Box', 'Bundle', 'Can', 'Cartoon', 'Gram', 'Kilogram', 'Litre', 'Meter', 'Millilitre', 'Number', 'Pack', 'Pair', 'Piece', 'Roll', 'Square Feet', 'Square Meter'];
+  List<String> fullUnits = [
+    'Bags',
+    'Bottle',
+    'Box',
+    'Bundle',
+    'Can',
+    'Cartoon',
+    'Gram',
+    'Kilogram',
+    'Litre',
+    'Meter',
+    'Millilitre',
+    'Number',
+    'Pack',
+    'Pair',
+    'Piece',
+    'Roll',
+    'Square Feet',
+    'Square Meter'
+  ];
 
-  List<String> shortUnits = ['BAG', 'BTL', 'BOX', 'BDL', 'CAN', 'CTN', 'GM', 'KG', 'LTR', 'MTR', 'ML', 'NUM', 'PCK', 'PRS', 'PCS', 'ROL', 'SQF', 'SQM'];
+  List<String> shortUnits = [
+    'BAG',
+    'BTL',
+    'BOX',
+    'BDL',
+    'CAN',
+    'CTN',
+    'GM',
+    'KG',
+    'LTR',
+    'MTR',
+    'ML',
+    'NUM',
+    'PCK',
+    'PRS',
+    'PCS',
+    'ROL',
+    'SQF',
+    'SQM'
+  ];
 
   String? token;
   bool isLoading = false;
@@ -58,11 +96,14 @@ class _ProductEditPageState extends State<ProductEditPage> {
 
   @override
   void dispose() {
+    mrpController.dispose();
     itemNameController.dispose();
     quantityController.dispose();
     salePriceController.dispose();
     tax1Controller.dispose();
     tax2Controller.dispose();
+    rate1Controller.dispose();
+    rate2Controller.dispose();
     super.dispose();
   }
 
@@ -77,7 +118,8 @@ class _ProductEditPageState extends State<ProductEditPage> {
       isLoading = true;
     });
     try {
-      var response = await http.get(Uri.parse('$baseUrl/item/${widget.productId}'), headers: {
+      var response = await http
+          .get(Uri.parse('$baseUrl/item/${widget.productId}'), headers: {
         'Authorization': 'Bearer $token',
       });
       setState(() {
@@ -112,14 +154,17 @@ class _ProductEditPageState extends State<ProductEditPage> {
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text("Failed to Fetch User Details"),
-          content: const Text("Unable to fetch user details. Please login again."),
+          content:
+              const Text("Unable to fetch user details. Please login again."),
           actions: <Widget>[
             TextButton(
               onPressed: () {
                 // Navigate to the login page
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const LoginScreen()), // Change to AddItemScreen()
+                  MaterialPageRoute(
+                      builder: (context) =>
+                          const LoginScreen()), // Change to AddItemScreen()
                 );
               },
               child: const Text("Login"),
@@ -130,7 +175,8 @@ class _ProductEditPageState extends State<ProductEditPage> {
     );
   }
 
-  Widget _buildCombinedDropdown(String label, List<String> items, void Function(String?) onChanged) {
+  Widget _buildCombinedDropdown(
+      String label, List<String> items, void Function(String?) onChanged) {
     return DropdownButtonFormField<String>(
       decoration: InputDecoration(
         filled: true,
@@ -162,16 +208,22 @@ class _ProductEditPageState extends State<ProductEditPage> {
         },
         body: jsonEncode({
           'id': widget.productId,
+          'mrp': mrpController.text,
           'item_name': itemNameController.text,
           'quantity': quantityController.text,
           'sale_price': salePriceController.text,
           'full_unit': fullUnitDropdownValue,
           'short_unit': shortUnitDropdownValue,
+          'rate1': rate1Controller.text,
+          'rate2': rate2Controller.text,
           'tax1': tax1DropdownValue,
           'tax2': tax2DropdownValue,
         }),
       );
+
       if (response.statusCode == 200) {
+        var jsonResponse = jsonDecode(response.body);
+        print('Success: $jsonResponse');
       } else {
         Result.error("Book list not available");
       }
@@ -200,7 +252,8 @@ class _ProductEditPageState extends State<ProductEditPage> {
             color: Color.fromARGB(255, 0, 0, 0),
           ),
         ),
-        backgroundColor: const Color.fromRGBO(243, 203, 71, 1), // Change this color to whatever you desire
+        backgroundColor: const Color.fromRGBO(
+            243, 203, 71, 1), // Change this color to whatever you desire
       ),
       body: isLoading
           ? const Center(
@@ -230,14 +283,23 @@ class _ProductEditPageState extends State<ProductEditPage> {
                     Row(
                       children: [
                         Expanded(
-                          child: _buildCombinedDropdown('Unit', ['Full Unit (Short Unit)', ...fullUnits.map((unit) => '$unit (${shortUnits[fullUnits.indexOf(unit)]})').toList()], (value) {
+                          child: _buildCombinedDropdown('Unit', [
+                            'Full Unit (Short Unit)',
+                            ...fullUnits
+                                .map((unit) =>
+                                    '$unit (${shortUnits[fullUnits.indexOf(unit)]})')
+                                .toList()
+                          ], (value) {
                             // Split the selected value into full unit and short unit
                             List<String> units = value!.split(' (');
                             String fullUnit = units[0];
-                            String shortUnit = units[1].substring(0, units[1].length - 1);
+                            String shortUnit =
+                                units[1].substring(0, units[1].length - 1);
                             setState(() {
-                              fullUnitDropdownValue = fullUnit; // Update the fullUnitDropdownValue
-                              shortUnitDropdownValue = shortUnit; // Update the shortUnitDropdownValue
+                              fullUnitDropdownValue =
+                                  fullUnit; // Update the fullUnitDropdownValue
+                              shortUnitDropdownValue =
+                                  shortUnit; // Update the shortUnitDropdownValue
                             });
                           }),
                         )
@@ -251,7 +313,8 @@ class _ProductEditPageState extends State<ProductEditPage> {
                         Expanded(child: _buildTextField(mrpController, 'MRP')),
                         const SizedBox(width: 15),
                         Expanded(
-                          child: _buildTextField(salePriceController, 'Sale Price'),
+                          child: _buildTextField(
+                              salePriceController, 'Sale Price'),
                         )
                       ],
                     ),
@@ -300,10 +363,23 @@ class _ProductEditPageState extends State<ProductEditPage> {
                     const SizedBox(height: 20.0),
                     ElevatedButton(
                       onPressed: () {
+                        print({
+                          'id': widget.productId,
+                          'mrp': mrpController.text,
+                          'item_name': itemNameController.text,
+                          'quantity': quantityController.text,
+                          'sale_price': salePriceController.text,
+                          'full_unit': fullUnitDropdownValue,
+                          'short_unit': shortUnitDropdownValue,
+                          'rate1': rate1Controller.text,
+                          'rate2': rate2Controller.text,
+                          'tax1': tax1DropdownValue,
+                          'tax2': tax2DropdownValue,
+                        });
                         _updateProduct();
                       },
                       style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all<Color>(
+                        backgroundColor: WidgetStateProperty.all<Color>(
                           Colors.green,
                         ), // Change color here
                       ),
@@ -336,7 +412,8 @@ class _ProductEditPageState extends State<ProductEditPage> {
     );
   }
 
-  Widget _buildDropdown(String labelText, List<String> dropdownItems, String unitDropdownValue, void Function(String) updateDropdownValue) {
+  Widget _buildDropdown(String labelText, List<String> dropdownItems,
+      String unitDropdownValue, void Function(String) updateDropdownValue) {
     return DropdownButtonFormField<String>(
       // Set the value of the dropdown
       items: dropdownItems.map((String value) {

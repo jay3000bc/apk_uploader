@@ -9,7 +9,7 @@ import 'package:speech_to_text_search/Service/api_constants.dart';
 import 'dart:convert';
 
 import 'package:speech_to_text_search/Service/is_login.dart';
-import 'package:speech_to_text_search/navigation_bar.dart';
+import 'package:speech_to_text_search/components/navigation_bar.dart';
 
 String userDetailsAPI = "$baseUrl/user-detail";
 
