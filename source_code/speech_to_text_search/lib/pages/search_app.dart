@@ -277,7 +277,9 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                     controller: productNameController,
                                     focusNode: _searchFocus,
                                     onChanged: (m) {
-                                      isInputThroughText = true;
+                                      print('onchnaged');
+                                      _localDatabase.searchDatabase(
+                                          productNameController.text);
                                       if (productNameController.text == '') {
                                         validProductName = true;
                                         _localDatabase.clearSuggestions();
@@ -332,6 +334,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                     ),
                                   ),
                                   // _buildSuggestionDropdown(),
+                                  //localDatabaseBuildSuggestionDropdown(),
                                 ],
                               ),
                             ),
@@ -475,6 +478,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                           padding: const EdgeInsets.all(5.0),
                           child: MaterialButton(
                             onPressed: () async {
+                              stopListening();
                               print("Add button pressed");
                               print(
                                   "productNameController.text: ${productNameController.text}, quantityController.text: ${quantityController.text}");
@@ -507,7 +511,9 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                           0]; // Reset to default value
                                   quantitySelectedValue = '';
 
-                                  setState(() {});
+                                  setState(() {
+                                    _localDatabase.clearSuggestions();
+                                  });
                                 } else if (stockStatus == 0) {
                                   showDialog(
                                     context: context,
@@ -767,12 +773,13 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                       ),
                     ),
                     Positioned(
-                        bottom: 230,
-                        left: 1,
-                        right: 1,
-                        child: !_hasSpeech || speech.isListening
-                            ? listeningAnimation()
-                            : const SizedBox()),
+                      bottom: 230,
+                      left: 1,
+                      right: 1,
+                      child: !_hasSpeech || speech.isListening
+                          ? listeningAnimation()
+                          : const SizedBox(),
+                    ),
                     isInputThroughText
                         ? Positioned(
                             top: MediaQuery.of(context).size.height *
@@ -1005,6 +1012,10 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
 
       final recognizedWord = result.recognizedWords.toLowerCase();
       shouldOpenDropdown = true;
+      if (shouldOpenDropdown) {
+        Future.delayed(const Duration(milliseconds: 100));
+        openDropdown(productNameFocusNode);
+      }
       validProductName = true;
       setState(() {});
       _parseSpeech(recognizedWord, result.finalResult);
@@ -1101,6 +1112,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
       String unitOfQuantity = match.group(3) ?? "";
 
       productNameController.text = product;
+      _localDatabase.searchDatabase(product);
       text2num(quantity);
       extractAndCombineNumbers(text2num(quantity).toString());
       isInputThroughText = false;
@@ -1292,6 +1304,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
       if (recognizedWord == "") {
         newItems = null;
       } else {
+        _localDatabase.searchDatabase(recognizedWord);
         newItems = (result as SuccessState).value;
         if (newItems!.data!.isEmpty) {
           validProductName = false;
@@ -1584,6 +1597,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                       trailing:
                           Text("${suggestion.quantity} ${suggestion.unit}"),
                       onTap: () {
+                        stopListening();
                         setState(() {
                           print("itemID ${itemIdforStock}");
                           availableStockValue = suggestion.quantity.toString();

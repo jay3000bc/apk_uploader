@@ -46,7 +46,7 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
   String errorMessage = "";
   bool isListeningMic = false;
   bool validProductName = true;
-  int _selectedIndex = 0;
+  int _selectedIndex = 1;
   bool isquantityavailable = false;
   bool isSuggetion = false;
   String? token;
@@ -1197,6 +1197,7 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
       String unitOfQuantity = match.group(3) ?? "";
 
       productNameController.text = product;
+      _localDatabase.searchDatabase(product);
       text2num(quantity);
       extractAndCombineNumbers(text2num(quantity).toString());
       isInputThroughText = false;

@@ -67,7 +67,7 @@ class LocalDatabase {
         return data
             .map((item) => {
                   "itemId": item['id'],
-                  "name": item['item_name'],  
+                  "name": item['item_name'],
                   "quantity": item['quantity'],
                   "unit": item['short_unit'],
                 })
@@ -120,6 +120,7 @@ class LocalDatabase {
   }
 
   Future<List<LocalDatabaseModel>> searchDatabase(String query) async {
+    print('search Database hit');
     // print("Ratio: ${ratio("karl", "carl")}");
     Database db = await database;
     List<String> names = await getNamesFromDatabase(query);
