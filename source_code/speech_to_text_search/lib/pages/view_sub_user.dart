@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:speech_to_text_search/Service/internet_checker.dart';
@@ -47,7 +49,11 @@ class SubUserService {
     );
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);
+
       final List<dynamic> subUsersData = jsonData['data'];
+      for (var user in subUsersData) {
+        print(user);
+      }
       return subUsersData.map((json) => SubUser.fromJson(json)).toList();
     } else {
       throw Exception('Failed to load sub users');
