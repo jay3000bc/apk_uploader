@@ -91,6 +91,24 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
 
   List<String> _dropdownItemsQuantity = [
     'Unit',
+    'BAG',
+    'BTL',
+    'BOX',
+    'BDL',
+    'CAN',
+    'CTN',
+    'GM',
+    'KG',
+    'LTR',
+    'MTR',
+    'ML',
+    'NUM',
+    'PCK',
+    'PRS',
+    'PCS',
+    'ROL',
+    'SQF',
+    'SQM'
   ];
 
   final int itemsPerPage = 15; // Number of items to load at a time
@@ -167,6 +185,35 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
         isLoadingMore = false; // No more data to load
       });
     }
+  }
+
+  _showNoMatchingItems() {
+    Future.delayed(const Duration(seconds: 2), () {
+      setState(() {});
+    });
+    return Align(
+      alignment: Alignment.center,
+      child: _localDatabase.suggestions.isNotEmpty ||
+              productNameController.text == '' ||
+              itemSelected == true
+          ? const SizedBox()
+          : const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.error,
+                  color: Color(0xFFE43D12),
+                ),
+                SizedBox(
+                  width: 10,
+                ),
+                Text(
+                  "No Matching Item Found",
+                  style: TextStyle(fontSize: 20, color: Color(0xFFE43D12)),
+                ),
+              ],
+            ),
+    );
   }
 
   Future<void> _initializeData() async {
@@ -277,16 +324,20 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                     controller: productNameController,
                                     focusNode: _searchFocus,
                                     onChanged: (m) {
-                                      print('onchnaged');
                                       _localDatabase.searchDatabase(
                                           productNameController.text);
+                                      isInputThroughText = true;
+                                      print('onchnaged');
+                                      print(
+                                          'isInputThroughText: $isInputThroughText');
+
                                       if (productNameController.text == '') {
                                         validProductName = true;
                                         _localDatabase.clearSuggestions();
                                         setState(() {});
                                       }
                                       updateSuggestionList(m);
-                                      _localDatabase.searchDatabase(m);
+                                      // _localDatabase.searchDatabase(m);
                                     },
                                     decoration: InputDecoration(
                                       enabledBorder: const UnderlineInputBorder(
@@ -318,14 +369,20 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                                     Color.fromRGBO(0, 0, 0, 1),
                                               ),
                                               onPressed: () {
-                                                // _searchFocus.unfocus();
+                                                _searchFocus.unfocus();
                                                 setState(() {
+                                                  _dropdownItemsQuantity.insert(
+                                                      0, "Unit");
+                                                  _selectedQuantitySecondaryUnit =
+                                                      _dropdownItemsQuantity[
+                                                          0]; // Reset to default value // Reset to default value
                                                   newItems?.data?.clear();
                                                   clearProductName();
                                                   stopListening();
                                                   _localDatabase
                                                       .clearSuggestions();
                                                 });
+                                                setState(() {});
                                               },
                                             ),
                                           ),
@@ -424,34 +481,34 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                         },
                                       ),
                                     ),
-                                    // DropdownButton
-                                    // Positioned(
-                                    //   top: 3,
-                                    //   right: 50,
-                                    //   child: DropdownButton<String>(
-                                    //     value: _selectedQuantitySecondaryUnit,
-                                    //     onChanged: (newValue) {
-                                    //       setState(() {
-                                    //         _selectedQuantitySecondaryUnit =
-                                    //             newValue;
-                                    //         quantitySelectedValue = newValue ??
-                                    //             ''; // Update quantitySelectedValue with the selected value
-                                    //       });
-                                    //     },
-                                    //     items: _dropdownItemsQuantity
-                                    //         .map<DropdownMenuItem<String>>(
-                                    //             (String value) {
-                                    //       return DropdownMenuItem<String>(
-                                    //         value: value,
-                                    //         child: Text(
-                                    //           value,
-                                    //           style:
-                                    //               const TextStyle(fontSize: 16),
-                                    //         ),
-                                    //       );
-                                    //     }).toList(),
-                                    //   ),
-                                    // ),
+
+                                    Positioned(
+                                      top: 3,
+                                      right: 50,
+                                      child: DropdownButton<String>(
+                                        value: _selectedQuantitySecondaryUnit,
+                                        onChanged: (newValue) {
+                                          setState(() {
+                                            _selectedQuantitySecondaryUnit =
+                                                newValue;
+                                            quantitySelectedValue = newValue ??
+                                                ''; // Update quantitySelectedValue with the selected value
+                                          });
+                                        },
+                                        items: _dropdownItemsQuantity
+                                            .map<DropdownMenuItem<String>>(
+                                                (String value) {
+                                          return DropdownMenuItem<String>(
+                                            value: value,
+                                            child: Text(
+                                              value,
+                                              style:
+                                                  const TextStyle(fontSize: 16),
+                                            ),
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -505,6 +562,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                       salePriceforTable!);
                                   productNameController.clear();
                                   quantityController.clear();
+                                  _localDatabase.clearSuggestions();
                                   _dropdownItemsQuantity.insert(0, "Unit");
                                   _selectedQuantitySecondaryUnit =
                                       _dropdownItemsQuantity[
@@ -577,7 +635,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                   ),
                                 ),
                                 Text(
-                                  "\"Amul Butter quantity 2packs\"",
+                                  "\"Amul Butter quantity 2 packs\"",
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontSize: 22.0,
@@ -660,39 +718,6 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
 
                         //row for print and save button
                       ],
-                    ),
-                    Align(
-                      alignment: Alignment.center,
-                      child: _localDatabase.suggestions.isNotEmpty ||
-                              productNameController.text == '' ||
-                              itemSelected == true
-                          ? const SizedBox()
-                          : const Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(
-                                  Icons.error,
-                                  color: Color(0xFFE43D12),
-                                ),
-                                SizedBox(
-                                  width: 10,
-                                ),
-                                Text(
-                                  "No Matching Item Found",
-                                  style: TextStyle(
-                                      fontSize: 20, color: Color(0xFFE43D12)),
-                                ),
-                              ],
-                            ),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      child: TextButton(
-                        onPressed: () {
-                          _localDatabase.printData();
-                        },
-                        child: const Text("button"),
-                      ),
                     ),
                     Positioned(
                       bottom: 45,
@@ -1101,6 +1126,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
   }
 
   Widget _parseSpeech(String words, bool finalResult) {
+    print('parsespeech called');
     RegExp regex = RegExp(
         r'(\w+(?:\s+\w+)*)\s+quantity\s+((?:\d+\s*|(?:\w+\s*)+))\s+(packs|bags|bag|bottle|bottles|box|boxes|bundle|bundles|can|cans|cartoon|cartoons|cartan|gram|grams|gm|kilogram|kg|kilograms|litre|litres|ltr|meter|m|meters|ms|millilitre|ml|millilitres|number|numerbs|pack|packs|packet|packets|pair|pairs|piece|pieces|roll|rolls|squarefeet|sqf|squarefeets|sqfts|squaremeters|squaremeter)');
 
@@ -1112,6 +1138,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
       String unitOfQuantity = match.group(3) ?? "";
 
       productNameController.text = product;
+      print('2');
       _localDatabase.searchDatabase(product);
       text2num(quantity);
       extractAndCombineNumbers(text2num(quantity).toString());
@@ -1304,7 +1331,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
       if (recognizedWord == "") {
         newItems = null;
       } else {
-        _localDatabase.searchDatabase(recognizedWord);
+        // _localDatabase.searchDatabase(recognizedWord);
         newItems = (result as SuccessState).value;
         if (newItems!.data!.isEmpty) {
           validProductName = false;
@@ -1556,71 +1583,81 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
     int dataLength = _localDatabase.suggestions.length;
 
     return dataLength > 0
-        ? Column(
-            children: [
-              Container(
-                margin: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-                constraints: BoxConstraints(
-                    maxHeight: MediaQuery.of(context).size.height *
-                        0.5), // Set max height for scrolling
-                decoration: BoxDecoration(
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.5),
-                      spreadRadius: 5,
-                      blurRadius: 7,
-                      offset: const Offset(0, 0),
+        ? Stack(children: [
+            InkWell(
+              onTap: () {
+                setState(() {
+                  _localDatabase.clearSuggestions();
+                  quantityController.clear();
+                  productNameController.clear();
+                });
+              },
+              child: Container(
+                height: MediaQuery.of(context).size.height,
+                width: MediaQuery.of(context).size.width,
+              ),
+            ),
+            Column(
+              children: [
+                Container(
+                  margin: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                  constraints: BoxConstraints(
+                      maxHeight: MediaQuery.of(context).size.height * 0.5),
+                  decoration: BoxDecoration(
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.5),
+                        spreadRadius: 5,
+                        blurRadius: 7,
+                        offset: const Offset(0, 0),
+                      ),
+                    ],
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  child: ListView.separated(
+                    controller: _scrollController,
+                    padding: EdgeInsets.zero,
+                    itemCount: dataLength + (isLoadingMore ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index == dataLength) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+
+                      final suggestion = _localDatabase.suggestions[index];
+                      final itemIdforStock = (suggestion.itemId).toString();
+
+                      return ListTile(
+                        title: Text(suggestion.name),
+                        trailing: isInputThroughText
+                            ? Text("${suggestion.quantity} ${suggestion.unit}")
+                            : Text(
+                                "${quantityController.text} ${suggestion.unit}"),
+                        onTap: () {
+                          stopListening();
+                          setState(() {
+                            availableStockValue =
+                                suggestion.quantity.toString();
+                            productNameController.text = suggestion.name;
+                            unit = suggestion.unit;
+                            _selectedQuantitySecondaryUnit = unit;
+                            itemId = itemIdforStock;
+                            assignQuantityFunction(itemIdforStock, token!);
+                            itemSelected = true;
+                            _localDatabase.clearSuggestions();
+                          });
+                        },
+                      );
+                    },
+                    separatorBuilder: (context, index) => const Divider(
+                      thickness: 0.2,
+                      height: 0,
                     ),
-                  ],
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: ListView.separated(
-                  controller: _scrollController, // Attach the scroll controller
-                  padding: EdgeInsets.zero,
-                  itemCount: dataLength +
-                      (isLoadingMore
-                          ? 1
-                          : 0), // Add 1 to show loading indicator
-                  itemBuilder: (context, index) {
-                    if (index == dataLength) {
-                      return const Center(
-                          child:
-                              CircularProgressIndicator()); // Show loading spinner
-                    }
-
-                    final suggestion = _localDatabase.suggestions[index];
-
-                    final itemIdforStock = (suggestion.itemId).toString();
-                    return ListTile(
-                      title: Text(suggestion.name),
-                      trailing:
-                          Text("${suggestion.quantity} ${suggestion.unit}"),
-                      onTap: () {
-                        stopListening();
-                        setState(() {
-                          print("itemID ${itemIdforStock}");
-                          availableStockValue = suggestion.quantity.toString();
-                          productNameController.text = suggestion.name;
-                          unit = suggestion.unit;
-
-                          itemId = itemIdforStock;
-                          assignQuantityFunction(itemIdforStock, token!);
-                          setState(() {});
-                          itemSelected = true;
-                          _localDatabase.clearSuggestions();
-                        });
-                      },
-                    );
-                  },
-                  separatorBuilder: (context, index) => const Divider(
-                    thickness: 0.2,
-                    height: 0,
                   ),
                 ),
-              ),
-            ],
-          )
+              ],
+            ),
+          ])
         : const SizedBox.shrink();
   }
 }

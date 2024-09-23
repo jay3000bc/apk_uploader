@@ -31,7 +31,7 @@ class SubUser {
 }
 
 class SubUserService {
-  static const String apiUrl = '$baseUrl/all-sub-users';
+  static const String apiUrl = '$baseUrl/all-sub-users-without-pagination';
 
   static Future<List<SubUser>> fetchSubUsers(int page, int pageSize) async {
     print('Page: $page, PageSize: $pageSize');
@@ -56,7 +56,7 @@ class SubUserService {
       }
       return subUsersData.map((json) => SubUser.fromJson(json)).toList();
     } else {
-      throw Exception('Failed to load sub users');
+      throw Exception(response.body);
     }
   }
 }

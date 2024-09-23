@@ -17,16 +17,17 @@ class CustomNavigationBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BottomAppBar(
-      height: 90,
+      height: 90, // Reduced the height to fit contents better
       shape: const CircularNotchedRectangle(),
       notchMargin: 8.0,
       color: const Color(0xFFF2CC44),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        padding: const EdgeInsets.symmetric(
+            horizontal: 16, vertical: 5), // Reduced padding
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            Expanded(
+            Flexible(
               child: _buildNavItem(
                 label: 'Home',
                 context: context,
@@ -43,7 +44,7 @@ class CustomNavigationBar extends StatelessWidget {
                 isSelected: selectedIndex == 0,
               ),
             ),
-            Expanded(
+            Flexible(
               child: _buildNavItem(
                 label: "Refund",
                 context: context,
@@ -61,7 +62,7 @@ class CustomNavigationBar extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 40), // Space for FAB
-            Expanded(
+            Flexible(
               child: _buildNavItem(
                 label: 'Inventory',
                 context: context,
@@ -78,7 +79,7 @@ class CustomNavigationBar extends StatelessWidget {
                 isSelected: selectedIndex == 2,
               ),
             ),
-            Expanded(
+            Flexible(
               child: _buildNavItem(
                 label: 'Users',
                 context: context,
@@ -109,28 +110,33 @@ class CustomNavigationBar extends StatelessWidget {
     required bool isSelected,
     required String label,
   }) {
-    return Column(
-      children: [
-        InkWell(
-          onTap: onTap,
-          child: Container(
-            padding: const EdgeInsets.all(5.0),
+    return InkWell(
+      onTap: onTap,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center, // Centers the content
+        children: [
+          Container(
+            padding: const EdgeInsets.all(6.0), // Slightly reduced padding
             decoration: BoxDecoration(
               color: isSelected ? Colors.white : Colors.transparent,
               shape: BoxShape.circle,
             ),
             child: Icon(
-              size: 20,
+              size: 20, // Reduced icon size slightly
               icon,
               color: isSelected
                   ? Colors.green
                   : Colors.black, // Adjust based on selection
             ),
           ),
-        ),
-        Text(label,
-            style: const TextStyle(color: Colors.black, fontSize: 11.5)),
-      ],
+          const SizedBox(height: 5), // Adds space between the icon and text
+          Text(
+            label,
+            style: const TextStyle(
+                color: Colors.black, fontSize: 13), // Reduced font size
+          ),
+        ],
+      ),
     );
   }
 }

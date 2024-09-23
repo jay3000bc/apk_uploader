@@ -121,63 +121,61 @@ class LocalDatabase {
 
   Future<List<LocalDatabaseModel>> searchDatabase(String query) async {
     print('search Database hit');
-    // print("Ratio: ${ratio("karl", "carl")}");
-    Database db = await database;
-    List<String> names = await getNamesFromDatabase(query);
-    //print("Names: $names");
 
+    if (query.isEmpty) {
+      return [];
+    }
+
+    Database db = await database;
     List<Map<String, dynamic>> data = [];
 
+    // Primary Query: Use DISTINCT to avoid duplicates and LIKE for partial matches
     final result = await db.query(
       _tableName,
+      distinct: true, // Avoids duplicates at the SQL level
       where: 'name LIKE ?',
       whereArgs: ["%$query%"],
     );
-    for (var entry in result) {
-      // Check if the entry is already in the data list
-      bool isDuplicate =
-          data.any((existingEntry) => existingEntry['id'] == entry['id']);
-      if (!isDuplicate) {
-        data.add(entry);
-      }
-    }
-    if (data.isEmpty) {
-      for (String name in names) {
-        final result = await db.query(
-          _tableName,
-          where: 'name LIKE ?',
-          whereArgs: ["%$name%"],
-        );
 
-        for (var entry in result) {
-          // Check if the entry is already in the data list
-          bool isDuplicate =
-              data.any((existingEntry) => existingEntry['id'] == entry['id']);
-          if (!isDuplicate) {
-            data.add(entry);
-          }
-        }
-      }
-    }
-    if (query == "") {
-      data = [];
+    // Collect data from the result
+    data.addAll(result);
+
+    // If no results and alternative names are available, run secondary search
+
+    List<String> names = await getNamesFromDatabase(query);
+    if (names.isNotEmpty) {
+      // Use an IN clause to avoid multiple queries
+      final placeholder = List.generate(names.length, (_) => '?').join(',');
+      final result = await db.query(
+        _tableName,
+        distinct: true,
+        where: 'name IN ($placeholder)',
+        whereArgs: names,
+      );
+      data.addAll(result);
     }
 
+    // Map the data to LocalDatabaseModel objects
     suggestions = data
         .map(
           (e) => LocalDatabaseModel(
             id: e["id"] as int,
             itemId: e["itemId"] as int,
-            //quantity: "quantity",
             quantity: int.tryParse(e["quantity"].toString()) ?? 0,
-            //name: "name",
             name: e["name"] as String,
-            //unit: "unit",
             unit: e["unit"] as String,
           ),
         )
         .toList();
-    print('Suggestions: $data');
+
+// Remove duplicates based on 'id' or 'itemId'
+    final ids = <int>{}; // Create a Set to track unique ids
+    suggestions = suggestions.where((suggestion) {
+      // If the id is not in the set, add it and include the suggestion
+      return ids.add(suggestion.id);
+    }).toList();
+
+    print('Suggestions: $suggestions');
     return suggestions;
   }
 

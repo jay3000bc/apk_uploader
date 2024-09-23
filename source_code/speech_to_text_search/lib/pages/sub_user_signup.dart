@@ -9,6 +9,7 @@ import 'package:speech_to_text_search/Service/result.dart';
 import 'package:http/http.dart' as http;
 import 'package:speech_to_text_search/Service/is_login.dart';
 import 'package:speech_to_text_search/components/navigation_bar.dart';
+import 'package:speech_to_text_search/pages/drawer.dart';
 import 'package:speech_to_text_search/pages/search_app.dart';
 import 'package:speech_to_text_search/pages/view_sub_user.dart';
 
@@ -110,14 +111,32 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
       title = "Error";
       content = response['message'] ?? "An unexpected error occurred";
     }
-
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.green,
+        foregroundColor: Colors.white,
+        shape: CircleBorder(),
+        child: const Icon(Icons.check),
+        onPressed: () {
+          if (mobileController.text == '' ||
+              nameController.text == '' ||
+              passwordController.text == '' ||
+              confirmPasswordController.text == '' ||
+              addressController.text == '') {
+            callAlert("all fields are required");
+          } else {
+            submitData();
+          }
+        },
+      ),
+      drawer: Sidebar(),
       appBar: AppBar(
-        automaticallyImplyLeading: false,
+        //automaticallyImplyLeading: false,
         title: const Text(
           'Add User',
           style: TextStyle(
@@ -142,16 +161,16 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
           onTap: () => FocusScope.of(context).unfocus(),
           child: Stack(
             children: <Widget>[
-              SizedBox(
-                height: double.infinity,
-                width: double.infinity,
-                child: ColorFiltered(
-                  colorFilter: ColorFilter.mode(
-                    Colors.black.withOpacity(0.5),
-                    BlendMode.darken,
-                  ),
-                ),
-              ),
+              // SizedBox(
+              //   height: double.infinity,
+              //   width: double.infinity,
+              //   child: ColorFiltered(
+              //     colorFilter: ColorFilter.mode(
+              //       Colors.black.withOpacity(0.5),
+              //       BlendMode.darken,
+              //     ),
+              //   ),
+              // ),
               SizedBox(
                 height: double.infinity,
                 child: SingleChildScrollView(
@@ -164,16 +183,16 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       const SizedBox(height: 10.0),
-                      ElevatedButton(
-                        child: const Text("View User"),
-                        onPressed: () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => const SubUserListPage()),
-                          );
-                        },
-                      ),
+                      // ElevatedButton(
+                      //   child: const Text("View User"),
+                      //   onPressed: () {
+                      //     Navigator.pushReplacement(
+                      //       context,
+                      //       MaterialPageRoute(
+                      //           builder: (context) => const SubUserListPage()),
+                      //     );
+                      //   },
+                      // ),
                       const SizedBox(height: 10.0),
                       _buildNameTF(),
                       _buildMobileTF(),
@@ -181,7 +200,7 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
                       _buildConfirmPasswordTF(),
                       _buildAddressTF(),
                       const SizedBox(height: 40.0),
-                      _buildSignUpBtn(),
+                      // _buildSignUpBtn(),
                       const SizedBox(height: 10.0),
                       // _buildSignInText(),
                     ],
@@ -369,56 +388,43 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
     );
   }
 
-  Widget _buildSignUpBtn() {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 25.0),
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: () {
-          if (mobileController.text == '' ||
-              nameController.text == '' ||
-              passwordController.text == '' ||
-              confirmPasswordController.text == '' ||
-              addressController.text == '') {
-              callAlert("all fields are required");
-            // }
-            // // else if (confirmPasswordController.text !=
-            // //     passwordController.text) {
-            // //   callAlert("Password & Confirm Password Doesn't Match");
-            // // }
-            // // else if (passwordController.text.length < 8 ||
-            // //     confirmPasswordController.text.length < 8) {
-            // //   callAlert(
-            // //       "password & confirm password must contain at least 8 characters");
-            // // }
-            // else
-            //   if (addressController.text == '') {
-            //   callAlert("address is required");
-            } else {
-            submitData();
-          }
-        },
-        style: ElevatedButton.styleFrom(
-          elevation: 5.0,
-          backgroundColor: Colors.green,
-          padding: const EdgeInsets.all(15.0),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(0),
-          ),
-        ),
-        child: const Text(
-          'Add User',
-          style: TextStyle(
-            color: Colors.white,
-            letterSpacing: 1.5,
-            fontSize: 18.0,
-            fontWeight: FontWeight.bold,
-            fontFamily: 'OpenSans',
-          ),
-        ),
-      ),
-    );
-  }
+  // Widget _buildSignUpBtn() {
+  //   return Container(
+  //     padding: const EdgeInsets.symmetric(vertical: 25.0),
+  //     width: double.infinity,
+  //     child: ElevatedButton(
+  //       onPressed: () {
+  //         if (mobileController.text == '' ||
+  //             nameController.text == '' ||
+  //             passwordController.text == '' ||
+  //             confirmPasswordController.text == '' ||
+  //             addressController.text == '') {
+  //           callAlert("all fields are required");
+  //         } else {
+  //           submitData();
+  //         }
+  //       },
+  //       style: ElevatedButton.styleFrom(
+  //         elevation: 5.0,
+  //         backgroundColor: Colors.green,
+  //         padding: const EdgeInsets.all(15.0),
+  //         shape: RoundedRectangleBorder(
+  //           borderRadius: BorderRadius.circular(0),
+  //         ),
+  //       ),
+  //       child: const Text(
+  //         'Add User',
+  //         style: TextStyle(
+  //           color: Colors.white,
+  //           letterSpacing: 1.5,
+  //           fontSize: 18.0,
+  //           fontWeight: FontWeight.bold,
+  //           fontFamily: 'OpenSans',
+  //         ),
+  //       ),
+  //     ),
+  //   );
+  // }
 
   callAlert(String message) {
     return showDialog<bool>(

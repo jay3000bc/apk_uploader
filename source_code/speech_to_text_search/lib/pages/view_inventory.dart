@@ -3,6 +3,7 @@ import 'package:speech_to_text_search/Service/internet_checker.dart';
 import 'package:speech_to_text_search/Service/local_database.dart';
 import 'package:speech_to_text_search/components/navigation_bar.dart';
 import 'package:speech_to_text_search/pages/add_product.dart';
+import 'package:speech_to_text_search/pages/drawer.dart';
 import 'package:speech_to_text_search/pages/edit_product.dart';
 
 class ProductListPage extends StatefulWidget {
@@ -84,6 +85,7 @@ class _ProductListPageState extends State<ProductListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: Sidebar(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(
         onPressed: () {
