@@ -155,7 +155,7 @@ class _TransactionListPageState extends State<TransactionListPage> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      onPopInvoked: (didPop) async {
+      onPopInvokedWithResult: (didPop, result) async {
         _selectedIndex = 0;
         // Navigate to NextPage when user tries to pop MyHomePage
         Navigator.push(
@@ -166,15 +166,6 @@ class _TransactionListPageState extends State<TransactionListPage> {
         return;
       },
       child: Scaffold(
-        bottomNavigationBar: CustomNavigationBar(
-          onItemSelected: (index) {
-            // Handle navigation item selection
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-          selectedIndex: _selectedIndex,
-        ),
         drawer: const Sidebar(),
         appBar: AppBar(
           toolbarHeight: 40,
@@ -193,7 +184,10 @@ class _TransactionListPageState extends State<TransactionListPage> {
             future: TransactionService.fetchTransactions(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
+                return const Center(
+                    child: Padding(
+                        padding: EdgeInsets.only(top: 100),
+                        child: CircularProgressIndicator()));
               } else if (snapshot.hasError) {
                 return const Center(child: Text('Failed to load transactions'));
               } else {
@@ -295,6 +289,7 @@ class _TransactionListPageState extends State<TransactionListPage> {
                                         width: 100,
                                         child: Text(
                                           getProductNames(transaction.itemList),
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       )),
                                       DataCell(Text(transaction.totalPrice)),

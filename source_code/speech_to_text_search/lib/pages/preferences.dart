@@ -62,7 +62,8 @@ class _PreferencesPageState extends State<PreferencesPage> {
         builder: (BuildContext context) {
           return AlertDialog(
             title: const Text('Error'),
-            content: const Text('An error occurred. Please login and try again.'),
+            content:
+                const Text('An error occurred. Please login and try again.'),
             actions: <Widget>[
               TextButton(
                 onPressed: () {
@@ -70,7 +71,8 @@ class _PreferencesPageState extends State<PreferencesPage> {
                   // Redirect to login page
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(builder: (context) => const LoginScreen()),
+                    MaterialPageRoute(
+                        builder: (context) => const LoginScreen()),
                   );
                 },
                 child: const Text('OK'),
@@ -164,8 +166,8 @@ class _PreferencesPageState extends State<PreferencesPage> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-        canPop: false,
-        onPopInvoked : (didPop)async {
+      canPop: false,
+      onPopInvoked: (didPop) async {
         // Navigate to NextPage when user tries to pop MyHomePage
         Navigator.push(
           context,
@@ -187,15 +189,6 @@ class _PreferencesPageState extends State<PreferencesPage> {
               243, 203, 71, 1), // Change this color to whatever you desire
         ),
         drawer: const Sidebar(),
-        bottomNavigationBar: CustomNavigationBar(
-          onItemSelected: (index) {
-            // Handle navigation item selection
-            setState(() {
-              _selectedIndex = index;
-            });
-          },
-          selectedIndex: _selectedIndex,
-        ),
         body: isLoading
             ? const Center(
                 child: CircularProgressIndicator(

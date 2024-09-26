@@ -10,6 +10,7 @@ import 'dart:convert';
 
 import 'package:speech_to_text_search/Service/is_login.dart';
 import 'package:speech_to_text_search/components/navigation_bar.dart';
+import 'package:speech_to_text_search/pages/drawer.dart';
 
 String userDetailsAPI = "$baseUrl/user-detail";
 
@@ -54,10 +55,9 @@ class _UserDetailFormState extends State<UserDetailForm> {
   late TextEditingController gstinController;
   late TextEditingController newPasswordController;
 
-  int _selectedIndex = 3;
-
   UserDetail? userDetail;
   XFile? logoImageFile;
+  String? logo;
 
   @override
   void initState() {
@@ -76,9 +76,11 @@ class _UserDetailFormState extends State<UserDetailForm> {
   _submitData() async {
     var token = await APIService.getToken();
     try {
-      var request = http.MultipartRequest('POST', Uri.parse('https://dev.probill.app/api/update-profile'));
+      var request = http.MultipartRequest(
+          'POST', Uri.parse('https://dev.probill.app/api/update-profile'));
       request.headers.addAll({
-        'Authorization': 'Bearer $token', // Replace $token with your actual token value
+        'Authorization':
+            'Bearer $token', // Replace $token with your actual token value
       });
       request.fields.addAll({
         'id': userDetail!.id.toString(), // Add your user ID here
@@ -88,7 +90,8 @@ class _UserDetailFormState extends State<UserDetailForm> {
         'password': newPasswordController.text,
       });
       if (logoImageFile != null) {
-        request.files.add(await http.MultipartFile.fromPath('logo', logoImageFile!.path));
+        request.files.add(
+            await http.MultipartFile.fromPath('logo', logoImageFile!.path));
       }
       http.StreamedResponse response = await request.send();
 
@@ -118,7 +121,8 @@ class _UserDetailFormState extends State<UserDetailForm> {
           builder: (BuildContext context) {
             return AlertDialog(
               title: const Text("Error"),
-              content: Text("Failed to update profile. ${response.reasonPhrase}"),
+              content:
+                  Text("Failed to update profile. ${response.reasonPhrase}"),
               actions: [
                 TextButton(
                   onPressed: () {
@@ -163,6 +167,7 @@ class _UserDetailFormState extends State<UserDetailForm> {
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);
       final userData = jsonData['data'];
+      logo = jsonData['logo'];
       setState(() {
         userDetail = UserDetail(
           id: userData['id'],
@@ -189,7 +194,8 @@ class _UserDetailFormState extends State<UserDetailForm> {
     }
   }
 
-  Widget textFieldCustom(TextEditingController controller, bool obscureText, String labelText, bool readOnly) {
+  Widget textFieldCustom(TextEditingController controller, bool obscureText,
+      String labelText, bool readOnly) {
     return TextFormField(
       controller: controller,
       obscureText: obscureText,
@@ -207,16 +213,15 @@ class _UserDetailFormState extends State<UserDetailForm> {
   }
 
   Widget _buildLogoPicker() {
-    String logoUrl = 'https://dev.probill.app/storage/logo/${userDetail!.logo}';
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         // Check if logo URL is available and valid
-        userDetail!.logo.isNotEmpty && Uri.parse(logoUrl).isAbsolute
+        userDetail!.logo.isNotEmpty && Uri.parse(logo as String).isAbsolute
             ? SizedBox(
                 width: 50, // Set the width of the thumbnail
                 height: 50, // Set the height of the thumbnail
-                child: Image.network(logoUrl),
+                child: Image.network(logo as String),
               )
             : Container(
                 width: 50, // Set the width of the placeholder
@@ -227,7 +232,8 @@ class _UserDetailFormState extends State<UserDetailForm> {
                   color: Colors.white, // Icon color
                 ),
               ),
-        const SizedBox(width: 10), // Add some space between the button and the thumbnail
+        const SizedBox(
+            width: 10), // Add some space between the button and the thumbnail
         // ElevatedButton(
         //   onPressed: pickLogoImage,
         //   child: Text('Change Logo'),
@@ -244,7 +250,8 @@ class _UserDetailFormState extends State<UserDetailForm> {
           onPressed: pickLogoImage,
           child: const Text('Pick Logo'),
         ),
-        const SizedBox(width: 10), // Add some space between the button and the thumbnail
+        const SizedBox(
+            width: 10), // Add some space between the button and the thumbnail
         logoImageFile != null
             ? SizedBox(
                 width: 50, // Set the width of the thumbnail
@@ -259,25 +266,17 @@ class _UserDetailFormState extends State<UserDetailForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const Sidebar(),
       backgroundColor: const Color.fromRGBO(246, 247, 255, 1),
-      bottomNavigationBar: CustomNavigationBar(
-        onItemSelected: (index) {
-          // Handle navigation item selection
-          setState(() {
-            _selectedIndex = index;
-          });
-        },
-        selectedIndex: _selectedIndex,
-      ),
       appBar: AppBar(
-        automaticallyImplyLeading: false,
         title: const Text(
-          'User Details',
+          'Account Details',
           style: TextStyle(
             color: Color.fromARGB(255, 0, 0, 0),
           ),
         ),
-        backgroundColor: const Color.fromRGBO(243, 203, 71, 1), // Change this color to whatever you desire
+        backgroundColor: const Color.fromRGBO(
+            243, 203, 71, 1), // Change this color to whatever you desire
       ),
       body: userDetail == null
           ? const Center(child: CircularProgressIndicator())
@@ -288,7 +287,8 @@ class _UserDetailFormState extends State<UserDetailForm> {
                 children: [
                   textFieldCustom(nameController, false, 'Name', false),
                   const SizedBox(height: 10.0),
-                  textFieldCustom(userNameController, false, 'Business Name', true),
+                  textFieldCustom(
+                      userNameController, false, 'Business Name', true),
                   const SizedBox(height: 10.0),
                   textFieldCustom(emailController, false, 'Email', true),
                   const SizedBox(height: 10.0),
@@ -296,9 +296,11 @@ class _UserDetailFormState extends State<UserDetailForm> {
                   const SizedBox(height: 10.0),
                   textFieldCustom(addressController, false, 'Address', false),
                   const SizedBox(height: 10.0),
-                  textFieldCustom(shopTypeController, false, 'Shop Type', false),
+                  textFieldCustom(
+                      shopTypeController, false, 'Shop Type', false),
                   const SizedBox(height: 10.0),
-                  textFieldCustom(gstinController, false, 'GSTIN Number', false),
+                  textFieldCustom(
+                      gstinController, false, 'GSTIN Number', false),
                   const SizedBox(height: 10.0),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -309,7 +311,8 @@ class _UserDetailFormState extends State<UserDetailForm> {
                     ],
                   ),
                   const SizedBox(height: 10.0),
-                  textFieldCustom(newPasswordController, true, 'New Password', false),
+                  textFieldCustom(
+                      newPasswordController, true, 'New Password', false),
                   const SizedBox(height: 20.0),
                   ElevatedButton(
                     onPressed: _submitData,
@@ -317,7 +320,8 @@ class _UserDetailFormState extends State<UserDetailForm> {
 
                     style: ElevatedButton.styleFrom(
                       foregroundColor: Colors.white,
-                      backgroundColor: const Color(0xFF0B5ED7), // Change the color here
+                      backgroundColor:
+                          const Color(0xFF0B5ED7), // Change the color here
                     ),
                     child: const Text('Update Changes'),
                   ),

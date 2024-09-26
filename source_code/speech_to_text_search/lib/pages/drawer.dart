@@ -1,5 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -12,7 +14,7 @@ import 'package:speech_to_text_search/pages/add_product.dart';
 import 'package:speech_to_text_search/service/is_login.dart';
 import 'package:speech_to_text_search/pages/login_profile.dart';
 import 'package:speech_to_text_search/components/navigation_bar.dart';
-import 'package:speech_to_text_search/preferences.dart';
+import 'package:speech_to_text_search/pages/preferences.dart';
 import 'package:speech_to_text_search/pages/search_app.dart';
 import 'package:speech_to_text_search/pages/sub_user_signup.dart';
 import 'package:speech_to_text_search/pages/transaction_list.dart';
@@ -30,6 +32,10 @@ class _SidebarState extends State<Sidebar> {
   String _name = '';
   String _userName = '';
   int _selectedIndex = 3;
+  String imageUrl = '';
+  Image? logo;
+
+  final Uri _imageUrl = Uri.parse('$baseUrl/user-detail');
 
   final Uri _url = Uri.parse('https://probill.app/forgot-password');
 
@@ -37,6 +43,25 @@ class _SidebarState extends State<Sidebar> {
   void initState() {
     super.initState();
     _loadName();
+    _getLogo();
+  }
+
+  Future<void> _getLogo() async {
+    String? token = await APIService.getToken();
+    final response = await http.get(
+      _imageUrl,
+      headers: {'Authorization': 'Bearer $token'},
+    );
+    if (response.statusCode == 200) {
+      final jsonData = json.decode(response.body);
+
+      if (mounted) {
+        setState(() {
+          imageUrl = jsonData['logo'];
+          logo = Image.network(imageUrl);
+        });
+      }
+    }
   }
 
   Future<void> _loadName() async {
@@ -81,10 +106,10 @@ class _SidebarState extends State<Sidebar> {
                       alignment: Alignment.center,
                       child: Internetchecker(),
                     ),
-                    const CircleAvatar(
+                    CircleAvatar(
                       radius: 40,
-                      backgroundImage: AssetImage('assets/user.png'),
-                      backgroundColor: Color.fromRGBO(243, 203, 71, 1),
+                      backgroundImage: logo?.image,
+                      backgroundColor: const Color.fromRGBO(243, 203, 71, 1),
                     ),
                     Text(
                       'Hello $_name',
@@ -109,7 +134,7 @@ class _SidebarState extends State<Sidebar> {
               leading: const Icon(Icons.add),
               title: const Text('Add Inventory'),
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => const AddInventory()),
                 );
@@ -119,7 +144,7 @@ class _SidebarState extends State<Sidebar> {
               leading: const Icon(Icons.inventory_2_outlined),
               title: const Text('Update Inventory'),
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) => const ProductListPage()),
@@ -130,7 +155,7 @@ class _SidebarState extends State<Sidebar> {
               leading: const Icon(Icons.document_scanner),
               title: const Text('Transactions'),
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) => const TransactionListPage()),
@@ -141,7 +166,7 @@ class _SidebarState extends State<Sidebar> {
               leading: const Icon(Icons.person_add_rounded),
               title: const Text('User'),
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) => const SignUpSubUserScreen()),
@@ -153,7 +178,7 @@ class _SidebarState extends State<Sidebar> {
               leading: const Icon(Icons.settings),
               title: const Text('Preferences'),
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) => const PreferencesPage()),
@@ -164,7 +189,7 @@ class _SidebarState extends State<Sidebar> {
               leading: const Icon(Icons.account_circle),
               title: const Text('Account'),
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
                       builder: (context) => const UserDetailForm()),
@@ -177,7 +202,7 @@ class _SidebarState extends State<Sidebar> {
               title: const Text('Change Password'),
               onTap: () {
                 _launchUrl(_url);
-                // Navigator.pushReplacement(
+                // Navigator.push(
                 //   context,
                 //   MaterialPageRoute(builder: (context) => PreferencesPage()),
                 // );
@@ -188,7 +213,7 @@ class _SidebarState extends State<Sidebar> {
               leading: const Icon(Icons.account_balance_outlined),
               title: const Text('Subscription'),
               onTap: () {
-                // Navigator.pushReplacement(
+                // Navigator.push(
                 //   context,
                 //   MaterialPageRoute(builder: (context) => PreferencesPage()),
                 // );
@@ -229,13 +254,13 @@ class _SidebarState extends State<Sidebar> {
       EasyLoading.dismiss();
       if (response.statusCode == 200) {
         // Directly navigate to login screen
-        Navigator.pushReplacement(
+        Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const LoginScreen()),
         );
       } else {
         // Directly navigate to login screen
-        Navigator.pushReplacement(
+        Navigator.push(
           context,
           MaterialPageRoute(builder: (context) => const LoginScreen()),
         );
@@ -243,7 +268,7 @@ class _SidebarState extends State<Sidebar> {
     } catch (e) {
       Result.error("Book list not available");
       // Directly navigate to login screen
-      Navigator.pushReplacement(
+      Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => const LoginScreen()),
       );

@@ -129,18 +129,14 @@ class LocalDatabase {
     Database db = await database;
     List<Map<String, dynamic>> data = [];
 
-    // Primary Query: Use DISTINCT to avoid duplicates and LIKE for partial matches
     final result = await db.query(
       _tableName,
-      distinct: true, // Avoids duplicates at the SQL level
+      distinct: true,
       where: 'name LIKE ?',
       whereArgs: ["%$query%"],
     );
 
-    // Collect data from the result
     data.addAll(result);
-
-    // If no results and alternative names are available, run secondary search
 
     List<String> names = await getNamesFromDatabase(query);
     if (names.isNotEmpty) {
@@ -155,7 +151,6 @@ class LocalDatabase {
       data.addAll(result);
     }
 
-    // Map the data to LocalDatabaseModel objects
     suggestions = data
         .map(
           (e) => LocalDatabaseModel(
@@ -168,7 +163,6 @@ class LocalDatabase {
         )
         .toList();
 
-// Remove duplicates based on 'id' or 'itemId'
     final ids = <int>{}; // Create a Set to track unique ids
     suggestions = suggestions.where((suggestion) {
       // If the id is not in the set, add it and include the suggestion

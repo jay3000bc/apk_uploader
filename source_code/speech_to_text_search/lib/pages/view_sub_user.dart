@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:speech_to_text_search/Service/internet_checker.dart';
+import 'package:speech_to_text_search/pages/view_sub_user_details.dart';
 import 'package:speech_to_text_search/service/api_constants.dart';
 import 'dart:convert';
 import 'package:speech_to_text_search/service/is_login.dart';
@@ -33,27 +34,20 @@ class SubUser {
 class SubUserService {
   static const String apiUrl = '$baseUrl/all-sub-users-without-pagination';
 
-  static Future<List<SubUser>> fetchSubUsers(int page, int pageSize) async {
-    print('Page: $page, PageSize: $pageSize');
+  static Future<List<SubUser>> fetchSubUsers() async {
     var token = await APIService.getToken();
-    final response = await http.post(
+    final response = await http.get(
       Uri.parse(apiUrl),
       headers: {
         'Authorization': 'Bearer $token',
-        'Token': '<token>',
       },
-      body: json.encode({
-        'start': page * pageSize,
-        'length': pageSize,
-      }),
     );
+
     if (response.statusCode == 200) {
       final jsonData = json.decode(response.body);
 
       final List<dynamic> subUsersData = jsonData['data'];
-      for (var user in subUsersData) {
-        print(user);
-      }
+
       return subUsersData.map((json) => SubUser.fromJson(json)).toList();
     } else {
       throw Exception(response.body);
@@ -92,8 +86,7 @@ class _SubUserListPageState extends State<SubUserListPage> {
     });
 
     try {
-      List<SubUser> fetchedSubUsers =
-          await SubUserService.fetchSubUsers(_page, _rowsPerPage);
+      List<SubUser> fetchedSubUsers = await SubUserService.fetchSubUsers();
       setState(() {
         _subUsers.addAll(fetchedSubUsers);
         _page++;
@@ -214,38 +207,48 @@ class _SubUserListPageState extends State<SubUserListPage> {
                       : const SizedBox();
                 }
                 final subUser = _subUsers[index];
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 2, // Larger space for item name
-                        child: Text(
-                          subUser.name,
-                          style: const TextStyle(fontSize: 14),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                return InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ViewSubUserDetails(user: subUser),
                       ),
-                      Expanded(
-                        flex: 2, // Larger space for item name
-                        child: Text(
-                          subUser.mobile,
-                          style: const TextStyle(fontSize: 14),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                    );
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 2, // Larger space for item name
+                          child: Text(
+                            subUser.name,
+                            style: const TextStyle(fontSize: 14),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                      Expanded(
-                        flex: 2, // Larger space for item name
-                        child: Text(
-                          subUser.address,
-                          style: const TextStyle(fontSize: 14),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
+                        Expanded(
+                          flex: 2, // Larger space for item name
+                          child: Text(
+                            subUser.mobile,
+                            style: const TextStyle(fontSize: 14),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                    ],
+                        Expanded(
+                          flex: 2, // Larger space for item name
+                          child: Text(
+                            subUser.address,
+                            style: const TextStyle(fontSize: 14),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },
