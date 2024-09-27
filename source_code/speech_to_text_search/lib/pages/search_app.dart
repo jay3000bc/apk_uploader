@@ -1,5 +1,3 @@
-
-
 import 'dart:async';
 import 'dart:convert';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
@@ -211,65 +209,78 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
     }
   }
 
-  void isSearchingChecker() {
-    if (isInputThroughText) {
-      productNotFound = _localDatabase.suggestions.isEmpty &&
-          searching == true &&
-          speech.isNotListening &&
-          productNameController.text.isNotEmpty;
-    } else {
-      productNotFound = _localDatabase.suggestions.isEmpty &&
-          searching == true &&
-          speech.isNotListening;
-    }
-    // print('productNotFound: $productNotFound');
-  }
+  // void isSearchingChecker() {
+  //   if (isInputThroughText) {
+  //     productNotFound = _localDatabase.suggestions.isEmpty &&
+  //         searching == true &&
+  //         speech.isNotListening &&
+  //         productNameController.text.isNotEmpty;
+  //   } else {
+  //     productNotFound = _localDatabase.suggestions.isEmpty &&
+  //         searching == true &&
+  //         speech.isNotListening;
+  //   }
+  //   // print('productNotFound: $productNotFound');
+  // }
 
-  _showNoMatchingItems() {
-    if (isInputThroughText) {
-      Future.delayed(Duration(seconds: 1), () {
-        setState(() {
-          isSearchingChecker();
-        });
-      });
-    } else
-      isSearchingChecker();
-    // print(
-    //     '_localDatabase.suggestions.isEmpty: ${_localDatabase.suggestions.isEmpty}, searching: $searching, speech.isNotListening: ${speech.isNotListening}, productNotFound: $productNotFound');
-    // isSearchingChecker();
-    return Align(
-      alignment: Alignment.center,
-      child: productNotFound
-          ? AlertDialog(
-              iconPadding: EdgeInsets.all(10),
-              actionsPadding: EdgeInsets.all(10),
-              contentPadding: EdgeInsets.all(10),
-              elevation: 2,
-              shadowColor: Colors.grey,
-              title: const Text("No Matching Items Found"),
-              content: const Text(
-                  "Please try again or tap on the mic and start by saying the product name."),
-              icon: const Icon(Icons.dangerous, color: Colors.red),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    setState(() {
-                      searching = false;
-                      productNameController.clear();
-                    });
-                  },
-                  child: const Text(
-                    "OK",
-                    style: TextStyle(
-                      color: Colors.green,
-                    ),
-                  ),
-                ),
-              ],
-            )
-          : const SizedBox.shrink(),
-    );
-  }
+  // _showNoMatchingItems() {
+  //   if (isInputThroughText) {
+  //     Future.delayed(Duration(seconds: 1), () {
+  //       setState(() {
+  //         isSearchingChecker();
+  //       });
+  //     });
+  //   } else
+  //     isSearchingChecker();
+
+  //   return Align(
+  //     alignment: Alignment.center,
+  //     child: productNotFound
+  //         ? Container(
+  //             width: MediaQuery.of(context).size.width,
+  //             height: MediaQuery.of(context).size.height * 0.1,
+  //             decoration: BoxDecoration(
+  //               border: Border.all(color: Colors.red),
+  //               color: const Color.fromARGB(255, 211, 130, 124),
+  //             ),
+  //             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+  //             child: Column(
+  //               children: [
+  //                 const Text(
+  //                   "No matching items found. Please try again",
+  //                   style: TextStyle(
+  //                     fontSize: 12.0,
+  //                     color: Colors.black,
+  //                   ),
+  //                 ),
+  // TextButton(
+  //   onPressed: () {
+  //     setState(() {
+  //       searching = false;
+  //       productNameController.clear();
+  //     });
+  //   },
+  //   child: Container(
+  //     padding: const EdgeInsets.symmetric(
+  //         horizontal: 8, vertical: 4),
+  //     decoration: BoxDecoration(
+  //         borderRadius: BorderRadius.circular(10),
+  //         color: Colors.black),
+  //     child: const Text(
+  //       "OK",
+  //       style: TextStyle(
+  //         fontSize: 12,
+  //         color: Colors.white,
+  //       ),
+  //     ),
+  //   ),
+  // ),
+  //               ],
+  //             ),
+  //           )
+  //         : const SizedBox.shrink(),
+  //   );
+  // }
 
   Future<void> _initializeData() async {
     token = await APIService.getToken();
@@ -283,19 +294,9 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
     }
   }
 
-  showConnectionDiaog() {
-    return showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) => const AlertDialog(
-              title: Text("No Internet"),
-              content: Text("Please check your internet connection"),
-            ));
-  }
-
-  // Update the controller's state based on isListeningMic
   @override
   Widget build(BuildContext context) {
+    bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom != 0;
     return Consumer2<MicState, QuantityMicState>(
       builder: (context, micState, quantityMicState, _) {
         return PopScope(
@@ -337,16 +338,18 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
             ),
             floatingActionButtonLocation:
                 FloatingActionButtonLocation.centerDocked,
-            floatingActionButton: FloatingActionButton(
-              child: microphoneButton(),
-              onPressed: () {
-                // print('Floating action button pressed');
-                setState(() {
-                  searching = true;
-                });
-              },
-              shape: const CircleBorder(),
-            ),
+            floatingActionButton: isKeyboardVisible
+                ? null
+                : FloatingActionButton(
+                    child: microphoneButton(),
+                    onPressed: () {
+                      // print('Floating action button pressed');
+                      setState(() {
+                        searching = true;
+                      });
+                    },
+                    shape: const CircleBorder(),
+                  ),
             drawer: const Sidebar(),
             bottomNavigationBar: CustomNavigationBar(
               onItemSelected: (index) {
@@ -368,6 +371,8 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                           alignment: Alignment.center,
                           child: Internetchecker(),
                         ),
+                        _errorWidgetView(lastError, isquantityavailable),
+                        // _showNoMatchingItems(),
                         Column(
                           children: [
                             Padding(
@@ -423,13 +428,15 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                                                     Color.fromRGBO(0, 0, 0, 1),
                                               ),
                                               onPressed: () {
+                                                _dropdownItemsQuantity =
+                                                    _dropdownItems;
+
+                                                print(_dropdownItemsQuantity);
                                                 setState(() {
-                                                  _dropdownItemsQuantity =
-                                                      _dropdownItems;
                                                   _selectedQuantitySecondaryUnit =
                                                       _dropdownItemsQuantity[
                                                           0]; // Reset to default value // Reset to default value
-                                                  newItems?.data?.clear();
+                                                  // //newItems?.data?.clear();
                                                   clearProductName();
                                                   stopListening();
                                                   _localDatabase
@@ -634,7 +641,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                         //   _productErrorWidget(_errorMessage),
 
                         // Text(lastWords),
-                        _showNoMatchingItems(),
+
                         Visibility(
                           visible: !itemForBillRows.isNotEmpty &&
                               speech.isNotListening &&
@@ -800,15 +807,6 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                             ],
                           ),
                         ),
-                      ),
-                    ),
-                    Positioned(
-                      bottom: 190,
-                      left: 1,
-                      right: 1,
-                      child: ErrorWidgetView(
-                        lastError: lastError,
-                        quantityWord: isquantityavailable,
                       ),
                     ),
                     Positioned(
@@ -1027,7 +1025,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
   }
 
   void startListening() {
-    _logEvent('start listening');
+    print('start listening');
     lastWords = '';
     lastError = '';
     speech.listen(
@@ -1166,6 +1164,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
       Future.delayed(Duration(seconds: 1), () {
         setState(() {});
       });
+
       if (product.isEmpty) {
         setState(() {
           _errorMessage = 'Product is missing';
@@ -1187,6 +1186,13 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
         });
         return _productErrorWidget(_errorMessage);
       }
+      Future.delayed(const Duration(seconds: 1), () {
+        if (_localDatabase.suggestions.isEmpty) {
+          print('Product Not Available');
+          speak('Product Not Available');
+        }
+      });
+
       setState(
         () {
           _errorMessage = ''; // Clear error message on successful parsing
@@ -1383,73 +1389,6 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
     );
   }
 
-  // Widget _buildSuggestionDropdown() {
-  //   double dropdownHeight = (newItems?.data?.length ?? 0) *
-  //       70.0; // Assuming each ListTile is 56 pixels in height
-  //   return (newItems?.data?.length ?? 0) > 0
-  //       ? SingleChildScrollView(
-  //           child: Container(
-  //             margin: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-  //             constraints: BoxConstraints(maxHeight: dropdownHeight),
-  //             decoration: BoxDecoration(
-  //               boxShadow: [
-  //                 BoxShadow(
-  //                   color: Colors.grey.withOpacity(0.5),
-  //                   spreadRadius: 5,
-  //                   blurRadius: 7,
-  //                   offset: const Offset(0, 3), // changes position of shadow
-  //                 ),
-  //               ],
-  //               color: Colors.white,
-  //               //border: Border.all(color: Colors.grey),
-  //               borderRadius: BorderRadius.circular(15),
-  //             ),
-  //             child: ListView.builder(
-  //               padding: EdgeInsets.zero,
-  //               itemCount: newItems?.data?.length,
-  //               itemBuilder: (context, index) {
-  //                 final itemIdforStock = newItems?.data?[index].id.toString();
-  //                 // Declare itemId here
-  //                 String? unit = newItems?.data?[index].shortUnit;
-  //                 return Column(
-  //                   children: [
-  //                     ListTile(
-  //                       trailing: Text(
-  //                         isInputThroughText == true
-  //                             ? ("${newItems?.data?[index].quantity ?? ''} ${newItems?.data?[index].shortUnit ?? ''}")
-  //                             : "$quantityNumeric$unit",
-  //                         style: const TextStyle(
-  //                           color: Color.fromARGB(255, 61, 136, 17),
-  //                         ),
-  //                       ),
-  //                       title: Text(newItems?.data?[index].itemName ?? ''),
-  //                       onTap: () {
-  //                         print("itemID ${itemIdforStock}");
-  //                         availableStockValue = newItems?.data?[index].quantity;
-  //                         productNameController.text =
-  //                             newItems?.data?[index].itemName ?? '';
-  //                         itemId = itemIdforStock!;
-  //                         assignQuantityFunction(itemIdforStock, token!);
-  //                         newItems?.data?.clear();
-  //                         setState(() {});
-  //                       },
-  //                     ),
-  //                     if (index !=
-  //                         newItems!.data!.length -
-  //                             1) // Add Divider between items, except for the last one
-  //                       const Divider(
-  //                         color: Colors.grey,
-  //                         thickness: .2,
-  //                       ),
-  //                   ],
-  //                 );
-  //               },
-  //             ),
-  //           ),
-  //         )
-  //       : const SizedBox.shrink();
-  // }
-
   int extractAndCombineNumbers(String input) {
     List<int> numbers = [];
     RegExp regExp = RegExp(r'\d+');
@@ -1599,88 +1538,166 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
     int dataLength = _localDatabase.suggestions.length;
 
     return dataLength > 0
-        ? Stack(children: [
-            InkWell(
-              onTap: () {
-                setState(() {
-                  _localDatabase.clearSuggestions();
-                  quantityController.clear();
-                  productNameController.clear();
+        ? Stack(
+            children: [
+              InkWell(
+                onTap: () {
+                  setState(() {
+                    _localDatabase.clearSuggestions();
+                    quantityController.clear();
+                    productNameController.clear();
 
-                  // print('dropdown: $_dropdownItemsQuantity');
-                });
-              },
-              child: Container(
-                height: MediaQuery.of(context).size.height,
-                width: MediaQuery.of(context).size.width,
+                    // print('dropdown: $_dropdownItemsQuantity');
+                  });
+                },
+                child: Container(
+                  height: MediaQuery.of(context).size.height,
+                  width: MediaQuery.of(context).size.width,
+                ),
               ),
-            ),
-            Column(
-              children: [
-                Container(
-                  margin: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-                  constraints: BoxConstraints(
-                      maxHeight: MediaQuery.of(context).size.height * 0.5),
-                  decoration: BoxDecoration(
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
-                        spreadRadius: 5,
-                        blurRadius: 7,
-                        offset: const Offset(0, 0),
+              Column(
+                children: [
+                  Container(
+                    margin: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                    constraints: BoxConstraints(
+                        maxHeight: MediaQuery.of(context).size.height * 0.5),
+                    decoration: BoxDecoration(
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.grey.withOpacity(0.5),
+                          spreadRadius: 5,
+                          blurRadius: 7,
+                          offset: const Offset(0, 0),
+                        ),
+                      ],
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(15),
+                    ),
+                    child: ListView.separated(
+                      controller: _scrollController,
+                      padding: EdgeInsets.zero,
+                      itemCount: dataLength + (isLoadingMore ? 1 : 0),
+                      itemBuilder: (context, index) {
+                        if (index == dataLength) {
+                          return const Center(
+                              child: CircularProgressIndicator());
+                        }
+
+                        final suggestion = _localDatabase.suggestions[index];
+                        final itemIdforStock = (suggestion.itemId).toString();
+
+                        return ListTile(
+                          title: Text(suggestion.name),
+                          trailing: isInputThroughText
+                              ? Text(
+                                  "${suggestion.quantity} ${suggestion.unit}")
+                              : Text("$quantity ${suggestion.unit}"),
+                          onTap: () {
+                            stopListening();
+                            setState(() {
+                              searching = false;
+                              availableStockValue =
+                                  suggestion.quantity.toString();
+                              productNameController.text = suggestion.name;
+                              quantityController.text = quantity.toString();
+                              unit = suggestion.unit;
+                              _selectedQuantitySecondaryUnit = unit;
+
+                              itemId = itemIdforStock;
+                              assignQuantityFunction(itemIdforStock, token!);
+                              itemSelected = true;
+                              _localDatabase.clearSuggestions();
+
+                              _dropdownItemsQuantity = _dropdownItems;
+                            });
+
+                            print('dropdownItems: $_dropdownItems');
+                            print('dropdown: $_dropdownItemsQuantity');
+                          },
+                        );
+                      },
+                      separatorBuilder: (context, index) => const Divider(
+                        thickness: 0.2,
+                        height: 0,
                       ),
-                    ],
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(15),
+                    ),
                   ),
-                  child: ListView.separated(
-                    controller: _scrollController,
-                    padding: EdgeInsets.zero,
-                    itemCount: dataLength + (isLoadingMore ? 1 : 0),
-                    itemBuilder: (context, index) {
-                      if (index == dataLength) {
-                        return const Center(child: CircularProgressIndicator());
-                      }
-
-                      final suggestion = _localDatabase.suggestions[index];
-                      final itemIdforStock = (suggestion.itemId).toString();
-
-                      return ListTile(
-                        title: Text(suggestion.name),
-                        trailing: isInputThroughText
-                            ? Text("${suggestion.quantity} ${suggestion.unit}")
-                            : Text("$quantity ${suggestion.unit}"),
-                        onTap: () {
-                          stopListening();
-                          setState(() {
-                            searching = false;
-                            availableStockValue =
-                                suggestion.quantity.toString();
-                            productNameController.text = suggestion.name;
-                            quantityController.text = quantity.toString();
-                            unit = suggestion.unit;
-                            _selectedQuantitySecondaryUnit = unit;
-
-                            itemId = itemIdforStock;
-                            assignQuantityFunction(itemIdforStock, token!);
-                            itemSelected = true;
-                            _localDatabase.clearSuggestions();
-                            _dropdownItemsQuantity.clear();
-                          });
-                          // print('dropdown: $_dropdownItemsQuantity');
-                        },
-                      );
-                    },
-                    separatorBuilder: (context, index) => const Divider(
-                      thickness: 0.2,
-                      height: 0,
+                ],
+              ),
+            ],
+          )
+        : (isInputThroughText == true &&
+                productNameController.text.isNotEmpty &&
+                searching == true)
+            ? Container(
+                height: 50,
+                margin: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                decoration: BoxDecoration(
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 5,
+                      blurRadius: 7,
+                      offset: const Offset(0, 0),
+                    ),
+                  ],
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(15),
+                ),
+                child: const Center(
+                  child: Text(
+                    "No suggestions found",
+                    style: TextStyle(
+                      fontSize: 16.0,
+                      color: Colors.black,
                     ),
                   ),
                 ),
-              ],
+              )
+            : const SizedBox.shrink();
+  }
+
+  Widget _errorWidgetView(String lasttError, bool quantityWord) {
+    if (lastError.isNotEmpty) {
+      return Container(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height * 0.1,
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.red),
+          color: const Color.fromARGB(255, 211, 130, 124),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            const Text("Couldn't Recognise. Please Try Again."),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  print(lastError);
+                  lastError = '';
+                  print("l:$lastError");
+                  //  quantityWord = true;
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    color: Colors.black),
+                child: const Text(
+                  "OK",
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
             ),
-          ])
-        : const SizedBox.shrink();
+          ],
+        ),
+      );
+    } else
+      return SizedBox.shrink();
   }
 }
 
@@ -1698,7 +1715,10 @@ class ErrorWidgetView extends StatelessWidget {
       children: <Widget>[
         if (lastError.isNotEmpty)
           const Center(
-            child: Text("Couldn't Recognize, Please say it Again!"),
+            child: AlertDialog(
+              title: Text("Couldn't recognise."),
+              content: Text('Please say it again.'),
+            ),
           ),
         if (!quantityWord) // Check if flag is false
           const Center(

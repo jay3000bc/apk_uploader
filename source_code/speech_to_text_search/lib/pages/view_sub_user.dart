@@ -146,7 +146,7 @@ class _SubUserListPageState extends State<SubUserListPage> {
       drawer: const Sidebar(),
       appBar: AppBar(
         title: const Text(
-          'Sub Users',
+          'Employees',
           style: TextStyle(
             color: Color.fromARGB(255, 0, 0, 0),
           ),

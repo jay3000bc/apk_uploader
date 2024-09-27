@@ -10,7 +10,7 @@ class ViewSubUserDetails extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text(
-          'Sub Users',
+          'Employee Details',
           style: TextStyle(
             color: Color.fromARGB(255, 0, 0, 0),
           ),

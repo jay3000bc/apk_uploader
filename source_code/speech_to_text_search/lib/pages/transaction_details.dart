@@ -35,7 +35,7 @@ class TransactionDetailPage extends StatelessWidget {
           children: [
             _buildInfoRow('Invoice Number', transaction.invoiceNumber),
             const SizedBox(height: 16),
-            _buildInfoRow('Total Price', transaction.totalPrice),
+            _buildInfoRow('Total Price', "₹${transaction.totalPrice}"),
             const SizedBox(height: 16),
             _buildInfoRow('Created At', transaction.createdAt),
             const SizedBox(height: 16),

@@ -81,7 +81,7 @@ class CustomNavigationBar extends StatelessWidget {
             ),
             Flexible(
               child: _buildNavItem(
-                label: 'Users',
+                label: 'Employees',
                 context: context,
                 icon: Icons.person_outline,
                 index: 3,

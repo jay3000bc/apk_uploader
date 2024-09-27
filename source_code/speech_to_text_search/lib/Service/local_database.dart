@@ -5,6 +5,7 @@ import 'package:path/path.dart';
 import 'package:speech_to_text_search/Service/api_constants.dart';
 import 'package:speech_to_text_search/Service/is_login.dart';
 import 'package:speech_to_text_search/models/local_database_model.dart';
+import 'package:speech_to_text_search/pages/search_app.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -23,6 +24,8 @@ class LocalDatabase {
   List<LocalDatabaseModel> suggestions = [];
 
   LocalDatabase._constructor();
+
+  final SearchApp _searchapp = SearchApp();
 
   Future<Database> get database async {
     if (_db != null) {
@@ -76,7 +79,7 @@ class LocalDatabase {
         throw Exception('Invalid data format from server');
       }
     } else {
-      print('fetchDataFromAPI: ${response.body}');
+      //  print('fetchDataFromAPI: ${response.body}');
       throw Exception(response.body);
     }
   }
@@ -120,7 +123,7 @@ class LocalDatabase {
   }
 
   Future<List<LocalDatabaseModel>> searchDatabase(String query) async {
-    print('search Database hit');
+    // print('search Database hit');
 
     if (query.isEmpty) {
       return [];
@@ -133,7 +136,7 @@ class LocalDatabase {
       _tableName,
       distinct: true,
       where: 'name LIKE ?',
-      whereArgs: ["%$query%"],
+      whereArgs: ["$query%"],
     );
 
     data.addAll(result);
@@ -169,7 +172,7 @@ class LocalDatabase {
       return ids.add(suggestion.id);
     }).toList();
 
-    print('Suggestions: $suggestions');
+    // print('Suggestions: $suggestions');
     return suggestions;
   }
 

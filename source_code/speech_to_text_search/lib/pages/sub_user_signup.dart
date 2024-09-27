@@ -138,7 +138,7 @@ class _SignUpSubUserScreenState extends State<SignUpSubUserScreen> {
       appBar: AppBar(
         //automaticallyImplyLeading: false,
         title: const Text(
-          'Add User',
+          'Add Employee',
           style: TextStyle(
             color: Color.fromARGB(255, 0, 0, 0),
           ),

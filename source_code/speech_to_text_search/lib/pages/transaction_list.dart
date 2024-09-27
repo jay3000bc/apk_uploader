@@ -166,7 +166,6 @@ class _TransactionListPageState extends State<TransactionListPage> {
         return;
       },
       child: Scaffold(
-        drawer: const Sidebar(),
         appBar: AppBar(
           toolbarHeight: 40,
           title: const Text(

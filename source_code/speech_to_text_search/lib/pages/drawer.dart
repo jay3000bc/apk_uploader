@@ -9,7 +9,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:speech_to_text_search/Service/internet_checker.dart';
 import 'package:speech_to_text_search/service/api_constants.dart';
 import 'package:speech_to_text_search/service/result.dart';
-import 'package:speech_to_text_search/service/account.dart';
+import 'package:speech_to_text_search/pages/account.dart';
 import 'package:speech_to_text_search/pages/add_product.dart';
 import 'package:speech_to_text_search/service/is_login.dart';
 import 'package:speech_to_text_search/pages/login_profile.dart';
@@ -164,7 +164,7 @@ class _SidebarState extends State<Sidebar> {
             ),
             ListTile(
               leading: const Icon(Icons.person_add_rounded),
-              title: const Text('User'),
+              title: const Text('Employee'),
               onTap: () {
                 Navigator.push(
                   context,

@@ -266,9 +266,15 @@ class _UserDetailFormState extends State<UserDetailForm> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const Sidebar(),
       backgroundColor: const Color.fromRGBO(246, 247, 255, 1),
       appBar: AppBar(
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context); // Go back when pressed
+          },
+        ),
+        toolbarHeight: 40,
         title: const Text(
           'Account Details',
           style: TextStyle(
