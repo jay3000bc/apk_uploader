@@ -1,12 +1,9 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:speech_to_text_search/pages/drawer.dart';
 import 'package:speech_to_text_search/models/transaction.dart';
 import 'dart:convert';
 import 'package:speech_to_text_search/Service/is_login.dart';
-import 'package:speech_to_text_search/components/navigation_bar.dart';
-import 'package:speech_to_text_search/pages/search_app.dart';
 import 'package:speech_to_text_search/pages/transaction_details.dart';
 import '../Service/api_constants.dart';
 import 'package:intl/intl.dart';
@@ -29,8 +26,7 @@ class TransactionService {
       },
       body: json.encode({
         'start': 0,
-        'length':
-            1000, // Fetch a large number of transactions to handle all data
+        'length': 1000, // Fetch a large number of transactions
       }),
     );
     if (response.statusCode == 200) {
@@ -51,40 +47,22 @@ class TransactionListPage extends StatefulWidget {
 }
 
 class _TransactionListPageState extends State<TransactionListPage> {
-  int _selectedIndex = 3;
   String _searchQuery = '';
-  String _selectedColumn = 'Invoice'; // Default selected column
-  final List<String> _columnNames = [
-    'Invoice',
-    'Transactions',
-    'Total',
-    'Date-time'
-  ]; // List of column names
-  List<Transaction> _transactions = []; // Store all transactions
-  List<Transaction> _filteredTransactions = []; // Store filtered transactions
-
+  String _selectedColumn = 'Invoice';
+  List<Transaction> _transactions = [];
+  List<Transaction> _filteredTransactions = [];
   final ScrollController scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    _scrollToTop();
     _fetchTransactions();
-  }
-
-  void _scrollToTop() {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (scrollController.hasClients) {
-        scrollController.jumpTo(0.0);
-      }
-    });
   }
 
   Future<void> _fetchTransactions() async {
     List<Transaction> transactions =
         await TransactionService.fetchTransactions();
 
-    // Sort transactions by date in descending order
     transactions.sort((a, b) =>
         DateTime.parse(b.createdAt).compareTo(DateTime.parse(a.createdAt)));
 
@@ -130,6 +108,97 @@ class _TransactionListPageState extends State<TransactionListPage> {
     }
   }
 
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: const Color(0xFFF2CC44),
+        title: const Text('Sales & Refund'),
+      ),
+      body: Column(
+        children: [
+          _SearchBar(
+            onSearch: _handleSearch,
+            selectedColumn: _selectedColumn,
+            onColumnSelect: _handleColumnSelect,
+          ),
+          Expanded(
+            child:
+                _TransactionList(filteredTransactions: _filteredTransactions),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Widget for search bar
+class _SearchBar extends StatelessWidget {
+  final Function(String) onSearch;
+  final String selectedColumn;
+  final Function(String?) onColumnSelect;
+  final List<String> _columnNames = [
+    'Invoice',
+    'Transactions',
+    'Total',
+    'Date-time'
+  ];
+
+  _SearchBar({
+    required this.onSearch,
+    required this.selectedColumn,
+    required this.onColumnSelect,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: TextField(
+                onChanged: onSearch,
+                decoration: const InputDecoration(
+                  hintText: 'Search',
+                  border: InputBorder.none,
+                  prefixIcon: Icon(Icons.search, color: Colors.grey),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          DropdownButton<String>(
+            value: selectedColumn,
+            onChanged: onColumnSelect,
+            style: const TextStyle(color: Colors.black),
+            underline: Container(),
+            icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
+            items: _columnNames.map((columnName) {
+              return DropdownMenuItem<String>(
+                value: columnName,
+                child: Text(columnName),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// Widget for displaying the list of transactions
+class _TransactionList extends StatelessWidget {
+  final List<Transaction> filteredTransactions;
+
+  const _TransactionList({required this.filteredTransactions});
+
   Map<String, List<Transaction>> _groupTransactionsByMonth(
       List<Transaction> transactions) {
     Map<String, List<Transaction>> groupedTransactions = {};
@@ -141,187 +210,81 @@ class _TransactionListPageState extends State<TransactionListPage> {
       }
       groupedTransactions[month]!.add(transaction);
     }
-
-    // Sort transactions within each month by invoice number in descending order
-    groupedTransactions.forEach((month, monthTransactions) {
-      monthTransactions
-          .sort((a, b) => b.invoiceNumber.compareTo(a.invoiceNumber));
-    });
-
     return groupedTransactions;
   }
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) async {
-        _selectedIndex = 0;
-        // Navigate to NextPage when user tries to pop MyHomePage
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const SearchApp()),
-        );
-        // Return false to prevent popping the current route
-        return;
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          toolbarHeight: 40,
-          title: const Text(
-            'Sales & Refund',
-            style: TextStyle(
-              color: Color.fromARGB(255, 0, 0, 0),
-            ),
-          ),
-          backgroundColor: const Color.fromRGBO(243, 203, 71, 1),
-        ),
-        body: SingleChildScrollView(
-          controller: scrollController,
-          scrollDirection: Axis.vertical,
-          child: FutureBuilder(
-            future: TransactionService.fetchTransactions(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                    child: Padding(
-                        padding: EdgeInsets.only(top: 100),
-                        child: CircularProgressIndicator()));
-              } else if (snapshot.hasError) {
-                return const Center(child: Text('Failed to load transactions'));
-              } else {
-                _transactions = snapshot.data!;
-                _filteredTransactions = _searchTransactions(_searchQuery);
+    var groupedTransactions = _groupTransactionsByMonth(filteredTransactions);
+    var sortedMonths = groupedTransactions.keys.toList()
+      ..sort((a, b) =>
+          DateFormat.yMMMM().parse(b).compareTo(DateFormat.yMMMM().parse(a)));
 
-                var groupedTransactions =
-                    _groupTransactionsByMonth(_filteredTransactions);
+    return ListView.builder(
+      controller: ScrollController(),
+      itemCount: sortedMonths.length,
+      itemBuilder: (context, index) {
+        String month = sortedMonths[index];
+        List<Transaction> monthTransactions = groupedTransactions[month]!;
 
-                var sortedMonths = groupedTransactions.keys.toList()
-                  ..sort((a, b) => DateFormat.yMMMM()
-                      .parse(b)
-                      .compareTo(DateFormat.yMMMM().parse(a)));
-
-                return SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: Container(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 12),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey[200],
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: TextField(
-                                  onChanged: _handleSearch,
-                                  decoration: const InputDecoration(
-                                    hintText: 'Search',
-                                    border: InputBorder.none,
-                                    prefixIcon:
-                                        Icon(Icons.search, color: Colors.grey),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            DropdownButton<String>(
-                              value: _selectedColumn,
-                              onChanged: _handleColumnSelect,
-                              style: const TextStyle(color: Colors.black),
-                              underline: Container(),
-                              icon: const Icon(Icons.arrow_drop_down,
-                                  color: Colors.grey),
-                              items: _columnNames.map((columnName) {
-                                return DropdownMenuItem<String>(
-                                  value: columnName,
-                                  child: Text(columnName),
-                                );
-                              }).toList(),
-                            ),
-                          ],
-                        ),
-                      ),
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: sortedMonths.length,
-                        itemBuilder: (context, index) {
-                          String month = sortedMonths[index];
-                          List<Transaction> monthTransactions =
-                              groupedTransactions[month]!;
-                          return Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Container(
-                                color: Colors.grey[300],
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 8),
-                                child: Center(
-                                  child: Text(
-                                    month,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                              DataTable(
-                                showCheckboxColumn: false,
-                                columns: const [
-                                  DataColumn(label: Text('Invoice')),
-                                  DataColumn(label: Text('Transactions')),
-                                  DataColumn(label: Text('Total')),
-                                  DataColumn(label: Text('Date-time')),
-                                ],
-                                rows: monthTransactions.map((transaction) {
-                                  return DataRow(
-                                    cells: [
-                                      DataCell(Text(transaction.invoiceNumber)),
-                                      DataCell(SizedBox(
-                                        width: 100,
-                                        child: Text(
-                                          getProductNames(transaction.itemList),
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                      )),
-                                      DataCell(Text(transaction.totalPrice)),
-                                      DataCell(SizedBox(
-                                          width: 70,
-                                          child: Text(transaction.createdAt))),
-                                    ],
-                                    onSelectChanged: (isSelected) {
-                                      if (isSelected != null && isSelected) {
-                                        Navigator.of(context).push(
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                TransactionDetailPage(
-                                                    transaction: transaction),
-                                          ),
-                                        );
-                                      }
-                                    },
-                                  );
-                                }).toList(),
-                              ),
-                            ],
-                          );
-                        },
-                      ),
-                    ],
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Container(
+              color: Colors.grey[300],
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Center(
+                child: Text(
+                  month,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
                   ),
+                ),
+              ),
+            ),
+            DataTable(
+              showCheckboxColumn: false,
+              columns: const [
+                DataColumn(label: Text('Invoice')),
+                DataColumn(label: Text('Transactions')),
+                DataColumn(label: Text('Total')),
+                DataColumn(label: Text('Date-time')),
+              ],
+              rows: monthTransactions.map((transaction) {
+                int totalPrice = int.parse(transaction.totalPrice);
+                return DataRow(
+                  cells: [
+                    DataCell(Text(transaction.invoiceNumber)),
+                    DataCell(SizedBox(
+                      width: 100,
+                      child: Text(
+                        getProductNames(transaction.itemList),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    )),
+                    DataCell(Text(totalPrice > 0
+                        ? "₹$totalPrice"
+                        : "-₹${totalPrice.abs()}")),
+                    DataCell(SizedBox(
+                        width: 70, child: Text(transaction.createdAt))),
+                  ],
+                  onSelectChanged: (isSelected) {
+                    if (isSelected != null && isSelected) {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              TransactionDetailPage(transaction: transaction),
+                        ),
+                      );
+                    }
+                  },
                 );
-              }
-            },
-          ),
-        ),
-      ),
+              }).toList(),
+            ),
+          ],
+        );
+      },
     );
   }
 }

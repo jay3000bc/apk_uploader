@@ -908,9 +908,12 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
         );
         // Optionally, you can handle further actions after saving the data
       } else {
+        print(response.body);
         EasyLoading.dismiss();
-        //     debugPrint(response.body);
-        // Handle error cases
+
+        // Handle other HTTP status codes
+        // debugPrint(
+        // 'Response body: ${response.body}'); // Print the whole response body
       }
     } catch (e) {
       EasyLoading.dismiss();

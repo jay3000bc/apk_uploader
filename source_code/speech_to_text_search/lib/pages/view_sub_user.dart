@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:speech_to_text_search/Service/internet_checker.dart';
@@ -64,12 +62,18 @@ class SubUserListPage extends StatefulWidget {
 
 class _SubUserListPageState extends State<SubUserListPage> {
   final int _rowsPerPage = 30;
-  int _page = 0;
-  final List<SubUser> _subUsers = [];
+
+  final List<SubUser> _employees = [];
   late ScrollController _scrollController;
   bool _isLoadingMore = false;
   bool _hasMoreData = true;
   int _selectedIndex = 3;
+  int _noOfEmployees = 0;
+  String _selectedColumn = 'Name';
+
+  String _searchQuery = '';
+
+  List<SubUser> _filteredEmployees = [];
 
   @override
   void initState() {
@@ -87,9 +91,11 @@ class _SubUserListPageState extends State<SubUserListPage> {
 
     try {
       List<SubUser> fetchedSubUsers = await SubUserService.fetchSubUsers();
+      _noOfEmployees = fetchedSubUsers.length;
       setState(() {
-        _subUsers.addAll(fetchedSubUsers);
-        _page++;
+        _filteredEmployees.addAll(fetchedSubUsers);
+        _employees.addAll(fetchedSubUsers);
+
         if (fetchedSubUsers.length < _rowsPerPage) {
           _hasMoreData = false; // No more data to load
         }
@@ -111,6 +117,38 @@ class _SubUserListPageState extends State<SubUserListPage> {
     }
   }
 
+  _handleSearch(String query) {
+    setState(() {
+      _searchQuery = query.toLowerCase();
+      _filteredEmployees = _searchEmployees(_searchQuery);
+    });
+  }
+
+  List<SubUser> _searchEmployees(String query) {
+    if (query.isEmpty) {
+      return _employees;
+    } else {
+      return _employees.where((employee) {
+        switch (_selectedColumn) {
+          case 'Name':
+            return employee.name.toLowerCase().contains(query);
+          case 'Mobile':
+            return employee.mobile.toLowerCase().contains(query);
+          case 'Address':
+            return employee.address.toLowerCase().contains(query);
+          default:
+            return false;
+        }
+      }).toList();
+    }
+  }
+
+  void _handleColumnSelect(String? columnName) {
+    setState(() {
+      _selectedColumn = columnName!;
+    });
+  }
+
   @override
   void dispose() {
     _scrollController.dispose();
@@ -119,22 +157,25 @@ class _SubUserListPageState extends State<SubUserListPage> {
 
   @override
   Widget build(BuildContext context) {
+    bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom != 0;
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const SignUpSubUserScreen(),
+      floatingActionButton: isKeyboardVisible
+          ? null
+          : FloatingActionButton(
+              backgroundColor: Colors.green,
+              foregroundColor: Colors.white,
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const SignUpSubUserScreen(),
+                  ),
+                );
+              },
+              shape: const CircleBorder(),
+              child: const Icon(Icons.add),
             ),
-          );
-        },
-        shape: const CircleBorder(),
-        child: const Icon(Icons.add),
-      ),
       bottomNavigationBar: CustomNavigationBar(
         onItemSelected: (index) {
           setState(() {
@@ -158,6 +199,19 @@ class _SubUserListPageState extends State<SubUserListPage> {
           const Align(
             alignment: Alignment.center,
             child: Internetchecker(),
+          ),
+          _SearchBar(
+              onSearch: _handleSearch,
+              selectedColumn: _selectedColumn,
+              onColumnSelect: _handleColumnSelect),
+          _employees.isNotEmpty
+              ? Text(_noOfEmployees > 0
+                  ? 'Total Employees: $_noOfEmployees'
+                  : 'No Employees Found')
+              : const SizedBox.shrink(),
+          const Divider(
+            thickness: 1,
+            height: 5,
           ),
           const Padding(
             padding: EdgeInsets.all(8.0),
@@ -198,15 +252,15 @@ class _SubUserListPageState extends State<SubUserListPage> {
                 height: 0,
               ),
               controller: _scrollController, // Attach the scroll controller
-              itemCount: _subUsers.length + 1,
+              itemCount: _filteredEmployees.length + 1,
               itemBuilder: (context, index) {
-                if (index == _subUsers.length) {
+                if (index == _filteredEmployees.length) {
                   // Display loading indicator at the bottom
                   return _isLoadingMore
                       ? const Center(child: CircularProgressIndicator())
                       : const SizedBox();
                 }
-                final subUser = _subUsers[index];
+                final subUser = _filteredEmployees[index];
                 return InkWell(
                   onTap: () {
                     Navigator.push(
@@ -260,27 +314,61 @@ class _SubUserListPageState extends State<SubUserListPage> {
   }
 }
 
-// class _SubUserDataSource extends DataTableSource {
-//   final List<SubUser> _subUsers;
+class _SearchBar extends StatelessWidget {
+  final Function(String) onSearch;
+  final String selectedColumn;
+  final Function(String?) onColumnSelect;
+  final List<String> _columnNames = [
+    'Name',
+    'Mobile',
+    'Address',
+  ];
 
-//   _SubUserDataSource(this._subUsers);
+  _SearchBar({
+    required this.onSearch,
+    required this.selectedColumn,
+    required this.onColumnSelect,
+  });
 
-//   @override
-//   DataRow getRow(int index) {
-//     final subUser = _subUsers[index];
-//     return DataRow(cells: [
-//       DataCell(Text(subUser.name)),
-//       DataCell(Text(subUser.mobile)),
-//       DataCell(Text(subUser.address)),
-//     ]);
-//   }
-
-  // @override
-  // bool get isRowCountApproximate => false;
-
-  // @override
-  // int get rowCount => _subUsers.length;
-
-  // @override
-  // int get selectedRowCount => 0;
-//}
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: Colors.grey[200],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: TextField(
+                onChanged: onSearch,
+                decoration: const InputDecoration(
+                  hintText: 'Search',
+                  border: InputBorder.none,
+                  prefixIcon: Icon(Icons.search, color: Colors.grey),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          DropdownButton<String>(
+            value: selectedColumn,
+            onChanged: onColumnSelect,
+            style: const TextStyle(color: Colors.black),
+            underline: Container(),
+            icon: const Icon(Icons.arrow_drop_down, color: Colors.grey),
+            items: _columnNames.map((columnName) {
+              return DropdownMenuItem<String>(
+                value: columnName,
+                child: Text(columnName),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+}

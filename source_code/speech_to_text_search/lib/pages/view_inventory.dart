@@ -84,19 +84,22 @@ class _ProductListPageState extends State<ProductListPage> {
 
   @override
   Widget build(BuildContext context) {
+    bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom != 0;
     return Scaffold(
       drawer: Sidebar(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.push(context, MaterialPageRoute(builder: (context) {
-            return const AddInventory();
-          }));
-        },
-        shape: CircleBorder(),
-        backgroundColor: Colors.green,
-        child: const Icon(Icons.add, color: Colors.white),
-      ),
+      floatingActionButton: isKeyboardVisible
+          ? null
+          : FloatingActionButton(
+              onPressed: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) {
+                  return const AddInventory();
+                }));
+              },
+              shape: CircleBorder(),
+              backgroundColor: Colors.green,
+              child: const Icon(Icons.add, color: Colors.white),
+            ),
       bottomNavigationBar: CustomNavigationBar(
         onItemSelected: (index) {
           setState(() {

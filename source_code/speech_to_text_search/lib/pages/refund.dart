@@ -957,9 +957,8 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
   Future<void> saveData() async {
     EasyLoading.show(status: 'loading...');
 
-    const String apiUrl = '$baseUrl/billing';
+    const String apiUrl = '$baseUrl/billing-n-refund';
     double grandTotal = calculateOverallTotal(); // Calculate overall total
-// Determine print flag
 
     Map<String, dynamic> requestBody = {
       'itemList': itemForBillRows,
@@ -1001,6 +1000,22 @@ class _RefundState extends State<Refund> with TickerProviderStateMixin {
         // Optionally, you can handle further actions after saving the data
       } else {
         EasyLoading.dismiss();
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text("Billing failed"),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text("OK"),
+                ),
+              ],
+            );
+          },
+        );
         //     debugPrint(response.body);
         // Handle error cases
       }

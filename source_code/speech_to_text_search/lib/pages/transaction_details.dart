@@ -9,6 +9,8 @@ class TransactionDetailPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    int totalPrice = int.parse(transaction.totalPrice);
+
     return Scaffold(
       appBar: AppBar(
         leading: IconButton(
@@ -35,7 +37,8 @@ class TransactionDetailPage extends StatelessWidget {
           children: [
             _buildInfoRow('Invoice Number', transaction.invoiceNumber),
             const SizedBox(height: 16),
-            _buildInfoRow('Total Price', "₹${transaction.totalPrice}"),
+            _buildInfoRow('Total Price',
+                totalPrice > 0 ? "₹$totalPrice" : "-₹${totalPrice.abs()}"),
             const SizedBox(height: 16),
             _buildInfoRow('Created At', transaction.createdAt),
             const SizedBox(height: 16),
@@ -65,14 +68,27 @@ class TransactionDetailPage extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Expanded(
-                child: ListView.builder(
-              itemCount: transaction.itemList.length,
-              itemBuilder: (context, index) {
-                return itemWidget(transaction.itemList[index], context);
-              },
-            )),
-
-            // _buildItemDataTable(),
+              child: ListView.builder(
+                itemCount: transaction.itemList.length,
+                itemBuilder: (context, index) {
+                  return itemWidget(transaction.itemList[index], context);
+                },
+              ),
+            ),
+            const SizedBox(height: 16),
+            Center(
+              child: ElevatedButton(
+                onPressed: () {
+                  // Action for print button
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white, // white text color
+                ),
+                child: const Text("Print"),
+              ),
+            ),
+            const SizedBox(height: 30),
           ],
         ),
       ),
@@ -118,7 +134,7 @@ class TransactionDetailPage extends StatelessWidget {
         const Divider(
           color: Colors.grey,
           thickness: 1,
-        )
+        ),
       ],
     );
   }
@@ -127,8 +143,9 @@ class TransactionDetailPage extends StatelessWidget {
     return Container(
       alignment: Alignment.center,
       constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.17,
-          minWidth: MediaQuery.of(context).size.width * 0.1),
+        maxWidth: MediaQuery.of(context).size.width * 0.17,
+        minWidth: MediaQuery.of(context).size.width * 0.1,
+      ),
       child: Text(
         itemDetail,
         style: const TextStyle(fontSize: 12),
@@ -143,7 +160,10 @@ class TransactionDetailPage extends StatelessWidget {
           BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.17),
       child: Text(
         title,
-        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+        style: const TextStyle(
+          fontWeight: FontWeight.bold,
+          fontSize: 14,
+        ),
       ),
     );
   }
