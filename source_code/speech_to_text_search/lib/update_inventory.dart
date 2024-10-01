@@ -8,10 +8,7 @@ import 'package:speech_to_text_search/components/navigation_bar.dart';
 import 'package:speech_to_text_search/pages/edit_product.dart';
 import 'package:speech_to_text_search/pages/search_app.dart';
 
-
-
 import 'Service/api_constants.dart';
-
 
 class Product {
   final int id;

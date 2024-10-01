@@ -13,8 +13,9 @@ import 'package:speech_to_text_search/Service/local_database.dart';
 import 'package:speech_to_text_search/api_calling/quick_sell_api.dart';
 import 'package:speech_to_text_search/models/local_database_model.dart';
 import 'package:speech_to_text_search/pages/drawer.dart';
+import 'package:speech_to_text_search/pages/login_page.dart';
 import 'package:speech_to_text_search/service/is_login.dart';
-import 'package:speech_to_text_search/pages/login_profile.dart';
+
 import 'package:speech_to_text_search/models/quick_sell_suggestion_model.dart';
 import 'package:speech_to_text_search/product_mic_state.dart';
 import 'package:speech_to_text_search/components/navigation_bar.dart';
@@ -809,14 +810,6 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
                         ),
                       ),
                     ),
-                    Positioned(
-                      bottom: 230,
-                      left: 1,
-                      right: 1,
-                      child: !_hasSpeech || speech.isListening
-                          ? listeningAnimation()
-                          : const SizedBox(),
-                    ),
                     isInputThroughText
                         ? Positioned(
                             top: MediaQuery.of(context).size.height *
@@ -1083,29 +1076,15 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
     }
   }
 
-  listeningAnimation() {
-    return const Column(
-      children: [
-        Text(
-          "I'm Listening...",
-          style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Color.fromARGB(255, 0, 0, 0)),
-        )
-      ],
-    );
-  }
-
   microphoneButton() {
     return AvatarGlow(
       animate: !_hasSpeech || speech.isListening,
       glowColor: Colors.green,
-      duration: const Duration(milliseconds: 2000),
+      duration: const Duration(milliseconds: 1000),
       repeat: true,
       child: Container(
-          width: 80,
-          height: 80,
+          width: 120,
+          height: 120,
           alignment: Alignment.center,
           decoration: BoxDecoration(
             boxShadow: [
@@ -1388,7 +1367,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-          builder: (context) => const LoginScreen()), // Change to LoginScreen()
+          builder: (context) => const LoginPage()), // Change to LoginScreen()
     );
   }
 

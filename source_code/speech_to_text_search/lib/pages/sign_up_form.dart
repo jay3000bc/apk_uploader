@@ -8,7 +8,8 @@ import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:speech_to_text_search/Service/api_constants.dart';
 import 'package:speech_to_text_search/Service/result.dart';
-import 'package:speech_to_text_search/pages/login_profile.dart';
+import 'package:speech_to_text_search/pages/login_page.dart';
+
 import 'package:http/http.dart' as http;
 
 class SignUpScreen extends StatefulWidget {
@@ -307,7 +308,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
             }
             return null;
           },
-          items: <String>['grocery', 'pharmacy'].map<DropdownMenuItem<String>>((String value) {
+          items: <String>['grocery', 'pharmacy']
+              .map<DropdownMenuItem<String>>((String value) {
             return DropdownMenuItem<String>(
               value: value,
               child: Text(value),
@@ -329,7 +331,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
           }
         },
         style: ElevatedButton.styleFrom(
-          elevation: 5.0, backgroundColor: Colors.green,
+          elevation: 5.0,
+          backgroundColor: Colors.green,
           padding: const EdgeInsets.all(15.0),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
@@ -354,7 +357,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
       onTap: () {
         Navigator.push(
           context,
-          MaterialPageRoute(builder: (context) => const LoginScreen()), // Change to AddItemScreen()
+          MaterialPageRoute(
+              builder: (context) =>
+                  const LoginPage()), // Change to AddItemScreen()
         );
       },
       child: RichText(
@@ -421,7 +426,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
           onPressed: pickLogoImage,
           child: const Text('Pick Logo Image'),
         ),
-        const SizedBox(width: 10), // Add some space between the button and the thumbnail
+        const SizedBox(
+            width: 10), // Add some space between the button and the thumbnail
         logoImageFile != null
             ? SizedBox(
                 width: 50, // Set the width of the thumbnail
@@ -503,15 +509,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
     }
   }
 
-  void showApiResponseDialog(BuildContext context, Map<String, dynamic> response) {
+  void showApiResponseDialog(
+      BuildContext context, Map<String, dynamic> response) {
     String title;
     String content;
 
     // Determine title and content based on the response
     if (response['status'] == 'success') {
       title = "Registration Successful";
-      content = "Token: ${response['data']['token']}\nUser ID: ${response['data']['user']['id']}";
-    } else if (response['status'] == 'failed' && response['message'] == 'Validation Error!') {
+      content =
+          "Token: ${response['data']['token']}\nUser ID: ${response['data']['user']['id']}";
+    } else if (response['status'] == 'failed' &&
+        response['message'] == 'Validation Error!') {
       title = "Validation Error";
       content = "Please check the following errors:\n";
 
@@ -549,7 +558,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
-      onPopInvoked : (didPop) async {
+      onPopInvoked: (didPop) async {
         final value = await showDialog<bool>(
             context: context,
             builder: (context) {

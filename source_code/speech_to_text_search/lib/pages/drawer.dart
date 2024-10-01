@@ -7,12 +7,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:speech_to_text_search/Service/internet_checker.dart';
+import 'package:speech_to_text_search/pages/login_page.dart';
 import 'package:speech_to_text_search/service/api_constants.dart';
 import 'package:speech_to_text_search/service/result.dart';
 import 'package:speech_to_text_search/pages/account.dart';
 import 'package:speech_to_text_search/pages/add_product.dart';
 import 'package:speech_to_text_search/service/is_login.dart';
-import 'package:speech_to_text_search/pages/login_profile.dart';
+
 import 'package:speech_to_text_search/components/navigation_bar.dart';
 import 'package:speech_to_text_search/pages/preferences.dart';
 import 'package:speech_to_text_search/pages/search_app.dart';
@@ -251,18 +252,19 @@ class _SidebarState extends State<Sidebar> {
           'Authorization': 'Bearer $token',
         },
       );
+      print(response.statusCode);
       EasyLoading.dismiss();
       if (response.statusCode == 200) {
         // Directly navigate to login screen
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
+          MaterialPageRoute(builder: (context) => const LoginPage()),
         );
       } else {
         // Directly navigate to login screen
-        Navigator.push(
+        Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
+          MaterialPageRoute(builder: (context) => const LoginPage()),
         );
       }
     } catch (e) {
@@ -270,7 +272,7 @@ class _SidebarState extends State<Sidebar> {
       // Directly navigate to login screen
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
+        MaterialPageRoute(builder: (context) => const LoginPage()),
       );
     }
   }

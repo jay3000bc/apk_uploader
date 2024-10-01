@@ -10,7 +10,8 @@ import 'package:speech_to_text_search/Service/local_database.dart';
 import 'package:speech_to_text_search/Service/result.dart';
 import 'package:speech_to_text_search/pages/drawer.dart';
 import 'package:speech_to_text_search/Service/is_login.dart';
-import 'package:speech_to_text_search/pages/login_profile.dart';
+import 'package:speech_to_text_search/pages/login_page.dart';
+
 import 'package:speech_to_text_search/components/navigation_bar.dart';
 import 'package:speech_to_text_search/pages/search_app.dart';
 
@@ -340,8 +341,7 @@ class _AddInventoryState extends State<AddInventory> {
                   // Redirect to login page
                   Navigator.pushReplacement(
                     context,
-                    MaterialPageRoute(
-                        builder: (context) => const LoginScreen()),
+                    MaterialPageRoute(builder: (context) => const LoginPage()),
                   );
                 },
                 child: const Text('OK'),
@@ -802,7 +802,7 @@ class _AddInventoryState extends State<AddInventory> {
                   context,
                   MaterialPageRoute(
                       builder: (context) =>
-                          const LoginScreen()), // Change to AddItemScreen()
+                          const LoginPage()), // Change to AddItemScreen()
                 );
               },
               child: const Text("Login"),

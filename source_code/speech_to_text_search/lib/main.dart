@@ -3,11 +3,12 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
+import 'package:speech_to_text_search/pages/login_page.dart';
 
 import 'package:speech_to_text_search/product_mic_state.dart';
 import 'package:speech_to_text_search/quantity_mic_state.dart';
 import 'package:speech_to_text_search/pages/search_app.dart';
-import 'package:speech_to_text_search/pages/login_profile.dart';
+
 import 'package:speech_to_text_search/service/is_login.dart';
 import 'package:provider/provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -150,7 +151,7 @@ class _SplashScreenState extends State<SplashScreen> {
   void _navigateToLoginScreen() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const LoginScreen()),
+      MaterialPageRoute(builder: (context) => const LoginPage()),
     );
   }
 
