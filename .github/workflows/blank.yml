@@ -2,8 +2,8 @@ name: Create Release
 
 on:
   push:
-    branches: [ "partha" ]
-    
+    branches: [ "partha-test" ]
+    # Change the branch name here to enable action
 jobs:
   build:
     runs-on: ubuntu-latest
