@@ -15,7 +15,6 @@ import 'package:speech_to_text_search/models/local_database_model.dart';
 import 'package:speech_to_text_search/pages/drawer.dart';
 import 'package:speech_to_text_search/pages/login_page.dart';
 import 'package:speech_to_text_search/service/is_login.dart';
-
 import 'package:speech_to_text_search/models/quick_sell_suggestion_model.dart';
 import 'package:speech_to_text_search/product_mic_state.dart';
 import 'package:speech_to_text_search/components/navigation_bar.dart';
@@ -1077,6 +1076,7 @@ class _SearchAppState extends State<SearchApp> with TickerProviderStateMixin {
   }
 
   microphoneButton() {
+    print('microphoneButton');
     return AvatarGlow(
       animate: !_hasSpeech || speech.isListening,
       glowColor: Colors.green,
