@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -6,6 +7,7 @@ import 'package:newprobillapp/components/api_constants.dart';
 import 'package:newprobillapp/pages/forgot_password_page.dart';
 import 'package:newprobillapp/pages/home_page.dart';
 import 'package:newprobillapp/pages/sign_up_page.dart';
+import 'package:newprobillapp/services/local_database.dart';
 import 'package:newprobillapp/services/result.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -23,6 +25,7 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController passwordController = TextEditingController();
   final FocusNode _phoneNumberFocusNode = FocusNode();
   final FocusNode _passwordFocusNode = FocusNode();
+  LocalDatabase _localDatabase = LocalDatabase.instance;
 
   final _formKey = GlobalKey<FormState>();
   @override
@@ -361,6 +364,16 @@ class _LoginPageState extends State<LoginPage> {
         context,
         MaterialPageRoute(builder: (context) => const HomePage()),
       );
+      Timer.periodic(const Duration(seconds: 1), (timer) {
+        LocalDatabase.instance.clearTable();
+        LocalDatabase.instance.fetchDataAndStoreLocally();
+        // Check if the tick number is 5
+        if (timer.tick == 1) {
+          timer.cancel();
+          // Code to Run
+        }
+      });
+
       // Successful login
       final Map<String, dynamic> responseData = json.decode(response.body);
       // No need to show any dialog, just return the response data

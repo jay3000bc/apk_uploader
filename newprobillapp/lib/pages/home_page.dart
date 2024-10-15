@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -53,6 +54,8 @@ class _HomePageState extends State<HomePage> {
 
   bool _wasListening = false;
   double itemColumnHeight = 0;
+
+  bool wasListening = false;
 
   final FocusNode _searchFocus = FocusNode();
 
@@ -135,7 +138,20 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     initializeData();
+
     initSpeech();
+  }
+
+  void dispose() {
+    _speechToText.stop();
+    _speechToText.cancel();
+    _nameController.dispose();
+    _quantityController.dispose();
+    _nameFocusNode.dispose();
+    _quantityFocusNode.dispose();
+    _scrollController.dispose();
+    _searchFocus.dispose();
+    super.dispose();
   }
 
   void initSpeech() async {
@@ -160,8 +176,16 @@ class _HomePageState extends State<HomePage> {
         listenMode: ListenMode.dictation,
       ),
     );
-    setState(() {
-      confidence = 0;
+
+    setState(() {});
+
+    Timer.periodic(const Duration(milliseconds: 500), (timer) {
+      if (_speechToText.isNotListening) {
+        setState(() {});
+      }
+      if (timer.tick == 12) {
+        timer.cancel();
+      }
     });
   }
 
@@ -743,308 +767,319 @@ class _HomePageState extends State<HomePage> {
         title: const Text('Probill'),
         backgroundColor: Theme.of(context).colorScheme.primaryContainer,
       ),
-      body: GestureDetector(
-        onTap: () {},
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Stack(children: [
-            Column(
-              children: <Widget>[
-                TextField(
-                  onChanged: (m) {
-                    if (mounted) {
-                      setState(() {
-                        searching = true;
-                      });
-                    }
-                    _localDatabase.searchDatabase(_nameController.text);
-                    isInputThroughText = true;
-
-                    if (_nameController.text == '') {
-                      validProductName = true;
-                      _localDatabase.clearSuggestions();
-                      if (mounted) setState(() {});
-                    }
-                    // updateSuggestionList(m);
-                    // _localDatabase.searchDatabase(m);
-                  },
-                  controller: _nameController,
-                  decoration: InputDecoration(
-                    suffixIcon: IconButton(
-                      onPressed: () {
-                        _nameController.clear();
-                      },
-                      icon: const Icon(Icons.cancel),
-                    ),
-                    labelText: "Enter Product Name",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                  ),
-                  focusNode: _nameFocusNode,
-                ),
-                const SizedBox(height: 8.0),
-                TextField(
-                  controller: _quantityController,
-                  decoration: InputDecoration(
-                    labelText: "Enter Quantity",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8.0),
-                    ),
-                    suffixIcon: DropdownButton<String>(
-                      elevation: 16,
-                      menuMaxHeight: MediaQuery.of(context).size.height * 0.3,
-                      value: _selectedQuantitySecondaryUnit,
-                      onChanged: (newValue) {
+      body: SingleChildScrollView(
+        child: GestureDetector(
+          onTap: () {},
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Stack(children: [
+              Column(
+                children: <Widget>[
+                  TextField(
+                    onChanged: (m) {
+                      if (mounted) {
                         setState(() {
-                          _selectedQuantitySecondaryUnit = newValue;
-                          quantitySelectedValue = newValue ??
-                              ''; // Update quantitySelectedValue with the selected value
+                          searching = true;
                         });
-                      },
-                      items: _dropdownItemsQuantity
-                          .map<DropdownMenuItem<String>>((String value) {
-                        return DropdownMenuItem<String>(
-                          value: value,
-                          child: Text(
-                            value,
-                            style: const TextStyle(fontSize: 16),
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  ),
-                  focusNode: _quantityFocusNode,
-                ),
-                const SizedBox(
-                  height: 8,
-                ),
-                Container(
-                  width: MediaQuery.of(context).size.width * 0.3,
-                  height: 45,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(25),
-                    color: (_nameController.text.isEmpty ||
-                            _quantityController.text.isEmpty)
-                        ? const Color.fromRGBO(210, 211, 211, 1)
-                        : Colors.green,
-                  ),
-                  padding: const EdgeInsets.all(5.0),
-                  child: MaterialButton(
-                    onPressed: () async {
-                      _stopListening();
-                      // print("Add button pressed");
-                      // print(
-                      //     "_nameController.text: ${_nameController.text}, _quantityController.text: ${_quantityController.text}");
-                      if (_nameController.text.isNotEmpty &&
-                          _quantityController.text.isNotEmpty) {
-                        String quantityValue = _quantityController.text;
-                        int? stockStatus = await checkStockStatus(
-                            itemId, quantityValue, unit, token!);
-                        if (stockStatus == 1 && validProductName == true) {
-                          double? quantityValueforConvert =
-                              double.tryParse(quantityValue);
-                          //print("tryParse");
-                          _primaryUnit = unit;
-                          double quantityValueforTable =
-                              convertQuantityBasedOnUnit(_primaryUnit!, unit,
-                                  quantityValueforConvert!);
-                          double? salePriceforTable =
-                              double.tryParse(salePrice);
-                          addProductTable(itemNameforTable!,
-                              quantityValueforTable, unit, salePriceforTable!);
-                          _nameController.clear();
-                          _quantityController.clear();
-
-                          _dropdownItemsQuantity.insert(0, "Unit");
-                          _selectedQuantitySecondaryUnit =
-                              _dropdownItemsQuantity[
-                                  0]; // Reset to default value
-                          quantitySelectedValue = '';
-
-                          if (mounted) {
-                            setState(() {
-                              _localDatabase.clearSuggestions();
-                            });
-                          }
-                        } else if (stockStatus == 0) {
-                          showDialog(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                title: const Text("Out of Stock"),
-                                content: Text(
-                                    "You have only $availableStockValue left"),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.pop(
-                                          context); // Close the dialog
-                                    },
-                                    child: const Text("OK"),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                        }
                       }
+                      _localDatabase.searchDatabase(_nameController.text);
+                      isInputThroughText = true;
+
+                      if (_nameController.text == '') {
+                        validProductName = true;
+                        _localDatabase.clearSuggestions();
+                        if (mounted) setState(() {});
+                      }
+                      // updateSuggestionList(m);
+                      // _localDatabase.searchDatabase(m);
                     },
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(50),
-                    ),
-                    child: const Center(
-                      child: Text(
-                        "ADD",
-                        style: TextStyle(
-                            fontSize: 18,
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold),
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      suffixIcon: IconButton(
+                        onPressed: () {
+                          _nameController.clear();
+                        },
+                        icon: const Icon(Icons.cancel),
+                      ),
+                      labelText: "Enter Product Name",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
                       ),
                     ),
+                    focusNode: _nameFocusNode,
                   ),
-                ),
-                const SizedBox(
-                  height: 8,
-                ),
-                // TextButton(
-                //   onPressed: _localDatabase.printData,
-                //   child: const Text("Print Data"),
-                // ),
-                const Divider(
-                  color: Colors.grey,
-                  thickness: 1,
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  height: MediaQuery.of(context).size.height * 0.29,
-                  padding: const EdgeInsets.only(left: 20.0),
-                  child: itemForBillRows.isNotEmpty
-                      ? ListView.builder(
-                          padding: EdgeInsets.zero,
-                          itemCount: itemForBillRows.length,
-                          itemBuilder: (context, index) {
-                            return BillWidget(
-                              item: itemForBillRows[index],
+                  const SizedBox(height: 8.0),
+                  TextField(
+                    controller: _quantityController,
+                    decoration: InputDecoration(
+                      labelText: "Enter Quantity",
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8.0),
+                      ),
+                      suffixIcon: DropdownButton<String>(
+                        elevation: 16,
+                        menuMaxHeight: MediaQuery.of(context).size.height * 0.3,
+                        value: _selectedQuantitySecondaryUnit,
+                        onChanged: (newValue) {
+                          setState(() {
+                            _selectedQuantitySecondaryUnit = newValue;
+                            quantitySelectedValue = newValue ??
+                                ''; // Update quantitySelectedValue with the selected value
+                          });
+                        },
+                        items: _dropdownItemsQuantity
+                            .map<DropdownMenuItem<String>>((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(
+                              value,
+                              style: const TextStyle(fontSize: 16),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    ),
+                    focusNode: _quantityFocusNode,
+                  ),
+                  const SizedBox(
+                    height: 8,
+                  ),
+                  Container(
+                    width: MediaQuery.of(context).size.width * 0.3,
+                    height: 45,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(25),
+                      color: (_nameController.text.isEmpty ||
+                              _quantityController.text.isEmpty)
+                          ? const Color.fromRGBO(210, 211, 211, 1)
+                          : Colors.green,
+                    ),
+                    padding: const EdgeInsets.all(5.0),
+                    child: MaterialButton(
+                      onPressed: () async {
+                        _stopListening();
+                        // print("Add button pressed");
+                        // print(
+                        //     "_nameController.text: ${_nameController.text}, _quantityController.text: ${_quantityController.text}");
+                        if (_nameController.text.isNotEmpty &&
+                            _quantityController.text.isNotEmpty) {
+                          String quantityValue = _quantityController.text;
+                          int? stockStatus = await checkStockStatus(
+                              itemId, quantityValue, unit, token!);
+                          if (stockStatus == 1 && validProductName == true) {
+                            double? quantityValueforConvert =
+                                double.tryParse(quantityValue);
+                            //print("tryParse");
+                            _primaryUnit = unit;
+                            double quantityValueforTable =
+                                convertQuantityBasedOnUnit(_primaryUnit!, unit,
+                                    quantityValueforConvert!);
+                            double? salePriceforTable =
+                                double.tryParse(salePrice);
+                            addProductTable(
+                                itemNameforTable!,
+                                quantityValueforTable,
+                                unit,
+                                salePriceforTable!);
+                            _nameController.clear();
+                            _quantityController.clear();
+
+                            //  _dropdownItemsQuantity.insert(0, "Unit");
+                            _selectedQuantitySecondaryUnit =
+                                _dropdownItemsQuantity[
+                                    0]; // Reset to default value
+                            quantitySelectedValue = '';
+
+                            if (mounted) {
+                              setState(() {
+                                _localDatabase.clearSuggestions();
+                              });
+                            }
+                          } else if (stockStatus == 0) {
+                            showDialog(
                               context: context,
-                              index: index,
-                              itemForBillRows: itemForBillRows,
-                              deleteProductFromTable: deleteProductFromTable,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: const Text("Out of Stock"),
+                                  content: Text(
+                                      "You have only $availableStockValue left"),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(
+                                            context); // Close the dialog
+                                      },
+                                      child: const Text("OK"),
+                                    ),
+                                  ],
+                                );
+                              },
                             );
-                          },
-                        )
-                      : Center(
-                          child: Text(
-                            'No items available',
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        ),
-                ),
-              ],
-            ),
-            Positioned(
-              bottom: 50,
-              child: Visibility(
-                visible: itemForBillRows.isNotEmpty,
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      const Padding(
-                        padding: EdgeInsets.all(10.0),
+                          }
+                        }
+                      },
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(50),
+                      ),
+                      child: const Center(
                         child: Text(
-                          "Grand Total: ",
+                          "ADD",
                           style: TextStyle(
-                            fontSize: 18.0,
-                          ),
+                              fontSize: 18,
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold),
                         ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Text(
-                          "₹${calculateOverallTotal()}",
-                          style: const TextStyle(
-                            fontSize: 18.0,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 10,
-              child: Visibility(
-                visible: itemForBillRows.isNotEmpty,
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  child: Row(
-                    mainAxisAlignment:
-                        MainAxisAlignment.spaceAround, // Align buttons evenly
-                    children: [
-                      ElevatedButton(
-                        onPressed: () {
-                          // Action for print button
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          foregroundColor: Colors.white, // white text color
-                        ),
-                        child: const Text("Print"),
-                      ),
-                      ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white, // white text color
-                        ),
-                        onPressed: () {
-                          saveData();
-                        },
-                        child: const Text("Save"),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            isInputThroughText
-                ? Positioned(
-                    top: MediaQuery.of(context).size.height *
-                        0.085, // Adjust the position as needed
-                    left: 0,
-                    right: 0,
-                    child: Container(
-                      width: MediaQuery.of(context).size.width - 100,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(0),
-
-                        color: Colors.grey.shade100, // Background color
-                      ),
-                      child: SingleChildScrollView(
-                        child: suggestionDropdown(),
-                      ),
-                    ),
-                  )
-                : Positioned(
-                    top: MediaQuery.of(context).size.height *
-                        0.015, // Adjust the position as needed
-                    left: 0,
-                    right: 0,
-                    child: Container(
-                      width: MediaQuery.of(context).size.width - 100,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(0),
-
-                        color: Colors.grey.shade100, // Background color
-                      ),
-                      child: SingleChildScrollView(
-                        child: suggestionDropdown(),
                       ),
                     ),
                   ),
-          ]),
+                  const SizedBox(
+                    height: 8,
+                  ),
+                  // TextButton(
+                  //   onPressed: _localDatabase.printData,
+                  //   child: const Text("Print Data"),
+                  // ),
+                  const Divider(
+                    color: Colors.grey,
+                    thickness: 1,
+                  ),
+                  const SizedBox(height: 8),
+                  SingleChildScrollView(
+                    child: Container(
+                      height: MediaQuery.of(context).size.height * 0.29,
+                      padding: const EdgeInsets.only(left: 20.0),
+                      child: itemForBillRows.isNotEmpty
+                          ? ListView.builder(
+                              padding: EdgeInsets.zero,
+                              itemCount: itemForBillRows.length,
+                              itemBuilder: (context, index) {
+                                return BillWidget(
+                                  item: itemForBillRows[index],
+                                  context: context,
+                                  index: index,
+                                  itemForBillRows: itemForBillRows,
+                                  deleteProductFromTable:
+                                      deleteProductFromTable,
+                                );
+                              },
+                            )
+                          : Center(
+                              child: Text(
+                                'No items available',
+                                style: TextStyle(color: Colors.grey),
+                              ),
+                            ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(
+                height: MediaQuery.of(context).size.height * 0.7,
+              ),
+              Positioned(
+                bottom: 50,
+                child: Visibility(
+                  visible: itemForBillRows.isNotEmpty,
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        const Padding(
+                          padding: EdgeInsets.all(10.0),
+                          child: Text(
+                            "Grand Total: ",
+                            style: TextStyle(
+                              fontSize: 18.0,
+                            ),
+                          ),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text(
+                            "₹${calculateOverallTotal()}",
+                            style: const TextStyle(
+                              fontSize: 18.0,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                bottom: 10,
+                child: Visibility(
+                  visible: itemForBillRows.isNotEmpty,
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width,
+                    child: Row(
+                      mainAxisAlignment:
+                          MainAxisAlignment.spaceAround, // Align buttons evenly
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            // Action for print button
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white, // white text color
+                          ),
+                          child: const Text("Print"),
+                        ),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green,
+                            foregroundColor: Colors.white, // white text color
+                          ),
+                          onPressed: () {
+                            saveData();
+                          },
+                          child: const Text("Save"),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+              isInputThroughText
+                  ? Positioned(
+                      top: MediaQuery.of(context).size.height *
+                          0.085, // Adjust the position as needed
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        width: MediaQuery.of(context).size.width - 100,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(0),
+
+                          color: Colors.grey.shade100, // Background color
+                        ),
+                        child: SingleChildScrollView(
+                          child: suggestionDropdown(),
+                        ),
+                      ),
+                    )
+                  : Positioned(
+                      top: MediaQuery.of(context).size.height *
+                          0.015, // Adjust the position as needed
+                      left: 0,
+                      right: 0,
+                      child: Container(
+                        width: MediaQuery.of(context).size.width - 100,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(0),
+
+                          color: Colors.grey.shade100, // Background color
+                        ),
+                        child: SingleChildScrollView(
+                          child: suggestionDropdown(),
+                        ),
+                      ),
+                    ),
+            ]),
+          ),
         ),
       ),
     );

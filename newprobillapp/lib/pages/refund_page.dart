@@ -138,8 +138,21 @@ class _RefundPageState extends State<RefundPage> {
     initSpeech();
   }
 
+  void dispose() {
+    _speechToText.stop();
+    _speechToText.cancel();
+    _nameController.dispose();
+    _quantityController.dispose();
+    _nameFocusNode.dispose();
+    _quantityFocusNode.dispose();
+    _scrollController.dispose();
+    _searchFocus.dispose();
+    super.dispose();
+  }
+
   void initSpeech() async {
-    _speechEnabled = await _speechToText.initialize();
+    _speechEnabled =
+        await _speechToText.initialize(onStatus: (status) => setState(() {}));
     setState(() {});
   }
 

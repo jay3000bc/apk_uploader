@@ -68,8 +68,8 @@ class _SplashScreenState extends State<SplashScreen> {
     if (result) {
       print('Internet available');
       _checkPermissionsAndLogin();
-      LocalDatabase.instance.clearTable();
-      LocalDatabase.instance.fetchDataAndStoreLocally();
+      //LocalDatabase.instance.clearTable();
+      //LocalDatabase.instance.fetchDataAndStoreLocally();
     } else {
       _noInternetDialog();
     }
@@ -125,6 +125,9 @@ class _SplashScreenState extends State<SplashScreen> {
       if (statusReturnCode == 404 || statusReturnCode == 333) {
         _navigateToLoginScreen();
       } else if (statusReturnCode == 200) {
+        print('statusCode: $statusReturnCode');
+        LocalDatabase.instance.clearTable();
+        LocalDatabase.instance.fetchDataAndStoreLocally();
         _navigateToSearchApp();
         await _setLoggedInStatus(true); // Ensure this is awaited
       } else {

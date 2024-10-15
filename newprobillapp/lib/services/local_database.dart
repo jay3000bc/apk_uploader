@@ -24,8 +24,6 @@ class LocalDatabase {
 
   LocalDatabase._constructor();
 
-
-
   Future<Database> get database async {
     if (_db != null) {
       return _db!;
@@ -92,11 +90,13 @@ class LocalDatabase {
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }
+    print("objects inserted");
   }
 
   void clearTable() async {
     Database db = await database;
     await db.delete(_tableName);
+    print('Table cleared');
   }
 
   void clearSuggestions() {
