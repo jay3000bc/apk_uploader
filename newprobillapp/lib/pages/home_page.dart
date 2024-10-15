@@ -139,7 +139,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   void initSpeech() async {
-    _speechEnabled = await _speechToText.initialize();
+    _speechEnabled =
+        await _speechToText.initialize(onStatus: (status) => setState(() {}));
     setState(() {});
   }
 
@@ -150,9 +151,10 @@ class _HomePageState extends State<HomePage> {
   void _startListening() async {
     string = '';
     print("Start Listening");
+
     await _speechToText.listen(
       onResult: resultListener,
-      pauseFor: const Duration(seconds: 3),
+      pauseFor: const Duration(seconds: 10),
       listenOptions: SpeechListenOptions(
         partialResults: true,
         listenMode: ListenMode.dictation,
@@ -713,6 +715,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    // _selectedQuantitySecondaryUnit = _dropdownItemsQuantity[0];
     bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom != 0;
     return Scaffold(
       drawer: const Drawer(
@@ -787,6 +790,28 @@ class _HomePageState extends State<HomePage> {
                     labelText: "Enter Quantity",
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    suffixIcon: DropdownButton<String>(
+                      elevation: 16,
+                      menuMaxHeight: MediaQuery.of(context).size.height * 0.3,
+                      value: _selectedQuantitySecondaryUnit,
+                      onChanged: (newValue) {
+                        setState(() {
+                          _selectedQuantitySecondaryUnit = newValue;
+                          quantitySelectedValue = newValue ??
+                              ''; // Update quantitySelectedValue with the selected value
+                        });
+                      },
+                      items: _dropdownItemsQuantity
+                          .map<DropdownMenuItem<String>>((String value) {
+                        return DropdownMenuItem<String>(
+                          value: value,
+                          child: Text(
+                            value,
+                            style: const TextStyle(fontSize: 16),
+                          ),
+                        );
+                      }).toList(),
                     ),
                   ),
                   focusNode: _quantityFocusNode,
