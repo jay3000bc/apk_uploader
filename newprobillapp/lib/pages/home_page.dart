@@ -145,7 +145,6 @@ class _HomePageState extends State<HomePage> {
 
   void initializeData() async {
     token = await APIService.getToken();
-    print('token: $token');
   }
 
   void _startListening() async {
@@ -883,10 +882,10 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(
                   height: 8,
                 ),
-                TextButton(
-                  onPressed: _localDatabase.printData,
-                  child: const Text("Print Data"),
-                ),
+                // TextButton(
+                //   onPressed: _localDatabase.printData,
+                //   child: const Text("Print Data"),
+                // ),
                 const Divider(
                   color: Colors.grey,
                   thickness: 1,

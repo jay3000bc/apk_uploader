@@ -22,6 +22,8 @@ class BillWidget extends StatefulWidget {
 class _BillWidgetState extends State<BillWidget> {
   @override
   Widget build(BuildContext context) {
+    double amount = widget.itemForBillRows[widget.index]['amount'];
+    print('amount: $amount');
     return Column(
       children: [
         Row(
@@ -72,7 +74,12 @@ class _BillWidgetState extends State<BillWidget> {
                 },
               ),
             ),
-            itemDetailWidget(context, '₹${widget.item['amount']}', 0.2),
+            itemDetailWidget(
+                context,
+                amount > 0
+                    ? '₹${widget.item['amount']}'
+                    : "-₹${widget.item['amount'].abs()}",
+                0.2),
             Container(
               alignment: Alignment.center,
               constraints: BoxConstraints(
