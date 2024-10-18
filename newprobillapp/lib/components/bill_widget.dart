@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 class BillWidget extends StatefulWidget {
-  Map<String, dynamic> item;
-  BuildContext context;
-  int index;
-  List<Map<String, dynamic>> itemForBillRows;
-  Function deleteProductFromTable;
+  final Map<String, dynamic> item;
+  final BuildContext context;
+  final int index;
+  final List<Map<String, dynamic>> itemForBillRows;
+  final Function deleteProductFromTable;
 
-  BillWidget(
+  const BillWidget(
       {super.key,
       required this.item,
       required this.context,
@@ -23,77 +23,137 @@ class _BillWidgetState extends State<BillWidget> {
   @override
   Widget build(BuildContext context) {
     double amount = widget.itemForBillRows[widget.index]['amount'];
-    print('amount: $amount');
+    // print('amount: $amount');
     return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            itemDetailWidget(context,
-                '${widget.itemForBillRows[widget.index]['itemName']}', 0.2),
-            itemDetailWidget(
-                context,
-                '${widget.itemForBillRows[widget.index]['quantity']} \n${widget.itemForBillRows[widget.index]['selectedUnit']}',
-                0.2),
-            Container(
-              width: 60,
-              height: 50,
-              alignment: Alignment.center,
-              constraints: BoxConstraints(
-                  maxWidth: MediaQuery.of(context).size.width * 0.2),
-              child: TextField(
-                style: const TextStyle(
-                  fontSize: 12,
+            Expanded(
+              child: itemDetailWidget(context,
+                  '${widget.itemForBillRows[widget.index]['itemName']}', 0.2),
+              flex: 20,
+            ),
+            Expanded(
+              flex: 15,
+              child: Container(
+                // width: MediaQuery.of(context).size.width*0.2,
+                // height: 35,
+                alignment: Alignment.center,
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.15,
+                  minWidth: MediaQuery.of(context).size.width * 0.1,
                 ),
-                decoration: InputDecoration(
-                  hintText:
-                      widget.itemForBillRows[widget.index]['rate'].toString(),
-                  filled: true,
-                  fillColor: const Color.fromARGB(255, 216, 216, 216),
-                  // Adding asterisk (*) to the label text
-                  labelStyle: const TextStyle(
-                      color: Colors.black), // Setting label text color to black
-
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8.0),
-                    borderSide: BorderSide.none,
+                child: TextField(
+                  style: const TextStyle(
+                    fontSize: 12,
                   ),
+                  textAlign: TextAlign.center,
+                  decoration: InputDecoration(
+                    hintText: widget.itemForBillRows[widget.index]['quantity']
+                        .toString(),
+                    filled: true,
+                    fillColor: const Color.fromARGB(255, 216, 216, 216),
+                    // Adding asterisk (*) to the label text
+                    labelStyle: const TextStyle(
+                        color:
+                            Colors.black), // Setting label text color to black
+
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  keyboardType: TextInputType.number,
+                  onChanged: (newQuantity) {
+                    // Update the rate value in your data model
+                    widget.itemForBillRows[widget.index]['quantity'] =
+                        double.parse(newQuantity);
+                    // Recalculate the amount
+                    widget.itemForBillRows[widget.index]['amount'] =
+                        widget.itemForBillRows[widget.index]['rate'] *
+                            widget.itemForBillRows[widget.index]['quantity'];
+                    // Trigger UI update
+                    if (mounted) setState(() {});
+                  },
                 ),
-                keyboardType: TextInputType.number,
-                onChanged: (newRate) {
-                  // Update the rate value in your data model
-                  widget.itemForBillRows[widget.index]['rate'] =
-                      double.parse(newRate);
-                  // Recalculate the amount
-                  widget.itemForBillRows[widget.index]['amount'] =
-                      widget.itemForBillRows[widget.index]['rate'] *
-                          widget.itemForBillRows[widget.index]['quantity'];
-                  // Trigger UI update
-                  if (mounted) setState(() {});
-                },
               ),
             ),
-            itemDetailWidget(
-                context,
-                amount > 0
-                    ? '₹${widget.item['amount']}'
-                    : "-₹${widget.item['amount'].abs()}",
-                0.2),
-            Container(
-              alignment: Alignment.center,
-              constraints: BoxConstraints(
-                maxWidth: MediaQuery.of(context).size.width * 0.1,
-              ),
-              child: IconButton(
-                icon: const Icon(
-                  Icons.delete,
-                  color: Color.fromARGB(255, 161, 11, 0),
+            itemDetailWidget(context,
+                '${widget.itemForBillRows[widget.index]['selectedUnit']}', 0.1),
+            Expanded(
+              flex: 15,
+              child: Container(
+                // width: 60,
+                // height: 35,
+                alignment: Alignment.center,
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.15,
+                  minWidth: MediaQuery.of(context).size.width * 0.1,
                 ),
-                onPressed: () {
-                  // Delete the product at the current index when IconButton is pressed
-                  widget.deleteProductFromTable(widget.index);
-                },
+                child: TextField(
+                  style: const TextStyle(
+                    fontSize: 12,
+                  ),
+                  textAlign: TextAlign.center,
+                  decoration: InputDecoration(
+                    hintText:
+                        widget.itemForBillRows[widget.index]['rate'].toString(),
+                    filled: true,
+                    fillColor: const Color.fromARGB(255, 216, 216, 216),
+                    // Adding asterisk (*) to the label text
+                    labelStyle: const TextStyle(
+                        color:
+                            Colors.black), // Setting label text color to black
+
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  keyboardType: TextInputType.number,
+                  onChanged: (newRate) {
+                    // Update the rate value in your data model
+                    widget.itemForBillRows[widget.index]['rate'] =
+                        double.parse(newRate);
+                    // Recalculate the amount
+                    widget.itemForBillRows[widget.index]['amount'] =
+                        widget.itemForBillRows[widget.index]['rate'] *
+                            widget.itemForBillRows[widget.index]['quantity'];
+                    // Trigger UI update
+                    if (mounted) setState(() {});
+                  },
+                ),
+              ),
+            ),
+            Expanded(
+              flex: 15,
+              child: itemDetailWidget(
+                  context,
+                  amount > 0
+                      ? '₹${widget.item['amount']}'
+                      : "-₹${widget.item['amount'].abs()}",
+                  0.15),
+            ),
+            Expanded(
+              flex: 10,
+              child: Container(
+                alignment: Alignment.center,
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.1,
+                ),
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.delete,
+                    color: Color.fromARGB(255, 161, 11, 0),
+                  ),
+                  onPressed: () {
+                    // Delete the product at the current index when IconButton is pressed
+                    widget.deleteProductFromTable(widget.index);
+                  },
+                ),
               ),
             ),
           ],

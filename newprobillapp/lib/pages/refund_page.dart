@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:newprobillapp/components/api_constants.dart';
 import 'package:newprobillapp/components/bill_widget.dart';
@@ -9,9 +10,12 @@ import 'package:newprobillapp/components/bottom_navigation_bar.dart';
 import 'package:newprobillapp/components/sidebar.dart';
 import 'package:newprobillapp/components/microphone_button.dart';
 import 'package:newprobillapp/services/api_services.dart';
+import 'package:newprobillapp/services/home_bill_item_provider.dart';
 import 'package:newprobillapp/services/local_database.dart';
+import 'package:newprobillapp/services/refund_bill_item_provider.dart';
 import 'package:newprobillapp/services/result.dart';
 import 'package:newprobillapp/services/text_to_num.dart';
+import 'package:provider/provider.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 import 'package:http/http.dart' as http;
@@ -77,7 +81,7 @@ class _RefundPageState extends State<RefundPage> {
 
   bool productNotFound = false;
 
-  List<Map<String, dynamic>> itemForBillRows = [];
+  // List<Map<String, dynamic>> refundItemForBillRows = [];
 
   String? _selectedQuantitySecondaryUnit;
   // Define _selectedQuantitySecondaryUnit as a String variable
@@ -143,6 +147,7 @@ class _RefundPageState extends State<RefundPage> {
   }
 
   void dispose() {
+    // _stopListening();
     _speechToText.stop();
     _speechToText.cancel();
     _nameController.dispose();
@@ -172,16 +177,22 @@ class _RefundPageState extends State<RefundPage> {
       onResult: resultListener,
       pauseFor: const Duration(seconds: 10),
       listenOptions: SpeechListenOptions(
+        enableHapticFeedback: true,
         partialResults: true,
         listenMode: ListenMode.dictation,
       ),
     );
 
-    setState(() {});
+    setState(() {
+      HapticFeedback.vibrate();
+    });
 
     Timer.periodic(const Duration(milliseconds: 500), (timer) {
       if (_speechToText.isNotListening) {
-        setState(() {});
+        setState(() {
+          timer.cancel();
+          HapticFeedback.vibrate();
+        });
       }
       if (timer.tick == 12) {
         timer.cancel();
@@ -192,7 +203,9 @@ class _RefundPageState extends State<RefundPage> {
   void _stopListening() async {
     print("Stop Listening");
     await _speechToText.stop();
-    setState(() {});
+    setState(() {
+      HapticFeedback.vibrate();
+    });
   }
 
   void _onSpeechResult(result) {
@@ -345,9 +358,30 @@ class _RefundPageState extends State<RefundPage> {
     // Remove the product at the specified index
     if (mounted) {
       setState(() {
-        itemForBillRows.removeAt(index);
+        Provider.of<RefundBillItemProvider>(context, listen: false)
+            .removeItem(index);
       });
     }
+  }
+
+  void addRefundTable(
+      String itemName, double finalQuantity, String unit, double salePrice) {
+    double amount = salePrice * finalQuantity; // Calculate the amount
+    if (mounted) {
+      setState(() {
+        Provider.of<RefundBillItemProvider>(context, listen: false).addItem({
+          'itemId': itemId,
+          'itemName': itemName,
+          'quantity': finalQuantity,
+          'rate': salePrice,
+          'selectedUnit': unit,
+          'amount': amount * -1,
+          'isDelete': 0,
+          'isRefund': 0,
+        });
+      });
+    }
+    // Add the product to the list
   }
 
   int extractAndCombineNumbers(String input) {
@@ -393,16 +427,9 @@ class _RefundPageState extends State<RefundPage> {
     }
   }
 
-  ///////////////////////////////////////////////////////////////////////////////////////
-  //////////////////////////////////////////////////////////////////////
-  //////////////////////////////////////////////////////////////////////
-  //////////////////////////////////////////////////////////////////////
-  //////////////////////////////////////////////////////////////////////////////////
-  ///////////////////////////////////////////////////////////////////////
-
   Widget suggestionDropdown() {
     int dataLength = _localDatabase.suggestions.length;
-    print('dataLength: $dataLength');
+    //print('dataLength: $dataLength');
     return dataLength > 0
         ? Stack(
             children: [
@@ -413,6 +440,7 @@ class _RefundPageState extends State<RefundPage> {
                       _localDatabase.clearSuggestions();
                       _quantityController.clear();
                       _nameController.clear();
+                      isInputThroughText ? _nameFocusNode.nextFocus() : null;
 
                       // print('dropdown: $_dropdownItemsQuantity');
                     });
@@ -606,7 +634,7 @@ class _RefundPageState extends State<RefundPage> {
     double amount = salePrice * finalQuantity; // Calculate the amount
     if (mounted) {
       setState(() {
-        itemForBillRows.add({
+        Provider.of<RefundBillItemProvider>(context, listen: false).addItem({
           'itemId': itemId,
           'itemName': itemName,
           'quantity': finalQuantity,
@@ -621,31 +649,13 @@ class _RefundPageState extends State<RefundPage> {
     // Add the product to the list
   }
 
-  void addRefundTable(
-      String itemName, double finalQuantity, String unit, double salePrice) {
-    double amount = salePrice * finalQuantity; // Calculate the amount
-    if (mounted) {
-      setState(() {
-        itemForBillRows.add({
-          'itemId': itemId,
-          'itemName': itemName,
-          'quantity': finalQuantity,
-          'rate': salePrice,
-          'selectedUnit': unit,
-          'amount': amount * -1,
-          'isDelete': 0,
-          'isRefund': 0,
-        });
-      });
-    }
-    // Add the product to the list
-  }
-
   double calculateOverallTotal() {
     double overallTotal = 0.0; // Initialize overall total
 
     // Iterate over each product in the products list
-    for (var itemForBillRow in itemForBillRows) {
+    for (var itemForBillRow
+        in Provider.of<RefundBillItemProvider>(context, listen: false)
+            .refundItemForBillRows) {
       double amount =
           itemForBillRow['amount']; // Get the amount for the current product
       overallTotal += amount; // Add the amount to the overall total
@@ -680,12 +690,13 @@ class _RefundPageState extends State<RefundPage> {
   Future<void> saveData() async {
     EasyLoading.show(status: 'loading...');
 
-    const String apiUrl = '$baseUrl/billing';
+    const String apiUrl = '$baseUrl/billing-n-refund';
     double grandTotal = calculateOverallTotal(); // Calculate overall total
 // Determine print flag
 
     Map<String, dynamic> requestBody = {
-      'itemList': itemForBillRows,
+      'itemList': Provider.of<RefundBillItemProvider>(context, listen: false)
+          .refundItemForBillRows,
       'grand_total': grandTotal,
       'print': 0,
     };
@@ -702,7 +713,8 @@ class _RefundPageState extends State<RefundPage> {
 
       if (response.statusCode == 200) {
         EasyLoading.dismiss();
-        itemForBillRows.clear(); // Clear the list
+        Provider.of<RefundBillItemProvider>(context, listen: false)
+            .clearItems(); // Clear the list
         clearProductName(); // Call the clearProductName function
         // Show dialog
         showDialog(
@@ -769,8 +781,11 @@ class _RefundPageState extends State<RefundPage> {
       floatingActionButton: isKeyboardVisible
           ? null
           : InkWell(
-              onTap:
-                  _speechToText.isListening ? _stopListening : _startListening,
+              onTap: () {
+                _speechToText.isListening
+                    ? _stopListening()
+                    : _startListening();
+              },
               child: MicrophoneButton(isListening: _speechToText.isListening),
             ),
       bottomNavigationBar: CustomNavigationBar(
@@ -789,7 +804,10 @@ class _RefundPageState extends State<RefundPage> {
       ),
       body: SingleChildScrollView(
         child: GestureDetector(
-          onTap: () {},
+          onTap: () {
+            _nameFocusNode.unfocus();
+            _quantityFocusNode.unfocus();
+          },
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: Stack(children: [
@@ -815,12 +833,17 @@ class _RefundPageState extends State<RefundPage> {
                     },
                     controller: _nameController,
                     decoration: InputDecoration(
-                      suffixIcon: IconButton(
-                        onPressed: () {
-                          _nameController.clear();
-                        },
-                        icon: const Icon(Icons.cancel),
-                      ),
+                      suffixIcon: _nameController.text.isNotEmpty
+                          ? IconButton(
+                              onPressed: () {
+                                _nameController.clear();
+                                _quantityController.clear();
+                                _localDatabase.clearSuggestions();
+                                setState(() {});
+                              },
+                              icon: const Icon(Icons.cancel),
+                            )
+                          : SizedBox.shrink(),
                       labelText: "Enter Product Name",
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.0),
@@ -997,7 +1020,7 @@ class _RefundPageState extends State<RefundPage> {
                                 _nameController.clear();
                                 _quantityController.clear();
 
-                                _dropdownItemsQuantity.insert(0, "Unit");
+                                // _dropdownItemsQuantity.insert(0, "Unit");
                                 _selectedQuantitySecondaryUnit =
                                     _dropdownItemsQuantity[
                                         0]; // Reset to default value
@@ -1059,20 +1082,100 @@ class _RefundPageState extends State<RefundPage> {
                     thickness: 1,
                   ),
                   const SizedBox(height: 8),
+                  Provider.of<RefundBillItemProvider>(context)
+                          .refundItemForBillRows
+                          .isNotEmpty
+                      ? const Padding(
+                          padding: EdgeInsets.only(left: 20),
+                          child: Row(children: [
+                            Expanded(
+                              flex: 20,
+                              child: Text(
+                                "Name",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.start,
+                              ),
+                            ),
+                            Expanded(
+                              flex: 16,
+                              child: Text(
+                                "Quantity",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            Expanded(
+                              flex: 15,
+                              child: Text(
+                                "Unit",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            Expanded(
+                              flex: 15,
+                              child: Text(
+                                "Rate",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.start,
+                              ),
+                            ),
+                            Expanded(
+                              flex: 15,
+                              child: Text(
+                                "Amount",
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            Expanded(
+                              flex: 10,
+                              child: SizedBox(),
+                            )
+                          ]),
+                        )
+                      : SizedBox.shrink(),
+                  Provider.of<RefundBillItemProvider>(context)
+                          .refundItemForBillRows
+                          .isNotEmpty
+                      ? const Divider(
+                          thickness: 1,
+                        )
+                      : SizedBox.shrink(),
                   SingleChildScrollView(
                     child: Container(
                       height: MediaQuery.of(context).size.height * 0.29,
                       padding: const EdgeInsets.only(left: 20.0),
-                      child: itemForBillRows.isNotEmpty
+                      child: Provider.of<RefundBillItemProvider>(context)
+                              .refundItemForBillRows
+                              .isNotEmpty
                           ? ListView.builder(
                               padding: EdgeInsets.zero,
-                              itemCount: itemForBillRows.length,
+                              itemCount:
+                                  Provider.of<RefundBillItemProvider>(context)
+                                      .refundItemForBillRows
+                                      .length,
                               itemBuilder: (context, index) {
                                 return BillWidget(
-                                  item: itemForBillRows[index],
+                                  item: Provider.of<RefundBillItemProvider>(
+                                          context)
+                                      .refundItemForBillRows[index],
                                   context: context,
                                   index: index,
-                                  itemForBillRows: itemForBillRows,
+                                  itemForBillRows:
+                                      Provider.of<RefundBillItemProvider>(
+                                              context)
+                                          .refundItemForBillRows,
                                   deleteProductFromTable:
                                       deleteProductFromTable,
                                 );
@@ -1094,7 +1197,9 @@ class _RefundPageState extends State<RefundPage> {
               Positioned(
                 bottom: 50,
                 child: Visibility(
-                  visible: itemForBillRows.isNotEmpty,
+                  visible: Provider.of<RefundBillItemProvider>(context)
+                      .refundItemForBillRows
+                      .isNotEmpty,
                   child: SizedBox(
                     width: MediaQuery.of(context).size.width,
                     child: Row(
@@ -1126,7 +1231,9 @@ class _RefundPageState extends State<RefundPage> {
               Positioned(
                 bottom: 10,
                 child: Visibility(
-                  visible: itemForBillRows.isNotEmpty,
+                  visible: Provider.of<RefundBillItemProvider>(context)
+                      .refundItemForBillRows
+                      .isNotEmpty,
                   child: SizedBox(
                     width: MediaQuery.of(context).size.width,
                     child: Row(

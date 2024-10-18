@@ -135,7 +135,7 @@ class LocalDatabase {
       _tableName,
       distinct: true,
       where: 'name LIKE ?',
-      whereArgs: ["$query%"],
+      whereArgs: ["%$query%"],
     );
 
     data.addAll(result);
@@ -148,7 +148,7 @@ class LocalDatabase {
         _tableName,
         distinct: true,
         where: 'name IN ($placeholder)',
-        whereArgs: names,
+        whereArgs: ["%$names%"],
       );
       data.addAll(result);
     }

@@ -360,6 +360,7 @@ class _LoginPageState extends State<LoginPage> {
       body: jsonEncode({"mobile": phoneNumber, "password": password}),
     );
     if (response.statusCode == 200) {
+      print("login succesful");
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const HomePage()),
@@ -367,7 +368,7 @@ class _LoginPageState extends State<LoginPage> {
       Timer.periodic(const Duration(seconds: 1), (timer) {
         LocalDatabase.instance.clearTable();
         LocalDatabase.instance.fetchDataAndStoreLocally();
-        // Check if the tick number is 5
+
         if (timer.tick == 1) {
           timer.cancel();
           // Code to Run

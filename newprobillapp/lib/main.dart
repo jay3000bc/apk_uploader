@@ -6,9 +6,11 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:newprobillapp/pages/home_page.dart';
 import 'package:newprobillapp/pages/login_page.dart';
 import 'package:newprobillapp/services/api_services.dart';
+import 'package:newprobillapp/services/home_bill_item_provider.dart';
 import 'package:newprobillapp/services/local_database.dart';
 import 'package:newprobillapp/services/product_mic_state.dart';
 import 'package:newprobillapp/services/quantity_mic_state.dart';
+import 'package:newprobillapp/services/refund_bill_item_provider.dart';
 
 import 'package:provider/provider.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -20,8 +22,8 @@ void main() {
   runApp(
     MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (context) => MicState()),
-        ChangeNotifierProvider(create: (context) => QuantityMicState()),
+        ChangeNotifierProvider(create: (_) => HomeBillItemProvider()),
+        ChangeNotifierProvider(create: (_) => RefundBillItemProvider()),
       ],
       child: const MyApp(),
     ),
