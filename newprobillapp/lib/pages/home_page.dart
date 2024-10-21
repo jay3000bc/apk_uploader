@@ -482,7 +482,7 @@ class _HomePageState extends State<HomePage> {
                                 itemSelected = true;
                                 _localDatabase.clearSuggestions();
 
-                                _dropdownItemsQuantity = _dropdownItems;
+                                _unitDropdownItems(unit);
                               });
                             }
 
@@ -532,8 +532,21 @@ class _HomePageState extends State<HomePage> {
             : const SizedBox.shrink();
   }
 
+  void _unitDropdownItems(String unit) {
+    if (unit.toLowerCase() == 'kg') {
+      _dropdownItemsQuantity = ["KG", "GM"];
+    } else if (unit.toLowerCase() == 'ltr') {
+      _dropdownItemsQuantity = ["LTR", "ML"];
+    } else
+      _dropdownItemsQuantity = [unit];
+    //_dropdownItemsQuantity = _dropdownItems;
+  }
+
   Future<int?> checkStockStatus(
       String itemId, String quantity, String relatedUnit, String token) async {
+    relatedUnit = relatedUnit.toLowerCase();
+    print('itemId: $itemId, quantity: $quantity, relatedUnit: $relatedUnit');
+
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/stock-quantity'),
@@ -557,6 +570,7 @@ class _HomePageState extends State<HomePage> {
           if (stockStatus == 1) {
             salePrice = responseData['data']['sale_price'];
           }
+          print("Stock Status: $stockStatus");
           return stockStatus;
         } else {
           // If stockStatus is not present in the response, return -1 to indicate an error
@@ -639,7 +653,7 @@ class _HomePageState extends State<HomePage> {
       overallTotal += amount; // Add the amount to the overall total
     }
 
-    return overallTotal;
+    return double.parse(overallTotal.toStringAsFixed(2));
   }
 
   Map<String, String> convertJsonToFormData(Map<String, dynamic> jsonData) {
@@ -885,16 +899,23 @@ class _HomePageState extends State<HomePage> {
                         if (_nameController.text.isNotEmpty &&
                             _quantityController.text.isNotEmpty) {
                           String quantityValue = _quantityController.text;
+                          double? quantityValueforConvert =
+                              double.tryParse(quantityValue);
+                          _primaryUnit = unit;
+                          double quantityValueforTable =
+                              convertQuantityBasedOnUnit(
+                                  _primaryUnit!,
+                                  _selectedQuantitySecondaryUnit!,
+                                  quantityValueforConvert!);
+                          print("quantityValueforTable:$quantityValueforTable");
                           int? stockStatus = await checkStockStatus(
-                              itemId, quantityValue, unit, token!);
+                              itemId,
+                              quantityValueforTable.toString(),
+                              _selectedQuantitySecondaryUnit!,
+                              token!);
                           if (stockStatus == 1 && validProductName == true) {
-                            double? quantityValueforConvert =
-                                double.tryParse(quantityValue);
                             //print("tryParse");
-                            _primaryUnit = unit;
-                            double quantityValueforTable =
-                                convertQuantityBasedOnUnit(_primaryUnit!, unit,
-                                    quantityValueforConvert!);
+
                             double? salePriceforTable =
                                 double.tryParse(salePrice);
                             addProductTable(
@@ -913,6 +934,9 @@ class _HomePageState extends State<HomePage> {
 
                             if (mounted) {
                               setState(() {
+                                _dropdownItemsQuantity = _dropdownItems;
+                                _selectedQuantitySecondaryUnit =
+                                    _dropdownItemsQuantity[0];
                                 _localDatabase.clearSuggestions();
                               });
                             }

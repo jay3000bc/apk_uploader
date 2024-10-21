@@ -10,7 +10,7 @@ import 'package:newprobillapp/components/bottom_navigation_bar.dart';
 import 'package:newprobillapp/components/sidebar.dart';
 import 'package:newprobillapp/components/microphone_button.dart';
 import 'package:newprobillapp/services/api_services.dart';
-import 'package:newprobillapp/services/home_bill_item_provider.dart';
+
 import 'package:newprobillapp/services/local_database.dart';
 import 'package:newprobillapp/services/refund_bill_item_provider.dart';
 import 'package:newprobillapp/services/result.dart';
@@ -81,8 +81,6 @@ class _RefundPageState extends State<RefundPage> {
 
   bool productNotFound = false;
 
-  // List<Map<String, dynamic>> refundItemForBillRows = [];
-
   String? _selectedQuantitySecondaryUnit;
   // Define _selectedQuantitySecondaryUnit as a String variable
   String? _primaryUnit;
@@ -149,6 +147,7 @@ class _RefundPageState extends State<RefundPage> {
   void dispose() {
     // _stopListening();
     _speechToText.stop();
+
     _speechToText.cancel();
     _nameController.dispose();
     _quantityController.dispose();
@@ -239,7 +238,7 @@ class _RefundPageState extends State<RefundPage> {
     print("words: $words");
     // print('parsespeech called');
     RegExp regex = RegExp(
-        r'(\w+(?:\s+\w+)*)\s+quantity\s+((?:\d+\s*|(?:\w+\s*)+))\s+(packs|bags|bag|bottle|bottles|box|boxes|bundle|bundles|can|cans|cartoon|cartoons|cartan|gram|grams|gm|kilogram|kg|kilograms|litre|litres|ltr|meter|m|meters|ms|millilitre|ml|millilitres|number|numerbs|pack|packs|packet|packets|pair|pairs|piece|pieces|roll|rolls|squarefeet|sqf|squarefeets|sqfts|squaremeters|squaremeter)');
+        r'(\w+(?:\s+\w+)*)\s+quantity\s+((?:\d+\s*|(?:\w+\s*)+))\s+(packs|bags|bag|bottle|bottles|box|boxes|bundle|bundles|can|cans|cartoon|cartoons|cartan|gram|grams|gm|g|kilogram|kg|kilograms|litre|litres|ltr|meter|m|meters|ms|millilitre|ml|millilitres|number|numerbs|pack|packs|packet|packets|pair|pairs|piece|pieces|roll|rolls|squarefeet|sqf|squarefeets|sqfts|squaremeters|squaremeter)');
 
     Match? match = regex.firstMatch(words);
 
@@ -364,26 +363,6 @@ class _RefundPageState extends State<RefundPage> {
     }
   }
 
-  void addRefundTable(
-      String itemName, double finalQuantity, String unit, double salePrice) {
-    double amount = salePrice * finalQuantity; // Calculate the amount
-    if (mounted) {
-      setState(() {
-        Provider.of<RefundBillItemProvider>(context, listen: false).addItem({
-          'itemId': itemId,
-          'itemName': itemName,
-          'quantity': finalQuantity,
-          'rate': salePrice,
-          'selectedUnit': unit,
-          'amount': amount * -1,
-          'isDelete': 0,
-          'isRefund': 0,
-        });
-      });
-    }
-    // Add the product to the list
-  }
-
   int extractAndCombineNumbers(String input) {
     List<int> numbers = [];
     RegExp regExp = RegExp(r'\d+');
@@ -504,7 +483,7 @@ class _RefundPageState extends State<RefundPage> {
                                 itemSelected = true;
                                 _localDatabase.clearSuggestions();
 
-                                _dropdownItemsQuantity = _dropdownItems;
+                                _unitDropdownItems(unit);
                               });
                             }
 
@@ -554,8 +533,21 @@ class _RefundPageState extends State<RefundPage> {
             : const SizedBox.shrink();
   }
 
+  void _unitDropdownItems(String unit) {
+    if (unit.toLowerCase() == 'kg') {
+      _dropdownItemsQuantity = ["KG", "GM"];
+    } else if (unit.toLowerCase() == 'ltr') {
+      _dropdownItemsQuantity = ["LTR", "ML"];
+    } else
+      _dropdownItemsQuantity = [unit];
+    //_dropdownItemsQuantity = _dropdownItems;
+  }
+
   Future<int?> checkStockStatus(
       String itemId, String quantity, String relatedUnit, String token) async {
+    relatedUnit = relatedUnit.toLowerCase();
+    print('itemId: $itemId, quantity: $quantity, relatedUnit: $relatedUnit');
+
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/stock-quantity'),
@@ -579,6 +571,7 @@ class _RefundPageState extends State<RefundPage> {
           if (stockStatus == 1) {
             salePrice = responseData['data']['sale_price'];
           }
+          print("Stock Status: $stockStatus");
           return stockStatus;
         } else {
           // If stockStatus is not present in the response, return -1 to indicate an error
@@ -649,6 +642,26 @@ class _RefundPageState extends State<RefundPage> {
     // Add the product to the list
   }
 
+  void addRefundTable(
+      String itemName, double finalQuantity, String unit, double salePrice) {
+    double amount = salePrice * finalQuantity; // Calculate the amount
+    if (mounted) {
+      setState(() {
+        Provider.of<RefundBillItemProvider>(context, listen: false).addItem({
+          'itemId': itemId,
+          'itemName': itemName,
+          'quantity': finalQuantity,
+          'rate': salePrice,
+          'selectedUnit': unit,
+          'amount': amount * (-1),
+          'isDelete': 0,
+          'isRefund': 0,
+        });
+      });
+    }
+    // Add the product to the list
+  }
+
   double calculateOverallTotal() {
     double overallTotal = 0.0; // Initialize overall total
 
@@ -661,7 +674,7 @@ class _RefundPageState extends State<RefundPage> {
       overallTotal += amount; // Add the amount to the overall total
     }
 
-    return overallTotal;
+    return double.parse(overallTotal.toStringAsFixed(2));
   }
 
   Map<String, String> convertJsonToFormData(Map<String, dynamic> jsonData) {
@@ -690,7 +703,7 @@ class _RefundPageState extends State<RefundPage> {
   Future<void> saveData() async {
     EasyLoading.show(status: 'loading...');
 
-    const String apiUrl = '$baseUrl/billing-n-refund';
+    const String apiUrl = '$baseUrl/billing';
     double grandTotal = calculateOverallTotal(); // Calculate overall total
 // Determine print flag
 
@@ -738,7 +751,7 @@ class _RefundPageState extends State<RefundPage> {
         print(response.body);
         EasyLoading.dismiss();
 
-        // Handle other HTTP status codesr
+        // Handle other HTTP status codes
         // debugPrint(
         // 'Response body: ${response.body}'); // Print the whole response body
       }
@@ -839,6 +852,9 @@ class _RefundPageState extends State<RefundPage> {
                                 _nameController.clear();
                                 _quantityController.clear();
                                 _localDatabase.clearSuggestions();
+                                _dropdownItemsQuantity = _dropdownItems;
+                                _selectedQuantitySecondaryUnit =
+                                    _dropdownItems[0];
                                 setState(() {});
                               },
                               icon: const Icon(Icons.cancel),
@@ -888,7 +904,7 @@ class _RefundPageState extends State<RefundPage> {
                     height: 8,
                   ),
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
                       Container(
                         width: MediaQuery.of(context).size.width * 0.3,
@@ -910,17 +926,25 @@ class _RefundPageState extends State<RefundPage> {
                             if (_nameController.text.isNotEmpty &&
                                 _quantityController.text.isNotEmpty) {
                               String quantityValue = _quantityController.text;
+                              double? quantityValueforConvert =
+                                  double.tryParse(quantityValue);
+                              _primaryUnit = unit;
+                              double quantityValueforTable =
+                                  convertQuantityBasedOnUnit(
+                                      _primaryUnit!,
+                                      _selectedQuantitySecondaryUnit!,
+                                      quantityValueforConvert!);
+                              print(
+                                  "quantityValueforTable:$quantityValueforTable");
                               int? stockStatus = await checkStockStatus(
-                                  itemId, quantityValue, unit, token!);
+                                  itemId,
+                                  quantityValueforTable.toString(),
+                                  _selectedQuantitySecondaryUnit!,
+                                  token!);
                               if (stockStatus == 1 &&
                                   validProductName == true) {
-                                double? quantityValueforConvert =
-                                    double.tryParse(quantityValue);
                                 //print("tryParse");
-                                _primaryUnit = unit;
-                                double quantityValueforTable =
-                                    convertQuantityBasedOnUnit(_primaryUnit!,
-                                        unit, quantityValueforConvert!);
+
                                 double? salePriceforTable =
                                     double.tryParse(salePrice);
                                 addProductTable(
@@ -931,7 +955,7 @@ class _RefundPageState extends State<RefundPage> {
                                 _nameController.clear();
                                 _quantityController.clear();
 
-                                // _dropdownItemsQuantity.insert(0, "Unit");
+                                //  _dropdownItemsQuantity.insert(0, "Unit");
                                 _selectedQuantitySecondaryUnit =
                                     _dropdownItemsQuantity[
                                         0]; // Reset to default value
@@ -939,6 +963,9 @@ class _RefundPageState extends State<RefundPage> {
 
                                 if (mounted) {
                                   setState(() {
+                                    _dropdownItemsQuantity = _dropdownItems;
+                                    _selectedQuantitySecondaryUnit =
+                                        _dropdownItemsQuantity[0];
                                     _localDatabase.clearSuggestions();
                                   });
                                 }
@@ -987,7 +1014,7 @@ class _RefundPageState extends State<RefundPage> {
                           color: (_nameController.text.isEmpty ||
                                   _quantityController.text.isEmpty)
                               ? const Color.fromRGBO(210, 211, 211, 1)
-                              : Colors.green,
+                              : Colors.red,
                         ),
                         padding: const EdgeInsets.all(5.0),
                         child: MaterialButton(
@@ -999,17 +1026,25 @@ class _RefundPageState extends State<RefundPage> {
                             if (_nameController.text.isNotEmpty &&
                                 _quantityController.text.isNotEmpty) {
                               String quantityValue = _quantityController.text;
+                              double? quantityValueforConvert =
+                                  double.tryParse(quantityValue);
+                              _primaryUnit = unit;
+                              double quantityValueforTable =
+                                  convertQuantityBasedOnUnit(
+                                      _primaryUnit!,
+                                      _selectedQuantitySecondaryUnit!,
+                                      quantityValueforConvert!);
+                              print(
+                                  "quantityValueforTable:$quantityValueforTable");
                               int? stockStatus = await checkStockStatus(
-                                  itemId, quantityValue, unit, token!);
+                                  itemId,
+                                  quantityValueforTable.toString(),
+                                  _selectedQuantitySecondaryUnit!,
+                                  token!);
                               if (stockStatus == 1 &&
                                   validProductName == true) {
-                                double? quantityValueforConvert =
-                                    double.tryParse(quantityValue);
                                 //print("tryParse");
-                                _primaryUnit = unit;
-                                double quantityValueforTable =
-                                    convertQuantityBasedOnUnit(_primaryUnit!,
-                                        unit, quantityValueforConvert!);
+
                                 double? salePriceforTable =
                                     double.tryParse(salePrice);
                                 addRefundTable(
@@ -1020,7 +1055,7 @@ class _RefundPageState extends State<RefundPage> {
                                 _nameController.clear();
                                 _quantityController.clear();
 
-                                // _dropdownItemsQuantity.insert(0, "Unit");
+                                //  _dropdownItemsQuantity.insert(0, "Unit");
                                 _selectedQuantitySecondaryUnit =
                                     _dropdownItemsQuantity[
                                         0]; // Reset to default value
@@ -1028,6 +1063,9 @@ class _RefundPageState extends State<RefundPage> {
 
                                 if (mounted) {
                                   setState(() {
+                                    _dropdownItemsQuantity = _dropdownItems;
+                                    _selectedQuantitySecondaryUnit =
+                                        _dropdownItemsQuantity[0];
                                     _localDatabase.clearSuggestions();
                                   });
                                 }

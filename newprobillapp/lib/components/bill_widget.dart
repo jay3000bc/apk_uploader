@@ -36,6 +36,9 @@ class _BillWidgetState extends State<BillWidget> {
                   '${widget.itemForBillRows[widget.index]['itemName']}', 0.2),
               flex: 20,
             ),
+            SizedBox(
+              width: 5,
+            ),
             Expanded(
               flex: 15,
               child: Container(
@@ -133,8 +136,8 @@ class _BillWidgetState extends State<BillWidget> {
               child: itemDetailWidget(
                   context,
                   amount > 0
-                      ? '₹${widget.item['amount']}'
-                      : "-₹${widget.item['amount'].abs()}",
+                      ? '₹${widget.item['amount'].toStringAsFixed(2)}'
+                      : "-₹${widget.item['amount'].abs().toStringAsFixed(2)}",
                   0.15),
             ),
             Expanded(
@@ -175,6 +178,7 @@ class _BillWidgetState extends State<BillWidget> {
       child: Text(
         itemDetail,
         style: const TextStyle(fontSize: 12),
+        textAlign: TextAlign.start,
       ),
     );
   }
