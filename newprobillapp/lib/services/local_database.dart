@@ -144,12 +144,14 @@ class LocalDatabase {
     if (names.isNotEmpty) {
       // Use an IN clause to avoid multiple queries
       final placeholder = List.generate(names.length, (_) => '?').join(',');
+      //  print("Placeholder: $placeholder");
       final result = await db.query(
         _tableName,
         distinct: true,
         where: 'name IN ($placeholder)',
-        whereArgs: ["%$names%"],
+        whereArgs: names,
       );
+      //  print('result: $result');
       data.addAll(result);
     }
 

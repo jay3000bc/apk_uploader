@@ -237,7 +237,7 @@ class _HomePageState extends State<HomePage> {
     print("words: $words");
     // print('parsespeech called');
     RegExp regex = RegExp(
-        r'(\w+(?:\s+\w+)*)\s+quantity\s+((?:\d+\s*|(?:\w+\s*)+))\s+(packs|bags|bag|bottle|bottles|box|boxes|bundle|bundles|can|cans|cartoon|cartoons|cartan|gram|grams|gm|kilogram|kg|kilograms|litre|litres|ltr|meter|m|meters|ms|millilitre|ml|millilitres|number|numerbs|pack|packs|packet|packets|pair|pairs|piece|pieces|roll|rolls|squarefeet|sqf|squarefeets|sqfts|squaremeters|squaremeter)');
+        r'(\w+(?:\s+\w+)*)\s+quantity\s+((?:\d+\s*|(?:\w+\s*)+))\s+(packs|bags|bag|bottle|bottles|box|boxes|bundle|bundles|can|cans|cartoon|cartoons|cartan|gram|grams|gm|g|kilogram|kg|kilograms|litre|litres|ltr|meter|m|meters|ms|millilitre|ml|millilitres|number|numerbs|pack|packs|packet|packets|pair|pairs|piece|pieces|roll|rolls|squarefeet|sqf|squarefeets|sqfts|squaremeters|squaremeter)');
 
     Match? match = regex.firstMatch(words);
 
@@ -632,7 +632,8 @@ class _HomePageState extends State<HomePage> {
 
     // Iterate over each product in the products list
     for (var itemForBillRow
-        in Provider.of<HomeBillItemProvider>(context, listen: false).homeItemForBillRows) {
+        in Provider.of<HomeBillItemProvider>(context, listen: false)
+            .homeItemForBillRows) {
       double amount =
           itemForBillRow['amount']; // Get the amount for the current product
       overallTotal += amount; // Add the amount to the overall total
