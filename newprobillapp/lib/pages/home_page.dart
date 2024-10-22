@@ -11,6 +11,7 @@ import 'package:newprobillapp/components/sidebar.dart';
 import 'package:newprobillapp/components/microphone_button.dart';
 import 'package:newprobillapp/services/api_services.dart';
 import 'package:newprobillapp/services/home_bill_item_provider.dart';
+import 'package:newprobillapp/services/internet_checker.dart';
 import 'package:newprobillapp/services/local_database.dart';
 import 'package:newprobillapp/services/result.dart';
 import 'package:newprobillapp/services/text_to_num.dart';
@@ -49,7 +50,7 @@ class _HomePageState extends State<HomePage> {
   bool validProductName = true;
   bool isquantityavailable = false;
   bool isSuggetion = false;
-
+  String textToDisplay = '';
   String? availableStockValue = '';
 
   String unitOfQuantity = '';
@@ -234,6 +235,7 @@ class _HomePageState extends State<HomePage> {
 
   Widget _parseSpeech(String words, bool finalResult) {
     print("words: $words");
+    textToDisplay = words;
     // print('parsespeech called');
     RegExp regex = RegExp(
         r'(\w+(?:\s+\w+)*)\s+quantity\s+((?:\d+\s*|(?:\w+\s*)+))\s+(packs|bags|bag|bottle|bottles|box|boxes|bundle|bundles|can|cans|cartoon|cartoons|cartan|gram|grams|gm|g|kilogram|kg|kilograms|litre|litres|ltr|meter|m|meters|ms|millilitre|ml|millilitres|number|numerbs|pack|packs|packet|packets|pair|pairs|piece|pieces|roll|rolls|squarefeet|sqf|squarefeets|sqfts|squaremeters|squaremeter)');
@@ -750,6 +752,49 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Widget _errorWidgetView(String lasttError, bool quantityWord) {
+    if (lastError.isNotEmpty) {
+      return Container(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height * 0.1,
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.red),
+          color: const Color.fromARGB(255, 211, 130, 124),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            const Text("Couldn't Recognise. Please Try Again."),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  print(lastError);
+                  lastError = '';
+                  print("l:$lastError");
+                  //  quantityWord = true;
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    color: Colors.black),
+                child: const Text(
+                  "OK",
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else
+      return SizedBox.shrink();
+  }
+
   //////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////
   //////////////////////////////////////////////////////////////////////
@@ -802,6 +847,12 @@ class _HomePageState extends State<HomePage> {
             child: Stack(children: [
               Column(
                 children: <Widget>[
+                  const Align(
+                    alignment: Alignment.center,
+                    child: Internetchecker(),
+                  ),
+                  _errorWidgetView(lastError, isquantityavailable),
+                  Text(textToDisplay),
                   TextField(
                     onChanged: (m) {
                       if (mounted) {
@@ -974,7 +1025,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                   ),
-                 
+
                   const SizedBox(
                     height: 8,
                   ),
