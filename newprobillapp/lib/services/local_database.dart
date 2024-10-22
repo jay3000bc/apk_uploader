@@ -122,16 +122,28 @@ class LocalDatabase {
   }
 
   Future<List<LocalDatabaseModel>> searchDatabase(String query) async {
-    // print('search Database hit');
-
     if (query.isEmpty) {
       return [];
     }
 
+    List<String> splitQuery = query.split(' ');
+    for (int i = 0; i < splitQuery.length; i++) {
+      String word = splitQuery[i];
+      String newWord = '';
+      for (int j = 0; j < word.length; j++) {
+        if (j == 0 || word[j] != word[j - 1]) {
+          newWord += word[j];
+        }
+      }
+      splitQuery[i] = newWord;
+    }
+    String newQuery = splitQuery.join(' ');
+    // print('search Database hit');
+
     Database db = await database;
     List<Map<String, dynamic>> data = [];
 
-    final result = await db.query(
+    List<Map<String, dynamic>> result = await db.query(
       _tableName,
       distinct: true,
       where: 'name LIKE ?',
@@ -139,8 +151,30 @@ class LocalDatabase {
     );
 
     data.addAll(result);
+    result = await db.query(
+      _tableName,
+      distinct: true,
+      where: 'name LIKE ?',
+      whereArgs: ["%$newQuery%"],
+    );
+
+    data.addAll(result);
 
     List<String> names = await getNamesFromDatabase(query);
+    if (names.isNotEmpty) {
+      // Use an IN clause to avoid multiple queries
+      final placeholder = List.generate(names.length, (_) => '?').join(',');
+      //  print("Placeholder: $placeholder");
+      final result = await db.query(
+        _tableName,
+        distinct: true,
+        where: 'name IN ($placeholder)',
+        whereArgs: names,
+      );
+      //  print('result: $result');
+      data.addAll(result);
+    }
+    names = await getNamesFromDatabase(newQuery);
     if (names.isNotEmpty) {
       // Use an IN clause to avoid multiple queries
       final placeholder = List.generate(names.length, (_) => '?').join(',');

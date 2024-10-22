@@ -56,7 +56,7 @@ class _HomePageState extends State<HomePage> {
   String unitOfQuantity = '';
   double quantityNumeric = 0;
 
-  bool _wasListening = false;
+  String spokenUnit = '';
   double itemColumnHeight = 0;
 
   bool wasListening = false;
@@ -255,6 +255,8 @@ class _HomePageState extends State<HomePage> {
       extractAndCombineNumbers(text2num(quantity).toString());
       isInputThroughText = false;
 
+      spokenUnit = unitOfQuantity;
+
       Future.delayed(Duration(seconds: 1), () {
         if (mounted) setState(() {});
       });
@@ -302,41 +304,43 @@ class _HomePageState extends State<HomePage> {
         );
       }
     } else {
-      if (words.isNotEmpty) if (finalResult == true) {
-        if (words.contains('quantity')) {
-          if (words.startsWith('quantity')) {
-            if (mounted) {
-              setState(() {
-                _errorMessage = 'Product is missing';
-                speak(_errorMessage);
-              });
+      if (words.isNotEmpty) {
+        if (finalResult == true) {
+          if (words.contains('quantity')) {
+            if (words.startsWith('quantity')) {
+              if (mounted) {
+                setState(() {
+                  _errorMessage = 'Product is missing';
+                  speak(_errorMessage);
+                });
+              }
+              return _productErrorWidget(_errorMessage);
+            } else if (words.endsWith('quantity')) {
+              if (mounted) {
+                setState(() {
+                  _errorMessage = 'Quantity and unit are missing';
+                  speak(_errorMessage);
+                });
+              }
+              return _productErrorWidget(_errorMessage);
+            } else {
+              if (mounted) {
+                setState(() {
+                  _errorMessage = 'unit is missing';
+                  speak(_errorMessage);
+                });
+              }
+              return _productErrorWidget(_errorMessage);
             }
-            return _productErrorWidget(_errorMessage);
-          } else if (words.endsWith('quantity')) {
-            if (mounted) {
-              setState(() {
-                _errorMessage = 'Quantity and unit are missing';
-                speak(_errorMessage);
-              });
-            }
-            return _productErrorWidget(_errorMessage);
           } else {
             if (mounted) {
               setState(() {
-                _errorMessage = 'unit is missing';
+                _errorMessage = 'Quantity word is missing';
                 speak(_errorMessage);
               });
             }
             return _productErrorWidget(_errorMessage);
           }
-        } else {
-          if (mounted) {
-            setState(() {
-              _errorMessage = 'Quantity word is missing';
-              speak(_errorMessage);
-            });
-          }
-          return _productErrorWidget(_errorMessage);
         }
       }
     }
@@ -453,7 +457,7 @@ class _HomePageState extends State<HomePage> {
                       padding: EdgeInsets.zero,
                       itemCount: dataLength,
                       itemBuilder: (context, index) {
-                        if (index == dataLength) {
+                        if (index >= dataLength) {
                           return const Center(
                               child: CircularProgressIndicator());
                         }
@@ -791,8 +795,9 @@ class _HomePageState extends State<HomePage> {
           ],
         ),
       );
-    } else
+    } else {
       return SizedBox.shrink();
+    }
   }
 
   //////////////////////////////////////////////////////////////////////
@@ -852,22 +857,24 @@ class _HomePageState extends State<HomePage> {
                     child: Internetchecker(),
                   ),
                   _errorWidgetView(lastError, isquantityavailable),
-                  Text(textToDisplay),
+                  // Text(textToDisplay),
                   TextField(
                     onChanged: (m) {
-                      if (mounted) {
-                        setState(() {
-                          searching = true;
-                        });
-                      }
                       _localDatabase.searchDatabase(_nameController.text);
+                      searching = true;
+
                       isInputThroughText = true;
+
+                      Future.delayed(const Duration(milliseconds: 100), () {
+                        setState(() {});
+                      });
 
                       if (_nameController.text == '') {
                         validProductName = true;
                         _localDatabase.clearSuggestions();
                         if (mounted) setState(() {});
                       }
+
                       // updateSuggestionList(m);
                       // _localDatabase.searchDatabase(m);
                     },
