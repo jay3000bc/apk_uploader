@@ -1190,6 +1190,7 @@ class _RefundPageState extends State<RefundPage> {
                           thickness: 1,
                         )
                       : SizedBox.shrink(),
+
                   SingleChildScrollView(
                     child: Container(
                       height: MediaQuery.of(context).size.height * 0.29,
@@ -1219,7 +1220,7 @@ class _RefundPageState extends State<RefundPage> {
                                 );
                               },
                             )
-                          : Center(
+                          : const Center(
                               child: Text(
                                 'No items available',
                                 style: TextStyle(color: Colors.grey),

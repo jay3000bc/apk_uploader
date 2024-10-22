@@ -211,7 +211,6 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       string = result.recognizedWords;
       // confidence = result.confidence;
-      print(string);
     });
   }
 
@@ -286,7 +285,8 @@ class _HomePageState extends State<HomePage> {
         return _productErrorWidget(_errorMessage);
       }
       Future.delayed(const Duration(seconds: 1), () {
-        if (_localDatabase.suggestions.isEmpty) {
+        if (_localDatabase.suggestions.isEmpty &&
+            _nameController.text.isEmpty) {
           print('Product Not Available');
           speak('Product Not Available');
         }
@@ -300,7 +300,7 @@ class _HomePageState extends State<HomePage> {
         );
       }
     } else {
-      if (finalResult == true) {
+      if (words.isNotEmpty) if (finalResult == true) {
         if (words.contains('quantity')) {
           if (words.startsWith('quantity')) {
             if (mounted) {
@@ -485,9 +485,6 @@ class _HomePageState extends State<HomePage> {
                                 _unitDropdownItems(unit);
                               });
                             }
-
-                            print('dropdownItems: $_dropdownItems');
-                            print('dropdown: $_dropdownItemsQuantity');
                           },
                         );
                       },
@@ -977,6 +974,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                   ),
+                 
                   const SizedBox(
                     height: 8,
                   ),
