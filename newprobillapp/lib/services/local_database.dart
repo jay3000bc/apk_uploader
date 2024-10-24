@@ -126,6 +126,8 @@ class LocalDatabase {
       return [];
     }
 
+    //final _result =
+
     List<String> splitQuery = query.split(' ');
     for (int i = 0; i < splitQuery.length; i++) {
       String word = splitQuery[i];

@@ -68,8 +68,6 @@ class _HomePageState extends State<HomePage> {
 
   //New Variable
   bool itemSelected = false;
-  bool _hasSpeech = false;
-  final bool _logEvents = false;
 
   String lastWords = '';
   String lastError = '';
@@ -225,6 +223,7 @@ class _HomePageState extends State<HomePage> {
 
         validProductName = true;
         _parseSpeech(recognizedWord, result.finalResult);
+        //extractNameQuantityUnit(recognizedWord);
       });
     }
   }
@@ -233,19 +232,49 @@ class _HomePageState extends State<HomePage> {
     await flutterTts.speak(errorAnnounce);
   }
 
-  Widget _parseSpeech(String words, bool finalResult) {
-    print("words: $words");
-    textToDisplay = words;
-    // print('parsespeech called');
-    RegExp regex = RegExp(
-        r'(\w+(?:\s+\w+)*)\s+quantity\s+((?:\d+\s*|(?:\w+\s*)+))\s+(packs|bags|bag|bottle|bottles|box|boxes|bundle|bundles|can|cans|cartoon|cartoons|cartan|gram|grams|gm|g|kilogram|kg|kilograms|litre|litres|ltr|meter|m|meters|ms|millilitre|ml|millilitres|number|numerbs|pack|packs|packet|packets|pair|pairs|piece|pieces|roll|rolls|squarefeet|sqf|squarefeets|sqfts|squaremeters|squaremeter)');
+  // void extractNameQuantityUnit(String input) {
+  //   print("input: $input");
+  //   // Define the units using a regex group
+  //   final regex = RegExp(
+  //     r'^(.*?)(\d+|[a-zA-Z]+)?\s*(packs|bags?|bottles?|boxes?|bundles?|cans?|cartoons?|cartan|grams?|gms?|kgs?|litres?|ltrs?|meters?|ml|number|packs?|packets?|pairs?|pieces?|rolls?|squarefeet|sqf|squarefeets?|sqfts?|squaremeters?|squaremeter)\b',
+  //     caseSensitive: false,
+  //   );
 
+  //   final match = regex.firstMatch(input);
+
+  //   if (match != null) {
+  //     // Extract name, quantity, and unit from the regex groups
+  //     String name = match.group(1)?.trim() ?? '';
+  //     String quantity = match.group(2) ?? '';
+  //     String unit = match.group(3)?.trim() ?? '';
+
+  //     // Handle case where there are two numbers, discard the first number
+  //     name = name.replaceAll(RegExp(r'\b\d+\b'), '').trim();
+
+  //     print('Name: $name');
+  //     print('Quantity: $quantity');
+  //     print('Unit: $unit');
+  //   } else {
+  //     print('No match found here.');
+  //   }
+  // }
+
+  Widget _parseSpeech(String words, bool finalResult) {
+    words = words
+        .replaceAll(RegExp(r'\bquantity\b', caseSensitive: false), '')
+        .trim();
+    final regex = RegExp(
+        r'^(.*?)(?:\b(\d+|[a-zA-Z]+)\s)?(packs?|bags?|bottles?|boxes?|bundles?|cans?|cartoons?|cartan|grams?|gm|g|kilograms?|kg|litres?|ltr|meters?|ms?|millilitres?|ml|numbers?|pack(?:ets?)?|pairs?|pieces?|rolls?|squarefeet|sqf|squarefeets?|squaremeters?|m)\b',
+        caseSensitive: false);
     Match? match = regex.firstMatch(words);
 
     if (match != null) {
       String product = match.group(1) ?? "";
       String quantity = match.group(2) ?? "";
       String unitOfQuantity = match.group(3) ?? "";
+      product = product.replaceAll(RegExp(r'\b\d+\b'), '').trim();
+      print(
+          "product: $product, quantity: $quantity, unitOfQuantity: $unitOfQuantity");
 
       // productNameController.text = product;
       //  print('2');
@@ -257,7 +286,7 @@ class _HomePageState extends State<HomePage> {
 
       spokenUnit = unitOfQuantity;
 
-      Future.delayed(Duration(seconds: 1), () {
+      Future.delayed(const Duration(seconds: 1), () {
         if (mounted) setState(() {});
       });
 
@@ -470,7 +499,7 @@ class _HomePageState extends State<HomePage> {
                           trailing: isInputThroughText
                               ? Text(
                                   "${suggestion.quantity} ${suggestion.unit}")
-                              : Text("$quantity ${suggestion.unit}"),
+                              : Text("$quantity $spokenUnit"),
                           onTap: () {
                             _stopListening();
                             if (mounted) {
@@ -481,7 +510,10 @@ class _HomePageState extends State<HomePage> {
                                 _nameController.text = suggestion.name;
                                 _quantityController.text = quantity.toString();
                                 unit = suggestion.unit;
-                                _selectedQuantitySecondaryUnit = unit;
+                                unit == 'KG' && spokenUnit == 'g'
+                                    ? _selectedQuantitySecondaryUnit =
+                                        spokenUnit
+                                    : _selectedQuantitySecondaryUnit = unit;
 
                                 itemId = itemIdforStock;
                                 // assignQuantityFunction(itemIdforStock, token!);
@@ -540,15 +572,16 @@ class _HomePageState extends State<HomePage> {
       _dropdownItemsQuantity = ["KG", "GM"];
     } else if (unit.toLowerCase() == 'ltr') {
       _dropdownItemsQuantity = ["LTR", "ML"];
-    } else
+    } else {
       _dropdownItemsQuantity = [unit];
+    }
     //_dropdownItemsQuantity = _dropdownItems;
   }
 
   Future<int?> checkStockStatus(
       String itemId, String quantity, String relatedUnit, String token) async {
     relatedUnit = relatedUnit.toLowerCase();
-    print('itemId: $itemId, quantity: $quantity, relatedUnit: $relatedUnit');
+    //  print('itemId: $itemId, quantity: $quantity, relatedUnit: $relatedUnit');
 
     try {
       final response = await http.post(
@@ -573,7 +606,7 @@ class _HomePageState extends State<HomePage> {
           if (stockStatus == 1) {
             salePrice = responseData['data']['sale_price'];
           }
-          print("Stock Status: $stockStatus");
+          //   print("Stock Status: $stockStatus");
           return stockStatus;
         } else {
           // If stockStatus is not present in the response, return -1 to indicate an error
@@ -730,7 +763,7 @@ class _HomePageState extends State<HomePage> {
         );
         // Optionally, you can handle further actions after saving the data
       } else {
-        print(response.body);
+        //  print(response.body);
         EasyLoading.dismiss();
 
         // Handle other HTTP status codes
@@ -772,9 +805,9 @@ class _HomePageState extends State<HomePage> {
             TextButton(
               onPressed: () {
                 setState(() {
-                  print(lastError);
+                  //   print(lastError);
                   lastError = '';
-                  print("l:$lastError");
+                  // print("l:$lastError");
                   //  quantityWord = true;
                 });
               },
@@ -796,7 +829,7 @@ class _HomePageState extends State<HomePage> {
         ),
       );
     } else {
-      return SizedBox.shrink();
+      return const SizedBox.shrink();
     }
   }
 
@@ -890,7 +923,7 @@ class _HomePageState extends State<HomePage> {
                               },
                               icon: const Icon(Icons.cancel),
                             )
-                          : SizedBox.shrink(),
+                          : const SizedBox.shrink(),
                       labelText: "Enter Product Name",
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8.0),
@@ -962,7 +995,7 @@ class _HomePageState extends State<HomePage> {
                                   _primaryUnit!,
                                   _selectedQuantitySecondaryUnit!,
                                   quantityValueforConvert!);
-                          print("quantityValueforTable:$quantityValueforTable");
+                          //  print("quantityValueforTable:$quantityValueforTable");
                           int? stockStatus = await checkStockStatus(
                               itemId,
                               quantityValueforTable.toString(),
@@ -1107,14 +1140,14 @@ class _HomePageState extends State<HomePage> {
                             )
                           ]),
                         )
-                      : SizedBox.shrink(),
+                      : const SizedBox.shrink(),
                   Provider.of<HomeBillItemProvider>(context)
                           .homeItemForBillRows
                           .isNotEmpty
                       ? const Divider(
                           thickness: 1,
                         )
-                      : SizedBox.shrink(),
+                      : const SizedBox.shrink(),
                   SingleChildScrollView(
                     child: Container(
                       height: MediaQuery.of(context).size.height * 0.29,
@@ -1143,7 +1176,7 @@ class _HomePageState extends State<HomePage> {
                                 );
                               },
                             )
-                          : Center(
+                          : const Center(
                               child: Text(
                                 'No items available',
                                 style: TextStyle(color: Colors.grey),

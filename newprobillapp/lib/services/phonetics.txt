@@ -1,0 +1,15 @@
+Future<List<String>> getNamesUsingPhonetics(String query) async {
+    Database db = await database;
+
+    List<Map<String, dynamic>> data = await db.query(_tableName);
+    List<String> names = data.map((e) => e['name'] as String).toList();
+
+    final doubleMetaphone = DoubleMetaphone.withMaxLength(12);
+    print("encode: ${doubleMetaphone.encode(query)!.primary}");
+    names.removeWhere((name) =>
+        ratio(doubleMetaphone.encode(query)!.primary,
+            doubleMetaphone.encode(name)!.primary) <
+        75);
+    // print(" names using phonetics : $names");
+    return names;
+  }
