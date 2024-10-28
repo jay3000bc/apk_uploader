@@ -53,6 +53,7 @@ dependencies:
   file_picker: ^8.1.2
   intl: ^0.19.0
   dart_phonetics: ^1.0.1
+  path: ^1.9.0
 
 dev_dependencies:
   flutter_test:

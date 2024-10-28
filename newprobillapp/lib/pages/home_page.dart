@@ -31,8 +31,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int quantity = 0;
   int _selectedIndex = 0;
-  TextEditingController _nameController = TextEditingController();
-  TextEditingController _quantityController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _quantityController = TextEditingController();
   final FocusNode _nameFocusNode = FocusNode();
   final FocusNode _quantityFocusNode = FocusNode();
   final SpeechToText _speechToText = SpeechToText();
@@ -126,7 +126,7 @@ class _HomePageState extends State<HomePage> {
   ];
 
   final int itemsPerPage = 15; // Number of items to load at a time
-  ScrollController _scrollController =
+  final ScrollController _scrollController =
       ScrollController(); // Scroll controller to detect scrolling
   bool isLoadingMore = false; // Flag to show loading indicator
   int currentPage = 0; // Current page for loading items
@@ -135,6 +135,7 @@ class _HomePageState extends State<HomePage> {
   //GlobalKey<AutoCompleteTextFieldState<String>> quantityKey = GlobalKey();
   String _errorMessage = '';
 
+  @override
   void initState() {
     super.initState();
     initializeData();
@@ -142,6 +143,7 @@ class _HomePageState extends State<HomePage> {
     initSpeech();
   }
 
+  @override
   void dispose() {
     // _stopListening();
     _speechToText.stop();
@@ -232,34 +234,12 @@ class _HomePageState extends State<HomePage> {
     await flutterTts.speak(errorAnnounce);
   }
 
-  // void extractNameQuantityUnit(String input) {
-  //   print("input: $input");
-  //   // Define the units using a regex group
-  //   final regex = RegExp(
-  //     r'^(.*?)(\d+|[a-zA-Z]+)?\s*(packs|bags?|bottles?|boxes?|bundles?|cans?|cartoons?|cartan|grams?|gms?|kgs?|litres?|ltrs?|meters?|ml|number|packs?|packets?|pairs?|pieces?|rolls?|squarefeet|sqf|squarefeets?|sqfts?|squaremeters?|squaremeter)\b',
-  //     caseSensitive: false,
-  //   );
-
-  //   final match = regex.firstMatch(input);
-
-  //   if (match != null) {
-  //     // Extract name, quantity, and unit from the regex groups
-  //     String name = match.group(1)?.trim() ?? '';
-  //     String quantity = match.group(2) ?? '';
-  //     String unit = match.group(3)?.trim() ?? '';
-
-  //     // Handle case where there are two numbers, discard the first number
-  //     name = name.replaceAll(RegExp(r'\b\d+\b'), '').trim();
-
-  //     print('Name: $name');
-  //     print('Quantity: $quantity');
-  //     print('Unit: $unit');
-  //   } else {
-  //     print('No match found here.');
-  //   }
-  // }
-
   Widget _parseSpeech(String words, bool finalResult) {
+    print(words);
+    words = words.replaceAllMapped(RegExp(r'([a-zA-Z]+)(\d+)'), (match) {
+      return '${match.group(1)} ${match.group(2)}';
+    });
+    print("new words: $words");
     words = words
         .replaceAll(RegExp(r'\bquantity\b', caseSensitive: false), '')
         .trim();
@@ -276,8 +256,6 @@ class _HomePageState extends State<HomePage> {
       print(
           "product: $product, quantity: $quantity, unitOfQuantity: $unitOfQuantity");
 
-      // productNameController.text = product;
-      //  print('2');
       _localDatabase.searchDatabase(product);
 
       text2num(quantity);
@@ -320,7 +298,7 @@ class _HomePageState extends State<HomePage> {
       Future.delayed(const Duration(seconds: 1), () {
         if (_localDatabase.suggestions.isEmpty &&
             _nameController.text.isEmpty) {
-          print('Product Not Available');
+          // print('Product Not Available');
           speak('Product Not Available');
         }
       });
@@ -361,14 +339,6 @@ class _HomePageState extends State<HomePage> {
               }
               return _productErrorWidget(_errorMessage);
             }
-          } else {
-            if (mounted) {
-              setState(() {
-                _errorMessage = 'Quantity word is missing';
-                speak(_errorMessage);
-              });
-            }
-            return _productErrorWidget(_errorMessage);
           }
         }
       }
@@ -459,7 +429,7 @@ class _HomePageState extends State<HomePage> {
                     });
                   }
                 },
-                child: Container(
+                child: SizedBox(
                   height: MediaQuery.of(context).size.height,
                   width: MediaQuery.of(context).size.width,
                 ),
@@ -1077,6 +1047,11 @@ class _HomePageState extends State<HomePage> {
                     color: Colors.grey,
                     thickness: 1,
                   ),
+
+                  Visibility(
+                      visible: _speechToText.isListening &&
+                          _localDatabase.suggestions.isEmpty,
+                      child: const CircularProgressIndicator()),
                   const SizedBox(height: 8),
                   Provider.of<HomeBillItemProvider>(context)
                           .homeItemForBillRows
@@ -1178,7 +1153,7 @@ class _HomePageState extends State<HomePage> {
                             )
                           : const Center(
                               child: Text(
-                                'No items available',
+                                'No bill items available',
                                 style: TextStyle(color: Colors.grey),
                               ),
                             ),

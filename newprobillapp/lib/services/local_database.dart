@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:dart_phonetics/dart_phonetics.dart';
 import 'package:flutter/material.dart';
 import 'package:fuzzywuzzy/fuzzywuzzy.dart';
 import 'package:newprobillapp/components/api_constants.dart';
@@ -8,7 +9,6 @@ import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'dart:developer';
 
 class LocalDatabase {
   static Database? _db;
@@ -46,6 +46,7 @@ class LocalDatabase {
         '$_unitColumn TEXT)',
       );
     });
+    //database.rawQuery('CREATE NONCLUSTERED INDEX idx_name ON inventory(name)');
     return database;
   }
 
@@ -90,13 +91,13 @@ class LocalDatabase {
         conflictAlgorithm: ConflictAlgorithm.replace,
       );
     }
-    print("objects inserted");
+    //  print("objects inserted");
   }
 
   void clearTable() async {
     Database db = await database;
     await db.delete(_tableName);
-    print('Table cleared');
+    // print('Table cleared');
   }
 
   void clearSuggestions() {
@@ -117,6 +118,7 @@ class LocalDatabase {
     Database db = await database;
     List<Map<String, dynamic>> data = await db.query(_tableName);
     for (var row in data) {
+      // ignore: avoid_print
       print(row);
     }
   }
@@ -164,30 +166,50 @@ class LocalDatabase {
 
     List<String> names = await getNamesFromDatabase(query);
     if (names.isNotEmpty) {
-      // Use an IN clause to avoid multiple queries
       final placeholder = List.generate(names.length, (_) => '?').join(',');
-      //  print("Placeholder: $placeholder");
+
       final result = await db.query(
         _tableName,
         distinct: true,
         where: 'name IN ($placeholder)',
         whereArgs: names,
       );
-      //  print('result: $result');
       data.addAll(result);
     }
     names = await getNamesFromDatabase(newQuery);
     if (names.isNotEmpty) {
-      // Use an IN clause to avoid multiple queries
       final placeholder = List.generate(names.length, (_) => '?').join(',');
-      //  print("Placeholder: $placeholder");
+
       final result = await db.query(
         _tableName,
         distinct: true,
         where: 'name IN ($placeholder)',
         whereArgs: names,
       );
-      //  print('result: $result');
+      data.addAll(result);
+    }
+    names = await getNamesUsingPhonetics(query);
+    if (names.isNotEmpty) {
+      final placeholder = List.generate(names.length, (_) => '?').join(',');
+
+      final result = await db.query(
+        _tableName,
+        distinct: true,
+        where: 'name IN ($placeholder)',
+        whereArgs: names,
+      );
+      data.addAll(result);
+    }
+    names = await getNamesUsingPhonetics(newQuery);
+    if (names.isNotEmpty) {
+      final placeholder = List.generate(names.length, (_) => '?').join(',');
+
+      final result = await db.query(
+        _tableName,
+        distinct: true,
+        where: 'name IN ($placeholder)',
+        whereArgs: names,
+      );
       data.addAll(result);
     }
 
@@ -224,6 +246,22 @@ class LocalDatabase {
         (name) => ratio(name.toLowerCase(), query.toLowerCase()) < 75);
 
     print("Names inside fn: $names");
+    return names;
+  }
+
+  Future<List<String>> getNamesUsingPhonetics(String query) async {
+    Database db = await database;
+
+    List<Map<String, dynamic>> data = await db.query(_tableName);
+    List<String> names = data.map((e) => e['name'] as String).toList();
+
+    final doubleMetaphone = DoubleMetaphone.withMaxLength(24);
+    print("encode: ${doubleMetaphone.encode(query)!.primary}");
+    names.removeWhere((name) =>
+        ratio(doubleMetaphone.encode(query)!.primary,
+            doubleMetaphone.encode(name)!.primary) <
+        50);
+
     return names;
   }
 }
