@@ -18,7 +18,9 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+
 void main() {
+
   runApp(
     MultiProvider(
       providers: [

@@ -139,7 +139,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     initializeData();
-
+    flutterTts.setLanguage("en-IN");
     initSpeech();
   }
 
@@ -235,7 +235,8 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _parseSpeech(String words, bool finalResult) {
-    print(words);
+    string = words;
+    print("words: $words");
     words = words.replaceAllMapped(RegExp(r'([a-zA-Z]+)(\d+)'), (match) {
       return '${match.group(1)} ${match.group(2)}';
     });
@@ -244,7 +245,7 @@ class _HomePageState extends State<HomePage> {
         .replaceAll(RegExp(r'\bquantity\b', caseSensitive: false), '')
         .trim();
     final regex = RegExp(
-        r'^(.*?)(?:\b(\d+|[a-zA-Z]+)\s)?(packs?|bags?|bottles?|boxes?|bundles?|cans?|cartoons?|cartan|grams?|gm|g|kilograms?|kg|litres?|ltr|meters?|ms?|millilitres?|ml|numbers?|pack(?:ets?)?|pairs?|pieces?|rolls?|squarefeet|sqf|squarefeets?|squaremeters?|m)\b',
+        r'^(.*?)\s+(\d+|[a-zA-Z]+)?\s?(packs?|bags?|bottles?|boxes?|bundles?|cans?|cartoons?|cartan|grams?|gm|g|kilograms?|kg|litres?|ltr|meters?|ms?|millilitres?|ml|numbers?|pack(?:ets?)?|pairs?|pieces?|rolls?|squarefeet|sqf|squarefeets?|squaremeters?|m)\b',
         caseSensitive: false);
     Match? match = regex.firstMatch(words);
 
@@ -253,8 +254,8 @@ class _HomePageState extends State<HomePage> {
       String quantity = match.group(2) ?? "";
       String unitOfQuantity = match.group(3) ?? "";
       product = product.replaceAll(RegExp(r'\b\d+\b'), '').trim();
-      print(
-          "product: $product, quantity: $quantity, unitOfQuantity: $unitOfQuantity");
+      // print(
+      //     "product: $product, quantity: $quantity, unitOfQuantity: $unitOfQuantity");
 
       _localDatabase.searchDatabase(product);
 
@@ -264,44 +265,44 @@ class _HomePageState extends State<HomePage> {
 
       spokenUnit = unitOfQuantity;
 
-      Future.delayed(const Duration(seconds: 1), () {
+      Future.delayed(const Duration(milliseconds: 200), () {
         if (mounted) setState(() {});
       });
 
-      if (product.isEmpty) {
-        if (mounted) {
-          setState(() {
-            _errorMessage = 'Product is missing';
-            speak(_errorMessage);
-          });
-        }
-        return _productErrorWidget(_errorMessage);
-      }
-      if (quantity.isEmpty) {
-        if (mounted) {
-          setState(() {
-            _errorMessage = 'Quantity is missing';
-            speak(_errorMessage);
-          });
-        }
-        return _productErrorWidget(_errorMessage);
-      }
-      if (unitOfQuantity.isEmpty) {
-        if (mounted) {
-          setState(() {
-            _errorMessage = 'Unit is missing';
-            speak(_errorMessage);
-          });
-        }
-        return _productErrorWidget(_errorMessage);
-      }
       Future.delayed(const Duration(seconds: 1), () {
-        if (_localDatabase.suggestions.isEmpty &&
-            _nameController.text.isEmpty) {
-          // print('Product Not Available');
-          speak('Product Not Available');
+        if (product.isEmpty) {
+          if (mounted) {
+            setState(() {
+              _errorMessage = 'Product is missing';
+              speak(_errorMessage);
+            });
+          }
+          return _productErrorWidget(_errorMessage);
+        }
+        if (quantity.isEmpty) {
+          if (mounted) {
+            setState(() {
+              _errorMessage = 'Quantity is missing';
+              speak(_errorMessage);
+            });
+          }
+          return _productErrorWidget(_errorMessage);
+        }
+        if (unitOfQuantity.isEmpty) {
+          if (mounted) {
+            setState(() {
+              _errorMessage = 'Unit is missing';
+              speak(_errorMessage);
+            });
+          }
+          return _productErrorWidget(_errorMessage);
         }
       });
+
+      if (_localDatabase.suggestions.isEmpty && _nameController.text.isEmpty) {
+        // print('Product Not Available');
+        speak('Product Not Available');
+      }
 
       if (mounted) {
         setState(
@@ -424,7 +425,7 @@ class _HomePageState extends State<HomePage> {
                       _quantityController.clear();
                       _nameController.clear();
                       isInputThroughText ? _nameFocusNode.nextFocus() : null;
-
+                      _stopListening();
                       // print('dropdown: $_dropdownItemsQuantity');
                     });
                   }
@@ -841,14 +842,14 @@ class _HomePageState extends State<HomePage> {
         selectedIndex: _selectedIndex,
       ),
       appBar: AppBar(
-        title: const Text('Probill'),
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        title: Text(string != "" ? string : "Probill"),
       ),
       body: SingleChildScrollView(
         child: GestureDetector(
           onTap: () {
             _nameFocusNode.unfocus();
             _quantityFocusNode.unfocus();
+            _stopListening();
           },
           child: Padding(
             padding: const EdgeInsets.all(8.0),
@@ -860,7 +861,7 @@ class _HomePageState extends State<HomePage> {
                     child: Internetchecker(),
                   ),
                   _errorWidgetView(lastError, isquantityavailable),
-                  // Text(textToDisplay),
+                  // Text(textToDondsplay),
                   TextField(
                     onChanged: (m) {
                       _localDatabase.searchDatabase(_nameController.text);
@@ -1048,10 +1049,6 @@ class _HomePageState extends State<HomePage> {
                     thickness: 1,
                   ),
 
-                  Visibility(
-                      visible: _speechToText.isListening &&
-                          _localDatabase.suggestions.isEmpty,
-                      child: const CircularProgressIndicator()),
                   const SizedBox(height: 8),
                   Provider.of<HomeBillItemProvider>(context)
                           .homeItemForBillRows

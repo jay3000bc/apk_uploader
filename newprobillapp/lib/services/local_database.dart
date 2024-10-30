@@ -37,14 +37,13 @@ class LocalDatabase {
     final databasePath = join(databaseDirectoryPath, 'probill_inventory.db');
     final database =
         await openDatabase(databasePath, version: 1, onCreate: (db, version) {
-      db.execute(
-        'CREATE TABLE $_tableName('
-        '$_idColumn INTEGER PRIMARY KEY,'
-        '$_itemIDColumn INTEGER,'
-        '$_nameColumn TEXT,'
-        '$_quantityColumn INTEGER,'
-        '$_unitColumn TEXT)',
-      );
+      db.execute('CREATE VIRTUAL TABLE $_tableName USING fts4('
+          '$_idColumn, ' // Primary key for identification (doesn't need INTEGER PRIMARY KEY with FTS)
+          '$_itemIDColumn UNINDEXED, ' // Adding UNINDEXED to skip FTS indexing if search isn’t needed on this column
+          '$_nameColumn, ' // Searchable text column
+          '$_quantityColumn UNINDEXED, ' // Optional: exclude if not searching quantities
+          '$_unitColumn ' // Searchable unit column
+          ');');
     });
     //database.rawQuery('CREATE NONCLUSTERED INDEX idx_name ON inventory(name)');
     return database;
@@ -124,87 +123,47 @@ class LocalDatabase {
   }
 
   Future<List<LocalDatabaseModel>> searchDatabase(String query) async {
-    if (query.isEmpty) {
-      return [];
-    }
+    if (query.isEmpty) return [];
 
-    //final _result =
-
-    List<String> splitQuery = query.split(' ');
-    for (int i = 0; i < splitQuery.length; i++) {
-      String word = splitQuery[i];
+    // Helper function to remove duplicate letters within words
+    String removeDuplicateLetters(String word) {
       String newWord = '';
-      for (int j = 0; j < word.length; j++) {
-        if (j == 0 || word[j] != word[j - 1]) {
-          newWord += word[j];
+      for (int i = 0; i < word.length; i++) {
+        if (i == 0 || word[i] != word[i - 1]) {
+          newWord += word[i];
         }
       }
-      splitQuery[i] = newWord;
+      return newWord;
     }
-    String newQuery = splitQuery.join(' ');
-    // print('search Database hit');
 
+    // Prepare original and modified query strings
+    List<String> splitQuery = query.split(' ');
+    String newQuery = splitQuery.map(removeDuplicateLetters).join(' ');
+
+    // print("newquery:$newQuery");
+    // print("splitquery:$splitQuery");
     Database db = await database;
     List<Map<String, dynamic>> data = [];
 
+    // Perform a single MATCH query with both original and modified query
     List<Map<String, dynamic>> result = await db.query(
       _tableName,
       distinct: true,
-      where: 'name LIKE ?',
-      whereArgs: ["%$query%"],
+      where: 'name LIKE ? OR name LIKE ?',
+      whereArgs: ["%$query%", "%$newQuery%"],
     );
-
-    data.addAll(result);
-    result = await db.query(
-      _tableName,
-      distinct: true,
-      where: 'name LIKE ?',
-      whereArgs: ["%$newQuery%"],
-    );
-
     data.addAll(result);
 
-    List<String> names = await getNamesFromDatabase(query);
+    // Combine phonetic matches to reduce redundant queries
+    List<String> names = [
+      ...await getNamesUsingPhonetics(query),
+      ...await getNamesUsingPhonetics(newQuery)
+    ];
+    names = names.toSet().toList(); // Ensure unique names
+
     if (names.isNotEmpty) {
       final placeholder = List.generate(names.length, (_) => '?').join(',');
-
-      final result = await db.query(
-        _tableName,
-        distinct: true,
-        where: 'name IN ($placeholder)',
-        whereArgs: names,
-      );
-      data.addAll(result);
-    }
-    names = await getNamesFromDatabase(newQuery);
-    if (names.isNotEmpty) {
-      final placeholder = List.generate(names.length, (_) => '?').join(',');
-
-      final result = await db.query(
-        _tableName,
-        distinct: true,
-        where: 'name IN ($placeholder)',
-        whereArgs: names,
-      );
-      data.addAll(result);
-    }
-    names = await getNamesUsingPhonetics(query);
-    if (names.isNotEmpty) {
-      final placeholder = List.generate(names.length, (_) => '?').join(',');
-
-      final result = await db.query(
-        _tableName,
-        distinct: true,
-        where: 'name IN ($placeholder)',
-        whereArgs: names,
-      );
-      data.addAll(result);
-    }
-    names = await getNamesUsingPhonetics(newQuery);
-    if (names.isNotEmpty) {
-      final placeholder = List.generate(names.length, (_) => '?').join(',');
-
-      final result = await db.query(
+      result = await db.query(
         _tableName,
         distinct: true,
         where: 'name IN ($placeholder)',
@@ -213,40 +172,46 @@ class LocalDatabase {
       data.addAll(result);
     }
 
+    // Map results to LocalDatabaseModel and remove duplicates by itemId
+    final ids = <int>{};
     suggestions = data
-        .map(
-          (e) => LocalDatabaseModel(
-            id: e["id"] as int,
-            itemId: e["itemId"] as int,
-            quantity: int.tryParse(e["quantity"].toString()) ?? 0,
-            name: e["name"] as String,
-            unit: e["unit"] as String,
-          ),
-        )
+        .map((e) => LocalDatabaseModel(
+              itemId: e["itemId"] as int,
+              quantity: int.tryParse(e["quantity"].toString()) ?? 0,
+              name: e["name"] as String,
+              unit: e["unit"] as String,
+            ))
+        .where((suggestion) => ids.add(suggestion.itemId))
         .toList();
 
-    final ids = <int>{}; // Create a Set to track unique ids
-    suggestions = suggestions.where((suggestion) {
-      // If the id is not in the set, add it and include the suggestion
-      return ids.add(suggestion.id);
-    }).toList();
+    // Sort suggestions based on relevance to the query
+    suggestions.sort((a, b) {
+      final nameA = a.name.toLowerCase();
+      final nameB = b.name.toLowerCase();
+      final queryLower = query.toLowerCase();
 
-    // print('Suggestions: $suggestions');
+      // Prioritize items that start with the query
+      final startsWithQueryA = nameA.startsWith(queryLower) ? 1 : 0;
+      final startsWithQueryB = nameB.startsWith(queryLower) ? 1 : 0;
+
+      if (startsWithQueryA != startsWithQueryB) {
+        return startsWithQueryB.compareTo(
+            startsWithQueryA); // Higher priority to those that start with the query
+      }
+
+      // Next, prioritize items that contain the query as a substring
+      final containsQueryA = nameA.contains(queryLower) ? 1 : 0;
+      final containsQueryB = nameB.contains(queryLower) ? 1 : 0;
+
+      if (containsQueryA != containsQueryB) {
+        return containsQueryB.compareTo(containsQueryA);
+      }
+
+      // Finally, as a tiebreaker, sort alphabetically
+      return nameA.compareTo(nameB);
+    });
+
     return suggestions;
-  }
-
-  Future<List<String>> getNamesFromDatabase(query) async {
-    Database db = await database;
-
-    List<Map<String, dynamic>> data = await db.query(_tableName);
-
-    List<String> names = data.map((e) => e['name'] as String).toList();
-
-    names.removeWhere(
-        (name) => ratio(name.toLowerCase(), query.toLowerCase()) < 75);
-
-    print("Names inside fn: $names");
-    return names;
   }
 
   Future<List<String>> getNamesUsingPhonetics(String query) async {
@@ -256,12 +221,76 @@ class LocalDatabase {
     List<String> names = data.map((e) => e['name'] as String).toList();
 
     final doubleMetaphone = DoubleMetaphone.withMaxLength(24);
-    print("encode: ${doubleMetaphone.encode(query)!.primary}");
-    names.removeWhere((name) =>
-        ratio(doubleMetaphone.encode(query)!.primary,
-            doubleMetaphone.encode(name)!.primary) <
-        50);
+    final queryEncoded = doubleMetaphone.encode(query)?.primary;
 
+    if (queryEncoded != null) {
+      print("Encoded Query: $queryEncoded");
+
+      names.removeWhere((name) {
+        // Split the name into individual words
+        final words = name.split(' ');
+
+        // Check if any word in `name` matches the query phonetically
+        bool hasMatch = words.any((word) {
+          final wordEncoded = doubleMetaphone.encode(word)?.primary;
+          return wordEncoded != null && ratio(queryEncoded, wordEncoded) >= 78;
+        });
+
+        return !hasMatch; // Remove `name` if no words match the query
+      });
+    } else {
+      print("Error: Query encoding failed.");
+    }
+
+    // print(" names using phonetics : $names");
     return names;
   }
 }
+ //List<String> names = await getNamesFromDatabase(query);
+    // if (names.isNotEmpty) {
+    //   final placeholder = List.generate(names.length, (_) => '?').join(',');
+
+    //   final result = await db.query(
+    //     _tableName,
+    //     distinct: true,
+    //     where: 'name IN ($placeholder)',
+    //     whereArgs: names,
+    //   );
+    //   data.addAll(result);
+    // }
+    // names = await getNamesFromDatabase(newQuery);
+    // if (names.isNotEmpty) {
+    //   final placeholder = List.generate(names.length, (_) => '?').join(',');
+
+    //   final result = await db.query(
+    //     _tableName,
+    //     distinct: true,
+    //     where: 'name IN ($placeholder)',
+    //     whereArgs: names,
+    //   );
+    //   data.addAll(result);
+    // }
+
+     // Future<List<String>> getNamesFromDatabase(String query) async {
+  //   Database db = await database;
+
+  //   List<Map<String, dynamic>> data = await db.query(_tableName);
+
+  //   List<String> names = data.map((e) => e['name'] as String).toList();
+
+  //   // Lowercase the query for case-insensitive comparison
+  //   final queryLower = query.toLowerCase();
+
+  //   names.removeWhere((name) {
+  //     // Split `name` into words and lowercase them
+  //     final words = name.toLowerCase().split(' ');
+
+  //     // Check if any word in `name` meets the ratio threshold with `query`
+  //     bool hasMatch = words.any((word) => ratio(word, queryLower) >= 75);
+
+  //     return !hasMatch; // Remove `name` if no words match the query
+  //   });
+
+  //   print("Names inside fn: $names");
+  //   return names;
+  // }
