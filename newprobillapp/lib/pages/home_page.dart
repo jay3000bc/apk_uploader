@@ -135,11 +135,14 @@ class _HomePageState extends State<HomePage> {
   //GlobalKey<AutoCompleteTextFieldState<String>> quantityKey = GlobalKey();
   String _errorMessage = '';
 
+  Map? currentVoice;
+  List<Map>? voices;
+
   @override
   void initState() {
     super.initState();
     initializeData();
-    flutterTts.setLanguage("en-IN");
+    initTTS();
     initSpeech();
   }
 
@@ -164,6 +167,31 @@ class _HomePageState extends State<HomePage> {
     setState(() {});
   }
 
+  void initTTS() {
+    flutterTts.getVoices.then((value) {
+      try {
+        voices = List<Map>.from(value);
+
+        // print(voices);
+
+        setState(() {
+          voices = voices!
+              .where((element) => element['locale'].contains('en'))
+              .toList();
+          print(voices);
+          currentVoice = voices![0];
+          setVoice(currentVoice!);
+        });
+      } catch (e) {
+        print(e);
+      }
+    });
+  }
+
+  void setVoice(Map voice) {
+    flutterTts.setVoice({"name": voice['name'], "locale": voice['locale']});
+  }
+
   void initializeData() async {
     token = await APIService.getToken();
   }
@@ -174,7 +202,7 @@ class _HomePageState extends State<HomePage> {
 
     await _speechToText.listen(
       onResult: resultListener,
-      pauseFor: const Duration(seconds: 10),
+      pauseFor: const Duration(seconds: 5),
       listenOptions: SpeechListenOptions(
         enableHapticFeedback: true,
         partialResults: true,
@@ -234,128 +262,54 @@ class _HomePageState extends State<HomePage> {
     await flutterTts.speak(errorAnnounce);
   }
 
-  Widget _parseSpeech(String words, bool finalResult) {
+  _parseSpeech(String words, bool finalResult) {
     string = words;
     print("words: $words");
+    print("finalResult: $finalResult");
+
+    // Separate letters and numbers in combined words (e.g., abc123 -> abc 123)
     words = words.replaceAllMapped(RegExp(r'([a-zA-Z]+)(\d+)'), (match) {
       return '${match.group(1)} ${match.group(2)}';
     });
-    print("new words: $words");
+
+    // Remove specific keywords and trim whitespace
     words = words
         .replaceAll(RegExp(r'\bquantity\b', caseSensitive: false), '')
         .trim();
     final regex = RegExp(
-        r'^(.*?)\s+(\d+|[a-zA-Z]+)?\s?(packs?|bags?|bottles?|boxes?|bundles?|cans?|cartoons?|cartan|grams?|gm|g|kilograms?|kg|litres?|ltr|meters?|ms?|millilitres?|ml|numbers?|pack(?:ets?)?|pairs?|pieces?|rolls?|squarefeet|sqf|squarefeets?|squaremeters?|m)\b',
+        r'^(.*?)\s+(\d+|[a-zA-Z]+)?\s?(packs?|bags?|bottles?|boxes?|bundles?|cans?|cartoons?|cartan|grams?|gm|g|kilograms?|kgs?|kilo|litres?|ltr|meters?|ms?|millilitres?|ml|numbers?|pack(?:ets?)?|pairs?|pieces?|rolls?|squarefeet|sqf|squarefeets?|squaremeters?|m)\b',
         caseSensitive: false);
-    Match? match = regex.firstMatch(words);
 
-    if (match != null) {
-      String product = match.group(1) ?? "";
-      String quantity = match.group(2) ?? "";
-      String unitOfQuantity = match.group(3) ?? "";
-      product = product.replaceAll(RegExp(r'\b\d+\b'), '').trim();
-      // print(
-      //     "product: $product, quantity: $quantity, unitOfQuantity: $unitOfQuantity");
+    Match? match;
+    if (words != "") {
+      match = regex.firstMatch(words);
+    }
 
-      _localDatabase.searchDatabase(product);
+    String product = match?.group(1) ?? words;
+    String quantity = match?.group(2) ?? "one";
+    String unitOfQuantity = match?.group(3) ?? "";
 
-      text2num(quantity);
-      extractAndCombineNumbers(text2num(quantity).toString());
-      isInputThroughText = false;
+    print("product: $product");
+    print("quantity: $quantity");
+    print("unit: $unitOfQuantity");
+    product = product.replaceAll(RegExp(r'\b\d+\b'), '').trim();
 
-      spokenUnit = unitOfQuantity;
+    _localDatabase.searchDatabase(product);
 
-      Future.delayed(const Duration(milliseconds: 200), () {
-        if (mounted) setState(() {});
-      });
+    text2num(quantity);
+    extractAndCombineNumbers(text2num(quantity).toString());
+    isInputThroughText = false;
 
-      Future.delayed(const Duration(seconds: 1), () {
-        if (product.isEmpty) {
-          if (mounted) {
-            setState(() {
-              _errorMessage = 'Product is missing';
-              speak(_errorMessage);
-            });
-          }
-          return _productErrorWidget(_errorMessage);
-        }
-        if (quantity.isEmpty) {
-          if (mounted) {
-            setState(() {
-              _errorMessage = 'Quantity is missing';
-              speak(_errorMessage);
-            });
-          }
-          return _productErrorWidget(_errorMessage);
-        }
-        if (unitOfQuantity.isEmpty) {
-          if (mounted) {
-            setState(() {
-              _errorMessage = 'Unit is missing';
-              speak(_errorMessage);
-            });
-          }
-          return _productErrorWidget(_errorMessage);
-        }
-      });
+    spokenUnit = unitOfQuantity;
 
-      if (_localDatabase.suggestions.isEmpty && _nameController.text.isEmpty) {
-        // print('Product Not Available');
+    Future.delayed(const Duration(milliseconds: 500), () {
+      if (mounted) setState(() {});
+      print("suggestions is empty: ${_localDatabase.suggestions.isEmpty}");
+      if (_localDatabase.suggestions.isEmpty && finalResult == true) {
+        print('Product Not Available');
         speak('Product Not Available');
       }
-
-      if (mounted) {
-        setState(
-          () {
-            _errorMessage = ''; // Clear error message on successful parsing
-          },
-        );
-      }
-    } else {
-      if (words.isNotEmpty) {
-        if (finalResult == true) {
-          if (words.contains('quantity')) {
-            if (words.startsWith('quantity')) {
-              if (mounted) {
-                setState(() {
-                  _errorMessage = 'Product is missing';
-                  speak(_errorMessage);
-                });
-              }
-              return _productErrorWidget(_errorMessage);
-            } else if (words.endsWith('quantity')) {
-              if (mounted) {
-                setState(() {
-                  _errorMessage = 'Quantity and unit are missing';
-                  speak(_errorMessage);
-                });
-              }
-              return _productErrorWidget(_errorMessage);
-            } else {
-              if (mounted) {
-                setState(() {
-                  _errorMessage = 'unit is missing';
-                  speak(_errorMessage);
-                });
-              }
-              return _productErrorWidget(_errorMessage);
-            }
-          }
-        }
-      }
-    }
-    if (mounted) setState(() {});
-    return _productErrorWidget('');
-  }
-
-  Widget _productErrorWidget(error) {
-    return Align(
-        alignment: Alignment.center,
-        child: Text(
-          'Error: $error',
-          style:
-              const TextStyle(color: Colors.red, fontWeight: FontWeight.bold),
-        ));
+    });
   }
 
   void deleteProductFromTable(int index) {
@@ -470,7 +424,9 @@ class _HomePageState extends State<HomePage> {
                           trailing: isInputThroughText
                               ? Text(
                                   "${suggestion.quantity} ${suggestion.unit}")
-                              : Text("$quantity $spokenUnit"),
+                              : spokenUnit == ""
+                                  ? Text("$quantity ${suggestion.unit}")
+                                  : Text("$quantity $spokenUnit"),
                           onTap: () {
                             _stopListening();
                             if (mounted) {
@@ -825,6 +781,7 @@ class _HomePageState extends State<HomePage> {
           ? null
           : InkWell(
               onTap: () {
+                _localDatabase.suggestions.clear();
                 _speechToText.isListening
                     ? _stopListening()
                     : _startListening();
@@ -841,9 +798,23 @@ class _HomePageState extends State<HomePage> {
         },
         selectedIndex: _selectedIndex,
       ),
-      appBar: AppBar(
-        title: Text(string != "" ? string : "Probill"),
-      ),
+      appBar: AppBar(title: Text(string != "" ? string : "Probill"), actions: [
+        DropdownButton(
+          value: currentVoice,
+          items: voices
+              ?.map((voice) => DropdownMenuItem(
+                    value: voice,
+                    child: Text(voice['name']),
+                  ))
+              .toList(),
+          onChanged: (value) {
+            setState(() {
+              currentVoice = value;
+              setVoice(currentVoice!);
+            });
+          },
+        )
+      ]),
       body: SingleChildScrollView(
         child: GestureDetector(
           onTap: () {

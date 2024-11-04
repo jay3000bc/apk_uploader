@@ -125,23 +125,8 @@ class LocalDatabase {
   Future<List<LocalDatabaseModel>> searchDatabase(String query) async {
     if (query.isEmpty) return [];
 
-    // Helper function to remove duplicate letters within words
-    String removeDuplicateLetters(String word) {
-      String newWord = '';
-      for (int i = 0; i < word.length; i++) {
-        if (i == 0 || word[i] != word[i - 1]) {
-          newWord += word[i];
-        }
-      }
-      return newWord;
-    }
-
-    // Prepare original and modified query strings
     List<String> splitQuery = query.split(' ');
-    String newQuery = splitQuery.map(removeDuplicateLetters).join(' ');
 
-    // print("newquery:$newQuery");
-    // print("splitquery:$splitQuery");
     Database db = await database;
     List<Map<String, dynamic>> data = [];
 
@@ -149,16 +134,22 @@ class LocalDatabase {
     List<Map<String, dynamic>> result = await db.query(
       _tableName,
       distinct: true,
+      where: 'name MATCH ? OR name MATCH ?',
+      whereArgs: [query],
+      limit: 20,
+    );
+    data.addAll(result);
+    result = await db.query(
+      _tableName,
+      distinct: true,
       where: 'name LIKE ? OR name LIKE ?',
-      whereArgs: ["%$query%", "%$newQuery%"],
+      whereArgs: ["%$query%"],
+      limit: 20,
     );
     data.addAll(result);
 
-    // Combine phonetic matches to reduce redundant queries
-    List<String> names = [
-      ...await getNamesUsingPhonetics(query),
-      ...await getNamesUsingPhonetics(newQuery)
-    ];
+    List<String> names = await getNamesUsingPhonetics(query);
+
     names = names.toSet().toList(); // Ensure unique names
 
     if (names.isNotEmpty) {
@@ -168,11 +159,40 @@ class LocalDatabase {
         distinct: true,
         where: 'name IN ($placeholder)',
         whereArgs: names,
+        limit: 20,
       );
       data.addAll(result);
     }
 
     // Map results to LocalDatabaseModel and remove duplicates by itemId
+
+    // If no suggestions found, search with individual words from the query
+    if (data.isEmpty && splitQuery.length > 1) {
+      // print("Split Query: $splitQuery");
+      for (String word in splitQuery) {
+        if (word.isEmpty) continue;
+
+        List<Map<String, dynamic>> wordResult = await db.query(
+          _tableName,
+          distinct: true,
+          where: 'name MATCH ?',
+          whereArgs: ["%$word%"],
+          // limit: 20,
+        );
+        data.addAll(wordResult);
+
+        wordResult = await db.query(
+          _tableName,
+          distinct: true,
+          where: 'name LIKE ?',
+          whereArgs: ["%$word%"],
+          // limit: 20,
+        );
+        data.addAll(wordResult);
+      }
+
+      // Remove duplicates again after individual word search
+    }
     final ids = <int>{};
     suggestions = data
         .map((e) => LocalDatabaseModel(
@@ -185,12 +205,13 @@ class LocalDatabase {
         .toList();
 
     // Sort suggestions based on relevance to the query
+    // Sort suggestions based on relevance to the query
     suggestions.sort((a, b) {
       final nameA = a.name.toLowerCase();
       final nameB = b.name.toLowerCase();
       final queryLower = query.toLowerCase();
 
-      // Prioritize items that start with the query
+      // Highest priority: Items that start with the query
       final startsWithQueryA = nameA.startsWith(queryLower) ? 1 : 0;
       final startsWithQueryB = nameB.startsWith(queryLower) ? 1 : 0;
 
@@ -199,15 +220,31 @@ class LocalDatabase {
             startsWithQueryA); // Higher priority to those that start with the query
       }
 
-      // Next, prioritize items that contain the query as a substring
+      // Next priority: Items where the query appears as a standalone word
+      final wholeWordMatchA =
+          RegExp(r'\b' + RegExp.escape(queryLower) + r'\b').hasMatch(nameA)
+              ? 1
+              : 0;
+      final wholeWordMatchB =
+          RegExp(r'\b' + RegExp.escape(queryLower) + r'\b').hasMatch(nameB)
+              ? 1
+              : 0;
+
+      if (wholeWordMatchA != wholeWordMatchB) {
+        return wholeWordMatchB.compareTo(
+            wholeWordMatchA); // Higher priority to standalone word matches
+      }
+
+      // Next priority: Items that contain the query as a substring
       final containsQueryA = nameA.contains(queryLower) ? 1 : 0;
       final containsQueryB = nameB.contains(queryLower) ? 1 : 0;
 
       if (containsQueryA != containsQueryB) {
-        return containsQueryB.compareTo(containsQueryA);
+        return containsQueryB
+            .compareTo(containsQueryA); // Higher priority to substring matches
       }
 
-      // Finally, as a tiebreaker, sort alphabetically
+      // Final priority: Alphabetical order as a tiebreaker
       return nameA.compareTo(nameB);
     });
 
@@ -233,7 +270,7 @@ class LocalDatabase {
         // Check if any word in `name` matches the query phonetically
         bool hasMatch = words.any((word) {
           final wordEncoded = doubleMetaphone.encode(word)?.primary;
-          return wordEncoded != null && ratio(queryEncoded, wordEncoded) >= 78;
+          return wordEncoded != null && ratio(queryEncoded, wordEncoded) >= 80;
         });
 
         return !hasMatch; // Remove `name` if no words match the query
