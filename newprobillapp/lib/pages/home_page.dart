@@ -190,6 +190,7 @@ class _HomePageState extends State<HomePage> {
 
   void setVoice(Map voice) {
     flutterTts.setVoice({"name": voice['name'], "locale": voice['locale']});
+    flutterTts.speak("This is my voice?");
   }
 
   void initializeData() async {
@@ -201,6 +202,7 @@ class _HomePageState extends State<HomePage> {
     print("Start Listening");
 
     await _speechToText.listen(
+      localeId: 'en-IN',
       onResult: resultListener,
       pauseFor: const Duration(seconds: 5),
       listenOptions: SpeechListenOptions(
