@@ -800,23 +800,29 @@ class _HomePageState extends State<HomePage> {
         },
         selectedIndex: _selectedIndex,
       ),
-      appBar: AppBar(title: Text(string != "" ? string : "Probill"), actions: [
-        DropdownButton(
-          value: currentVoice,
-          items: voices
-              ?.map((voice) => DropdownMenuItem(
-                    value: voice,
-                    child: Text(voice['name']),
-                  ))
-              .toList(),
-          onChanged: (value) {
-            setState(() {
-              currentVoice = value;
-              setVoice(currentVoice!);
-            });
-          },
-        )
-      ]),
+      appBar: AppBar(
+        title: Text(
+          string != "" ? string : "Probill",
+          style: TextStyle(fontSize: 18),
+        ),
+        // actions: [
+        //   DropdownButton(
+        //     value: currentVoice,
+        //     items: voices
+        //         ?.map((voice) => DropdownMenuItem(
+        //               value: voice,
+        //               child: Text(voice['name']),
+        //             ))
+        //         .toList(),
+        //     onChanged: (value) {
+        //       setState(() {
+        //         currentVoice = value;
+        //         setVoice(currentVoice!);
+        //       });
+        //     },
+        //   )
+        // ],
+      ),
       body: SingleChildScrollView(
         child: GestureDetector(
           onTap: () {
