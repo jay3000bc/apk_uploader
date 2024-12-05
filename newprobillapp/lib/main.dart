@@ -7,7 +7,8 @@ import 'package:newprobillapp/pages/home_page.dart';
 import 'package:newprobillapp/pages/login_page.dart';
 import 'package:newprobillapp/services/api_services.dart';
 import 'package:newprobillapp/services/home_bill_item_provider.dart';
-import 'package:newprobillapp/services/local_database.dart';
+// import 'package:newprobillapp/services/local_database.dart';
+import 'package:newprobillapp/services/local_database_2.dart';
 import 'package:newprobillapp/services/product_mic_state.dart';
 import 'package:newprobillapp/services/quantity_mic_state.dart';
 import 'package:newprobillapp/services/refund_bill_item_provider.dart';
@@ -18,9 +19,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-
 void main() {
-
   runApp(
     MultiProvider(
       providers: [
@@ -130,8 +129,8 @@ class _SplashScreenState extends State<SplashScreen> {
         _navigateToLoginScreen();
       } else if (statusReturnCode == 200) {
         print('statusCode: $statusReturnCode');
-        LocalDatabase.instance.clearTable();
-        LocalDatabase.instance.fetchDataAndStoreLocally();
+        LocalDatabase2.instance.clearTable();
+        LocalDatabase2.instance.fetchDataAndStoreLocally();
         _navigateToSearchApp();
         await _setLoggedInStatus(true); // Ensure this is awaited
       } else {

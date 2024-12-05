@@ -4,7 +4,8 @@ import 'package:newprobillapp/components/sidebar.dart';
 import 'package:newprobillapp/pages/add_product.dart';
 import 'package:newprobillapp/pages/edit_product.dart';
 import 'package:newprobillapp/services/internet_checker.dart';
-import 'package:newprobillapp/services/local_database.dart';
+// import 'package:newprobillapp/services/local_database.dart';
+import 'package:newprobillapp/services/local_database_2.dart';
 
 
 class ProductListPage extends StatefulWidget {
@@ -36,7 +37,7 @@ class _ProductListPageState extends State<ProductListPage> {
     });
     try {
       // Fetch all data from local SQLite database
-      final db = await LocalDatabase.instance.database;
+      final db = await LocalDatabase2.instance.database;
       final List<Map<String, dynamic>> data = await db.query('inventory');
 
       setState(() {

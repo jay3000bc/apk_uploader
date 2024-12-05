@@ -11,7 +11,8 @@ import 'package:newprobillapp/components/sidebar.dart';
 import 'package:newprobillapp/pages/home_page.dart';
 import 'package:newprobillapp/pages/login_page.dart';
 import 'package:newprobillapp/services/api_services.dart';
-import 'package:newprobillapp/services/local_database.dart';
+// import 'package:newprobillapp/services/local_database.dart';
+import 'package:newprobillapp/services/local_database_2.dart';
 import 'package:newprobillapp/services/result.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -711,8 +712,8 @@ class _AddInventoryState extends State<AddInventory> {
                     rateOneValueController.clear();
                     rateTwoValueController.clear();
                     setState(() {
-                      LocalDatabase.instance.clearTable();
-                      LocalDatabase.instance.fetchDataAndStoreLocally();
+                      LocalDatabase2.instance.clearTable();
+                      LocalDatabase2.instance.fetchDataAndStoreLocally();
                     });
                     Navigator.of(context).pop(); // Close dialog
                   },

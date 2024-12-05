@@ -7,7 +7,8 @@ import 'package:newprobillapp/components/api_constants.dart';
 import 'package:newprobillapp/pages/forgot_password_page.dart';
 import 'package:newprobillapp/pages/home_page.dart';
 import 'package:newprobillapp/pages/sign_up_page.dart';
-import 'package:newprobillapp/services/local_database.dart';
+//import 'package:newprobillapp/services/local_database.dart';
+import 'package:newprobillapp/services/local_database_2.dart';
 import 'package:newprobillapp/services/result.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -25,7 +26,7 @@ class _LoginPageState extends State<LoginPage> {
   TextEditingController passwordController = TextEditingController();
   final FocusNode _phoneNumberFocusNode = FocusNode();
   final FocusNode _passwordFocusNode = FocusNode();
-  LocalDatabase _localDatabase = LocalDatabase.instance;
+  LocalDatabase2 _localDatabase = LocalDatabase2.instance;
 
   final _formKey = GlobalKey<FormState>();
   @override
@@ -366,8 +367,8 @@ class _LoginPageState extends State<LoginPage> {
         MaterialPageRoute(builder: (context) => const HomePage()),
       );
       Timer.periodic(const Duration(seconds: 1), (timer) {
-        LocalDatabase.instance.clearTable();
-        LocalDatabase.instance.fetchDataAndStoreLocally();
+        _localDatabase.clearTable();
+        _localDatabase.fetchDataAndStoreLocally();
 
         if (timer.tick == 1) {
           timer.cancel();

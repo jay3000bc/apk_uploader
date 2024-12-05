@@ -12,7 +12,8 @@ import 'package:newprobillapp/components/microphone_button.dart';
 import 'package:newprobillapp/services/api_services.dart';
 import 'package:newprobillapp/services/home_bill_item_provider.dart';
 import 'package:newprobillapp/services/internet_checker.dart';
-import 'package:newprobillapp/services/local_database.dart';
+//import 'package:newprobillapp/services/local_database.dart';
+import 'package:newprobillapp/services/local_database_2.dart';
 import 'package:newprobillapp/services/result.dart';
 import 'package:newprobillapp/services/text_to_num.dart';
 import 'package:provider/provider.dart';
@@ -39,7 +40,7 @@ class _HomePageState extends State<HomePage> {
   bool _speechEnabled = false;
   String string = '';
   double confidence = 0;
-  final _localDatabase = LocalDatabase.instance;
+  final _localDatabase = LocalDatabase2.instance;
   bool searching = false;
   bool isInputThroughText = false;
   String itemId = '';
