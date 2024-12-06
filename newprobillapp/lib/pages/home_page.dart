@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -7,6 +8,7 @@ import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:newprobillapp/components/api_constants.dart';
 import 'package:newprobillapp/components/bill_widget.dart';
 import 'package:newprobillapp/components/bottom_navigation_bar.dart';
+import 'package:newprobillapp/components/quantity_modal_bottom_sheet.dart';
 import 'package:newprobillapp/components/sidebar.dart';
 import 'package:newprobillapp/components/microphone_button.dart';
 import 'package:newprobillapp/services/api_services.dart';
@@ -63,7 +65,7 @@ class _HomePageState extends State<HomePage> {
   bool wasListening = false;
 
   final FocusNode _searchFocus = FocusNode();
-
+  bool? quantityPopup;
   bool shouldOpenDropdown = false;
   //QuickSellSuggestionModel? newItems;
 
@@ -135,7 +137,7 @@ class _HomePageState extends State<HomePage> {
   String quantitySelectedValue = '';
   //GlobalKey<AutoCompleteTextFieldState<String>> quantityKey = GlobalKey();
   String _errorMessage = '';
-
+  var listQuantity = 1;
   Map? currentVoice;
   List<Map>? voices;
 
@@ -190,8 +192,10 @@ class _HomePageState extends State<HomePage> {
   }
 
   void setVoice(Map voice) {
-    flutterTts.setVoice({"name": voice['name'], "locale": voice['locale']});
-    flutterTts.speak("This is my voice?");
+    Platform.isAndroid
+        ? flutterTts.setVoice({"name": "en-in-x-cxx-local"})
+        : flutterTts.setVoice({"name": "com.apple.ttsbundle.Rishi-compact"});
+    // flutterTts.speak("This is my voice!");
   }
 
   void initializeData() async {
@@ -297,6 +301,7 @@ class _HomePageState extends State<HomePage> {
     print("unit: $unitOfQuantity");
     product = product.replaceAll(RegExp(r'\b\d+\b'), '').trim();
 
+    match?.group(2) == null ? quantityPopup = true : quantityPopup = false;
     _localDatabase.searchDatabase(product);
 
     text2num(quantity);
@@ -310,7 +315,7 @@ class _HomePageState extends State<HomePage> {
       print("suggestions is empty: ${_localDatabase.suggestions.isEmpty}");
       if (_localDatabase.suggestions.isEmpty && finalResult == true) {
         print('Product Not Available');
-        speak('Product Not Available');
+        speak('Product Not Available. Please try again.');
       }
     });
   }
@@ -422,14 +427,24 @@ class _HomePageState extends State<HomePage> {
                         final suggestion = _localDatabase.suggestions[index];
                         final itemIdforStock = (suggestion.itemId).toString();
 
+                        if (quantity > 1) {
+                          listQuantity = quantity;
+                        }
                         return ListTile(
                           title: Text(suggestion.name),
                           trailing: isInputThroughText
                               ? Text(
                                   "${suggestion.quantity} ${suggestion.unit}")
-                              : spokenUnit == ""
-                                  ? Text("$quantity ${suggestion.unit}")
-                                  : Text("$quantity $spokenUnit"),
+                              : Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text("$listQuantity "),
+                                    Text(listQuantity > 50 &&
+                                            suggestion.unit == 'KG'
+                                        ? 'g'
+                                        : suggestion.unit),
+                                  ],
+                                ),
                           onTap: () {
                             _stopListening();
                             if (mounted) {
@@ -438,18 +453,35 @@ class _HomePageState extends State<HomePage> {
                                 availableStockValue =
                                     suggestion.quantity.toString();
                                 _nameController.text = suggestion.name;
-                                _quantityController.text = quantity.toString();
+                                _quantityController.text =
+                                    listQuantity.toString();
                                 unit = suggestion.unit;
-                                unit == 'KG' && spokenUnit == 'g'
-                                    ? _selectedQuantitySecondaryUnit =
-                                        spokenUnit
+                                listQuantity > 50
+                                    ? {
+                                        (unit == 'KG' || unit == 'GM')
+                                            ? _selectedQuantitySecondaryUnit =
+                                                'GM'
+                                            : (unit == 'LTR' || unit == 'ML')
+                                                ? _selectedQuantitySecondaryUnit =
+                                                    'ML'
+                                                : _selectedQuantitySecondaryUnit =
+                                                    unit
+                                      }
                                     : _selectedQuantitySecondaryUnit = unit;
+                                if (quantityPopup == true) {
+                                  showModalBottomSheet(
+                                      context: context,
+                                      builder: (context) {
+                                        return QuantityModalBottomSheet(
+                                            unit: unit);
+                                      });
+                                }
 
                                 itemId = itemIdforStock;
                                 // assignQuantityFunction(itemIdforStock, token!);
                                 itemSelected = true;
                                 _localDatabase.clearSuggestions();
-
+                                listQuantity = 1;
                                 _unitDropdownItems(unit);
                               });
                             }
@@ -806,23 +838,6 @@ class _HomePageState extends State<HomePage> {
           string != "" ? string : "Probill",
           style: TextStyle(fontSize: 18),
         ),
-        // actions: [
-        //   DropdownButton(
-        //     value: currentVoice,
-        //     items: voices
-        //         ?.map((voice) => DropdownMenuItem(
-        //               value: voice,
-        //               child: Text(voice['name']),
-        //             ))
-        //         .toList(),
-        //     onChanged: (value) {
-        //       setState(() {
-        //         currentVoice = value;
-        //         setVoice(currentVoice!);
-        //       });
-        //     },
-        //   )
-        // ],
       ),
       body: SingleChildScrollView(
         child: GestureDetector(

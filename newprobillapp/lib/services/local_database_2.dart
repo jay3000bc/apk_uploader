@@ -248,7 +248,7 @@ class LocalDatabase2 {
         // Check whole name
         final nameEncoded = doubleMetaphone.encode(name)?.primary;
         bool hasMatch =
-            nameEncoded != null && ratio(queryEncoded, nameEncoded) >= 75;
+            nameEncoded != null && ratio(queryEncoded, nameEncoded) >= 80;
 
         // If no match for the entire name, check individual words
         if (!hasMatch) {
@@ -256,7 +256,7 @@ class LocalDatabase2 {
           hasMatch = words.any((word) {
             final wordEncoded = doubleMetaphone.encode(word)?.primary;
             return wordEncoded != null &&
-                ratio(queryEncoded, wordEncoded) >= 75;
+                ratio(queryEncoded, wordEncoded) >= 80;
           });
         }
 
