@@ -28,18 +28,19 @@ class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<HomePage> createState() => HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class HomePageState extends State<HomePage> {
   int quantity = 0;
   int _selectedIndex = 0;
   final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _quantityController = TextEditingController();
+  final TextEditingController quantityController = TextEditingController();
+
   final FocusNode _nameFocusNode = FocusNode();
   final FocusNode _quantityFocusNode = FocusNode();
   final SpeechToText _speechToText = SpeechToText();
-  bool _speechEnabled = false;
+
   String string = '';
   double confidence = 0;
   final _localDatabase = LocalDatabase2.instance;
@@ -134,7 +135,6 @@ class _HomePageState extends State<HomePage> {
   bool isLoadingMore = false; // Flag to show loading indicator
   int currentPage = 0; // Current page for loading items
 
-  String quantitySelectedValue = '';
   //GlobalKey<AutoCompleteTextFieldState<String>> quantityKey = GlobalKey();
   String _errorMessage = '';
   var listQuantity = 1;
@@ -156,7 +156,7 @@ class _HomePageState extends State<HomePage> {
 
     _speechToText.cancel();
     _nameController.dispose();
-    _quantityController.dispose();
+    quantityController.dispose();
     _nameFocusNode.dispose();
     _quantityFocusNode.dispose();
     _scrollController.dispose();
@@ -165,8 +165,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   void initSpeech() async {
-    _speechEnabled =
-        await _speechToText.initialize(onStatus: (status) => setState(() {}));
+    await _speechToText.initialize(onStatus: (status) => setState(() {}));
     setState(() {});
   }
 
@@ -294,7 +293,10 @@ class _HomePageState extends State<HomePage> {
 
     String product = match?.group(1) ?? words;
     String quantity = match?.group(2) ?? "one";
+
     String unitOfQuantity = match?.group(3) ?? "";
+    // Provider.of(context, listen: false).assignQuantity(quantity);
+    // Provider.of(context, listen: false).assignUnit(unitOfQuantity);
 
     print("product: $product");
     print("quantity: $quantity");
@@ -384,7 +386,7 @@ class _HomePageState extends State<HomePage> {
                   if (mounted) {
                     setState(() {
                       _localDatabase.clearSuggestions();
-                      _quantityController.clear();
+                      quantityController.clear();
                       _nameController.clear();
                       isInputThroughText ? _nameFocusNode.nextFocus() : null;
                       _stopListening();
@@ -453,9 +455,14 @@ class _HomePageState extends State<HomePage> {
                                 availableStockValue =
                                     suggestion.quantity.toString();
                                 _nameController.text = suggestion.name;
-                                _quantityController.text =
-                                    listQuantity.toString();
+
+                                Provider.of<HomeBillItemProvider>(context,
+                                        listen: false)
+                                    .assignQuantity(listQuantity);
                                 unit = suggestion.unit;
+                                Provider.of<HomeBillItemProvider>(context,
+                                        listen: false)
+                                    .assignUnit(unit);
                                 listQuantity > 50
                                     ? {
                                         (unit == 'KG' || unit == 'GM')
@@ -472,8 +479,7 @@ class _HomePageState extends State<HomePage> {
                                   showModalBottomSheet(
                                       context: context,
                                       builder: (context) {
-                                        return QuantityModalBottomSheet(
-                                            unit: unit);
+                                        return QuantityModalBottomSheet();
                                       });
                                 }
 
@@ -743,7 +749,7 @@ class _HomePageState extends State<HomePage> {
     if (mounted) {
       setState(() {
         _nameController.clear();
-        _quantityController.clear();
+        quantityController.clear();
         _errorMessage = "";
         validProductName =
             true; // Clear error message when clearing the text field
@@ -805,7 +811,12 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // _selectedQuantitySecondaryUnit = _dropdownItemsQuantity[0];
+    // _selectedQuantitySecondaryUnit =
+    //     Provider.of<HomeBillItemProvider>(context, listen: false).unit;
+    quantityController.text =
+        Provider.of<HomeBillItemProvider>(context, listen: false)
+            .quantity
+            .toString();
     bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom != 0;
     return Scaffold(
       drawer: const Drawer(
@@ -873,9 +884,6 @@ class _HomePageState extends State<HomePage> {
                         _localDatabase.clearSuggestions();
                         if (mounted) setState(() {});
                       }
-
-                      // updateSuggestionList(m);
-                      // _localDatabase.searchDatabase(m);
                     },
                     controller: _nameController,
                     decoration: InputDecoration(
@@ -883,7 +891,7 @@ class _HomePageState extends State<HomePage> {
                           ? IconButton(
                               onPressed: () {
                                 _nameController.clear();
-                                _quantityController.clear();
+                                quantityController.clear();
                                 _localDatabase.clearSuggestions();
                                 setState(() {});
                               },
@@ -899,7 +907,11 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const SizedBox(height: 8.0),
                   TextField(
-                    controller: _quantityController,
+                    controller: quantityController,
+                    onChanged: (value) {
+                      Provider.of<HomeBillItemProvider>(context, listen: false)
+                          .assignQuantity(int.parse(value));
+                    },
                     decoration: InputDecoration(
                       labelText: "Enter Quantity",
                       border: OutlineInputBorder(
@@ -908,12 +920,19 @@ class _HomePageState extends State<HomePage> {
                       suffixIcon: DropdownButton<String>(
                         elevation: 16,
                         menuMaxHeight: MediaQuery.of(context).size.height * 0.3,
-                        value: _selectedQuantitySecondaryUnit,
+                        value: Provider.of<HomeBillItemProvider>(context,
+                                listen: false)
+                            .unit,
                         onChanged: (newValue) {
                           setState(() {
-                            _selectedQuantitySecondaryUnit = newValue;
-                            quantitySelectedValue = newValue ??
-                                ''; // Update quantitySelectedValue with the selected value
+                            Provider.of<HomeBillItemProvider>(context,
+                                    listen: false)
+                                .assignUnit(newValue!);
+                            _selectedQuantitySecondaryUnit =
+                                Provider.of<HomeBillItemProvider>(context,
+                                        listen: false)
+                                    .unit;
+                            // Update quantitySelectedValue with the selected value
                           });
                         },
                         items: _dropdownItemsQuantity
@@ -939,7 +958,7 @@ class _HomePageState extends State<HomePage> {
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(25),
                       color: (_nameController.text.isEmpty ||
-                              _quantityController.text.isEmpty)
+                              quantityController.text.isEmpty)
                           ? const Color.fromRGBO(210, 211, 211, 1)
                           : Colors.green,
                     ),
@@ -949,23 +968,27 @@ class _HomePageState extends State<HomePage> {
                         _stopListening();
                         // print("Add button pressed");
                         // print(
-                        //     "_nameController.text: ${_nameController.text}, _quantityController.text: ${_quantityController.text}");
+                        //     "_nameController.text: ${_nameController.text}, quantityController.text: ${quantityController.text}");
                         if (_nameController.text.isNotEmpty &&
-                            _quantityController.text.isNotEmpty) {
-                          String quantityValue = _quantityController.text;
+                            quantityController.text.isNotEmpty) {
+                          String quantityValue = quantityController.text;
                           double? quantityValueforConvert =
                               double.tryParse(quantityValue);
                           _primaryUnit = unit;
                           double quantityValueforTable =
                               convertQuantityBasedOnUnit(
                                   _primaryUnit!,
-                                  _selectedQuantitySecondaryUnit!,
+                                  Provider.of<HomeBillItemProvider>(context,
+                                          listen: false)
+                                      .unit,
                                   quantityValueforConvert!);
                           //  print("quantityValueforTable:$quantityValueforTable");
                           int? stockStatus = await checkStockStatus(
                               itemId,
                               quantityValueforTable.toString(),
-                              _selectedQuantitySecondaryUnit!,
+                              Provider.of<HomeBillItemProvider>(context,
+                                      listen: false)
+                                  .unit,
                               token!);
                           if (stockStatus == 1 && validProductName == true) {
                             //print("tryParse");
@@ -978,13 +1001,9 @@ class _HomePageState extends State<HomePage> {
                                 unit,
                                 salePriceforTable!);
                             _nameController.clear();
-                            _quantityController.clear();
 
                             //  _dropdownItemsQuantity.insert(0, "Unit");
-                            _selectedQuantitySecondaryUnit =
-                                _dropdownItemsQuantity[
-                                    0]; // Reset to default value
-                            quantitySelectedValue = '';
+                            // Reset to default value
 
                             if (mounted) {
                               setState(() {
@@ -992,6 +1011,9 @@ class _HomePageState extends State<HomePage> {
                                 _selectedQuantitySecondaryUnit =
                                     _dropdownItemsQuantity[0];
                                 _localDatabase.clearSuggestions();
+                                Provider.of<HomeBillItemProvider>(context,
+                                        listen: false)
+                                    .assignQuantity(0);
                               });
                             }
                           } else if (stockStatus == 0) {
@@ -1035,10 +1057,7 @@ class _HomePageState extends State<HomePage> {
                   const SizedBox(
                     height: 8,
                   ),
-                  // TextButton(
-                  //   onPressed: _localDatabase.printData,
-                  //   child: const Text("Print Data"),
-                  // ),
+
                   const Divider(
                     color: Colors.grey,
                     thickness: 1,

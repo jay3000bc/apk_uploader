@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 class RefundBillItemProvider extends ChangeNotifier {
   List<Map<String, dynamic>> refundItemForBillRows = [];
-
+  int quantity = 0;
+  String unit = '';
   // Method to add an item
   void addItem(Map<String, dynamic> item) {
     refundItemForBillRows.add(item);
