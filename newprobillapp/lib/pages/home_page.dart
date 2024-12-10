@@ -13,7 +13,7 @@ import 'package:newprobillapp/components/sidebar.dart';
 import 'package:newprobillapp/components/microphone_button.dart';
 import 'package:newprobillapp/services/api_services.dart';
 import 'package:newprobillapp/services/home_bill_item_provider.dart';
-import 'package:newprobillapp/services/internet_checker.dart';
+
 //import 'package:newprobillapp/services/local_database.dart';
 import 'package:newprobillapp/services/local_database_2.dart';
 import 'package:newprobillapp/services/result.dart';
@@ -180,7 +180,7 @@ class HomePageState extends State<HomePage> {
           voices = voices!
               .where((element) => element['locale'].contains('en'))
               .toList();
-          print(voices);
+          // print(voices);
           currentVoice = voices![0];
           setVoice(currentVoice!);
         });
@@ -282,6 +282,8 @@ class HomePageState extends State<HomePage> {
     words = words
         .replaceAll(RegExp(r'\bquantity\b', caseSensitive: false), '')
         .trim();
+    words =
+        words.replaceAll(RegExp(r'\b-\b', caseSensitive: false), ' ').trim();
     final regex = RegExp(
         r'^(.*?)\s+(\d+|[a-zA-Z]+)?\s?(packs?|bags?|bottles?|boxes?|bundles?|cans?|cartoons?|cartan|grams?|gm|g|kilograms?|kgs?|kilo|litres?|ltr|meters?|ms?|millilitres?|ml|numbers?|pack(?:ets?)?|pairs?|pieces?|rolls?|squarefeet|sqf|squarefeets?|squaremeters?|m)\b',
         caseSensitive: false);
@@ -450,46 +452,49 @@ class HomePageState extends State<HomePage> {
                           onTap: () {
                             _stopListening();
                             if (mounted) {
-                              setState(() {
-                                searching = false;
-                                availableStockValue =
-                                    suggestion.quantity.toString();
-                                _nameController.text = suggestion.name;
+                              setState(
+                                () {
+                                  searching = false;
+                                  availableStockValue =
+                                      suggestion.quantity.toString();
+                                  _nameController.text = suggestion.name;
 
-                                Provider.of<HomeBillItemProvider>(context,
-                                        listen: false)
-                                    .assignQuantity(listQuantity);
-                                unit = suggestion.unit;
-                                Provider.of<HomeBillItemProvider>(context,
-                                        listen: false)
-                                    .assignUnit(unit);
-                                listQuantity > 50
-                                    ? {
-                                        (unit == 'KG' || unit == 'GM')
-                                            ? _selectedQuantitySecondaryUnit =
-                                                'GM'
-                                            : (unit == 'LTR' || unit == 'ML')
-                                                ? _selectedQuantitySecondaryUnit =
-                                                    'ML'
-                                                : _selectedQuantitySecondaryUnit =
-                                                    unit
-                                      }
-                                    : _selectedQuantitySecondaryUnit = unit;
-                                if (quantityPopup == true) {
-                                  showModalBottomSheet(
-                                      context: context,
-                                      builder: (context) {
-                                        return QuantityModalBottomSheet();
-                                      });
-                                }
+                                  Provider.of<HomeBillItemProvider>(context,
+                                          listen: false)
+                                      .assignQuantity(listQuantity);
+                                  unit = suggestion.unit;
+                                  Provider.of<HomeBillItemProvider>(context,
+                                          listen: false)
+                                      .assignUnit(unit);
+                                  listQuantity > 50
+                                      ? {
+                                          (unit == 'KG' || unit == 'GM')
+                                              ? _selectedQuantitySecondaryUnit =
+                                                  'GM'
+                                              : (unit == 'LTR' || unit == 'ML')
+                                                  ? _selectedQuantitySecondaryUnit =
+                                                      'ML'
+                                                  : _selectedQuantitySecondaryUnit =
+                                                      unit
+                                        }
+                                      : _selectedQuantitySecondaryUnit = unit;
+                                  if (quantityPopup == true) {
+                                    speak("Enter the quantity");
+                                    showModalBottomSheet(
+                                        context: context,
+                                        builder: (context) {
+                                          return QuantityModalBottomSheet();
+                                        });
+                                  }
 
-                                itemId = itemIdforStock;
-                                // assignQuantityFunction(itemIdforStock, token!);
-                                itemSelected = true;
-                                _localDatabase.clearSuggestions();
-                                listQuantity = 1;
-                                _unitDropdownItems(unit);
-                              });
+                                  itemId = itemIdforStock;
+                                  // assignQuantityFunction(itemIdforStock, token!);
+                                  itemSelected = true;
+                                  _localDatabase.clearSuggestions();
+                                  listQuantity = 1;
+                                  _unitDropdownItems(unit);
+                                },
+                              );
                             }
                           },
                         );
@@ -862,12 +867,6 @@ class HomePageState extends State<HomePage> {
             child: Stack(children: [
               Column(
                 children: <Widget>[
-                  const Align(
-                    alignment: Alignment.center,
-                    child: Internetchecker(),
-                  ),
-                  _errorWidgetView(lastError, isquantityavailable),
-                  // Text(textToDondsplay),
                   TextField(
                     onChanged: (m) {
                       _localDatabase.searchDatabase(_nameController.text);
@@ -1053,16 +1052,13 @@ class HomePageState extends State<HomePage> {
                       ),
                     ),
                   ),
-
                   const SizedBox(
                     height: 8,
                   ),
-
                   const Divider(
                     color: Colors.grey,
                     thickness: 1,
                   ),
-
                   const SizedBox(height: 8),
                   Provider.of<HomeBillItemProvider>(context)
                           .homeItemForBillRows

@@ -1,13 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:newprobillapp/pages/home_page.dart';
+import 'package:newprobillapp/pages/view_employee.dart';
 
 class ViewEmployeeDetails extends StatelessWidget {
-  final user;
+  final Employee user;
 
   const ViewEmployeeDetails({super.key, required this.user});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          Navigator.push(context, MaterialPageRoute(builder: (context) {
+            return const HomePage();
+          }));
+        },
+        child: const Icon(Icons.edit),
+      ),
       appBar: AppBar(
         title: const Text(
           'Employee Details',
@@ -20,15 +30,15 @@ class ViewEmployeeDetails extends StatelessWidget {
       body: Column(
         children: [
           ListTile(
-            title: Text('Name'),
+            title: const Text('Name'),
             subtitle: Text(user.name),
           ),
           ListTile(
-            title: Text('Mobile'),
+            title: const Text('Mobile'),
             subtitle: Text(user.mobile),
           ),
           ListTile(
-            title: Text('Address'),
+            title: const Text('Address'),
             subtitle: Text(user.address),
           ),
         ],

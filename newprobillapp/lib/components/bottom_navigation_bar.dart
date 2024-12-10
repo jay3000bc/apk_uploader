@@ -34,7 +34,7 @@ class CustomNavigationBar extends StatelessWidget {
               icon: Icons.home_outlined,
               index: 0,
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => const HomePage(),
@@ -51,7 +51,7 @@ class CustomNavigationBar extends StatelessWidget {
               icon: Icons.sync_alt_outlined,
               index: 1,
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => const RefundPage(),
@@ -69,7 +69,7 @@ class CustomNavigationBar extends StatelessWidget {
               icon: Icons.inventory_2_outlined,
               index: 2,
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => const ProductListPage(),
@@ -86,7 +86,7 @@ class CustomNavigationBar extends StatelessWidget {
               icon: Icons.person_outline,
               index: 3,
               onTap: () {
-                Navigator.pushReplacement(
+                Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => const EmployeeListPage(),

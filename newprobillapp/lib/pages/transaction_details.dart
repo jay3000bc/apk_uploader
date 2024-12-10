@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:newprobillapp/models/transaction.dart';
 
-
 class TransactionDetailPage extends StatelessWidget {
   final Transaction transaction;
 
@@ -129,7 +128,11 @@ class TransactionDetailPage extends StatelessWidget {
                 context, '${item['quantity'] + item['selectedUnit']}'),
             itemDetailWidget(context, '${item['hsn']}'),
             itemDetailWidget(context, '₹${item['rate']}'),
-            itemDetailWidget(context, '₹${item['amount']}'),
+            itemDetailWidget(
+                context,
+                double.parse(item['amount']) > 0
+                    ? '₹${double.parse(item['amount']).abs().toStringAsFixed(2)}'
+                    : '-₹${double.parse(item['amount']).abs().toStringAsFixed(2)}'),
           ],
         ),
         const Divider(

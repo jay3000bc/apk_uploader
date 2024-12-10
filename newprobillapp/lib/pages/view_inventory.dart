@@ -7,7 +7,6 @@ import 'package:newprobillapp/services/internet_checker.dart';
 // import 'package:newprobillapp/services/local_database.dart';
 import 'package:newprobillapp/services/local_database_2.dart';
 
-
 class ProductListPage extends StatefulWidget {
   const ProductListPage({super.key});
 
@@ -94,7 +93,8 @@ class _ProductListPageState extends State<ProductListPage> {
           ? null
           : FloatingActionButton(
               onPressed: () {
-                Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) {
+                Navigator.pushReplacement(context,
+                    MaterialPageRoute(builder: (context) {
                   return const AddInventory();
                 }));
               },
@@ -208,7 +208,7 @@ class _ProductListPageState extends State<ProductListPage> {
                         return _products.where(_filterProduct).isNotEmpty
                             ? InkWell(
                                 onTap: () {
-                                  Navigator.pushReplacement(context,
+                                  Navigator.push(context,
                                       MaterialPageRoute(builder: (context) {
                                     return ProductEditPage(
                                         productId: product['itemId']);

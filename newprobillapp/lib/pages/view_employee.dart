@@ -265,10 +265,11 @@ class _EmployeeListPageState extends State<EmployeeListPage> {
                 final Employee = _filteredEmployees[index];
                 return InkWell(
                   onTap: () {
-                    Navigator.pushReplacement(
+                    Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ViewEmployeeDetails(user: Employee),
+                        builder: (context) =>
+                            ViewEmployeeDetails(user: Employee),
                       ),
                     );
                   },
