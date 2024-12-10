@@ -118,51 +118,75 @@ class LocalDatabase2 {
   Future<List<LocalDatabaseModel>> searchDatabase(String query) async {
     if (query.isEmpty) return [];
     query = query.toLowerCase().trim();
-    final queryWords = query.split(' ');
 
     Database db = await database;
-    final List<Map<String, dynamic>> data;
+    final List<Map<String, dynamic>> data = [];
     final Set<int> processedIds = {};
 
-    // Single consolidated query using OR conditions
-    String sqlQuery = '''
-      SELECT DISTINCT * FROM $_tableName 
-      WHERE 
-        LOWER($_nameColumn) = ? OR           -- exact match
-        LOWER($_nameColumn) LIKE ? OR        -- starts with
-        LOWER($_nameColumn) LIKE ? OR        -- words in sequence
-        LOWER($_nameColumn) LIKE ?           -- contains
-    ''';
+    // Split query into words
+    final queryWords = query.split(' ');
 
-    String partialMatchPattern = queryWords.map((word) => '%$word%').join('');
-
-    data = await db.rawQuery(
-      sqlQuery,
-      [
-        query, // exact match
-        '$query%', // starts with
-        partialMatchPattern, // words in sequence
-        '%$query%', // contains
-      ],
+    // 1. Exact matches (highest priority)
+    List<Map<String, dynamic>> exactMatches = await db.query(
+      _tableName,
+      distinct: true,
+      where: 'LOWER($_nameColumn) = ?',
+      whereArgs: [query],
     );
+    data.addAll(exactMatches);
 
-    // Process phonetic matches in memory
+    // 2. Starts with matches
+    List<Map<String, dynamic>> startsWithMatches = await db.query(
+      _tableName,
+      distinct: true,
+      where: 'LOWER($_nameColumn) LIKE ?',
+      whereArgs: ['$query%'],
+    );
+    data.addAll(startsWithMatches);
+
+    // 3. Partial word sequence matches
+    String partialMatchPattern = queryWords.map((word) => '%$word%').join('');
+    List<Map<String, dynamic>> partialMatches = await db.query(
+      _tableName,
+      distinct: true,
+      where: 'LOWER($_nameColumn) LIKE ?',
+      whereArgs: [partialMatchPattern],
+    );
+    data.addAll(partialMatches);
+
+    // 4. Contains matches (for backward compatibility)
+    List<Map<String, dynamic>> containsMatches = await db.query(
+      _tableName,
+      distinct: true,
+      where: 'LOWER($_nameColumn) LIKE ?',
+      whereArgs: ['%$query%'],
+    );
+    data.addAll(containsMatches);
+
+    // 5. Phonetic matches
     List<String> phoneticMatches = await getNamesUsingPhonetics(query);
-    Set<String> phoneticMatchSet = phoneticMatches.toSet();
+    if (phoneticMatches.isNotEmpty) {
+      final placeholder =
+          List.generate(phoneticMatches.length, (_) => '?').join(',');
+      final result = await db.query(
+        _tableName,
+        distinct: true,
+        where: '$_nameColumn IN ($placeholder)',
+        whereArgs: phoneticMatches,
+      );
+      data.addAll(result);
+    }
 
-    // Convert to LocalDatabaseModel and handle duplicates
+    // Convert to LocalDatabaseModel and remove duplicates
     suggestions = data
         .map((e) => LocalDatabaseModel(
-              itemId: e['itemId'],
-              quantity: e["quantity"],
+              itemId: int.parse(e['itemId'].toString()),
+              quantity: int.tryParse(e["quantity"].toString()) ?? 0,
               name: e["name"] as String,
               unit: e["unit"] as String,
             ))
-        .where((suggestion) {
-      // Include if not processed and either matches main query or phonetic
-      return processedIds.add(suggestion.itemId) ||
-          phoneticMatchSet.contains(suggestion.name);
-    }).toList();
+        .where((suggestion) => processedIds.add(suggestion.itemId))
+        .toList();
 
     // Enhanced sorting with relevance scoring
     suggestions.sort((a, b) {
@@ -186,36 +210,7 @@ class LocalDatabase2 {
     return suggestions;
   }
 
-// Optimized phonetic matching to work with a single batch of names
-  Future<List<String>> getNamesUsingPhonetics(String query) async {
-    Database db = await database;
-    // Single query to get all names
-    final result = await db.rawQuery('SELECT DISTINCT name FROM $_tableName');
-    List<String> names = result.map((e) => e['name'] as String).toList();
-
-    final doubleMetaphone = DoubleMetaphone.withMaxLength(24);
-    final queryEncoded = doubleMetaphone.encode(query)?.primary;
-
-    if (queryEncoded != null) {
-      return names.where((name) {
-        // Check whole name
-        final nameEncoded = doubleMetaphone.encode(name)?.primary;
-        if (nameEncoded != null && ratio(queryEncoded, nameEncoded) >= 80) {
-          return true;
-        }
-
-        // Check individual words
-        final words = name.split(' ');
-        return words.any((word) {
-          final wordEncoded = doubleMetaphone.encode(word)?.primary;
-          return wordEncoded != null && ratio(queryEncoded, wordEncoded) >= 80;
-        });
-      }).toList();
-    }
-    return [];
-  }
-
-// Modified relevance score calculation (same as before)
+// Modified relevance score calculation to handle partial word sequences
   double _calculateRelevanceScore(String name, String query) {
     double score = 0.0;
 
@@ -253,7 +248,7 @@ class LocalDatabase2 {
       score += (sequentialMatches / queryWords.length) * 50;
     }
 
-    // Word-level matching
+    // Word-level matching (existing logic)
     for (final queryWord in queryWords) {
       for (final nameWord in nameWords) {
         if (nameWord.contains(queryWord)) {
@@ -262,9 +257,44 @@ class LocalDatabase2 {
       }
     }
 
-    // Add points for fuzzy string matching
+    // Add points for fuzzy string matching using fuzzywuzzy
     score += (ratio(name, query) / 100.0) * 20;
 
     return score;
+  }
+
+  Future<List<String>> getNamesUsingPhonetics(String query) async {
+    Database db = await database;
+    List<Map<String, dynamic>> data = await db.query(_tableName);
+    List<String> names = data.map((e) => e['name'] as String).toList();
+
+    final doubleMetaphone = DoubleMetaphone.withMaxLength(24);
+    final queryEncoded = doubleMetaphone.encode(query)?.primary;
+
+    if (queryEncoded != null) {
+      names.removeWhere((name) {
+        // Check whole name
+        final nameEncoded = doubleMetaphone.encode(name)?.primary;
+        bool hasMatch =
+            nameEncoded != null && ratio(queryEncoded, nameEncoded) >= 75;
+
+        // If no match for the entire name, check individual words
+        if (!hasMatch) {
+          final words = name.split(' ');
+          hasMatch = words.any((word) {
+            final wordEncoded = doubleMetaphone.encode(word)?.primary;
+            return wordEncoded != null &&
+                ratio(queryEncoded, wordEncoded) >= 75;
+          });
+        }
+
+        return !hasMatch; // Remove the name if no match is found
+      });
+    }
+    print(
+        "Akshara:${doubleMetaphone.encode("akshara")!.primary} and Apsara: ${doubleMetaphone.encode("apsara")!.primary}");
+    print(
+        "Ratio: of name apsara and query $query is ${ratio(queryEncoded!, doubleMetaphone.encode("apsara non dust eraser")!.primary)}");
+    return names;
   }
 }
