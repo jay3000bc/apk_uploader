@@ -298,203 +298,208 @@ class _SidebarState extends State<Sidebar> {
           // Return false to prevent popping the current route
           return; // Return true to allow popping the route
         },
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            drawerHeader,
-            isAdmin == 1
-                ? ListTile(
-                    leading: Icon(Icons.add,
-                        color: subscriptionExpired == 0 ? black : darkGrey),
-                    title: Text(
-                      'Add Inventory',
-                      style: TextStyle(
-                          fontFamily: 'Roboto-Regular',
+        child: SafeArea(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: <Widget>[
+              drawerHeader,
+              isAdmin == 1
+                  ? ListTile(
+                      leading: Icon(Icons.add,
                           color: subscriptionExpired == 0 ? black : darkGrey),
-                    ),
-                    onTap: () {
-                      subscriptionExpired == 0
-                          ? navigatorKey.currentState?.push(
-                              CupertinoPageRoute(
-                                  builder: (context) => const AddInventory()),
-                            )
-                          : noSubscriptionDialog();
-                    },
-                  )
-                : const SizedBox.shrink(),
-            isAdmin == 1
-                ? ListTile(
-                    leading: Icon(Icons.inventory_2_outlined,
-                        color: subscriptionExpired == 0 ? black : darkGrey),
-                    title: Text(
-                      'Update Inventory',
-                      style: TextStyle(
-                          fontFamily: 'Roboto-Regular',
+                      title: Text(
+                        'Add Inventory',
+                        style: TextStyle(
+                            fontFamily: 'Roboto-Regular',
+                            color: subscriptionExpired == 0 ? black : darkGrey),
+                      ),
+                      onTap: () {
+                        subscriptionExpired == 0
+                            ? navigatorKey.currentState?.push(
+                                CupertinoPageRoute(
+                                    builder: (context) => const AddInventory()),
+                              )
+                            : noSubscriptionDialog();
+                      },
+                    )
+                  : const SizedBox.shrink(),
+              isAdmin == 1
+                  ? ListTile(
+                      leading: Icon(Icons.inventory_2_outlined,
                           color: subscriptionExpired == 0 ? black : darkGrey),
-                    ),
-                    onTap: () {
-                      subscriptionExpired == 0
-                          ? navigatorKey.currentState?.push(
-                              CupertinoPageRoute(
-                                  builder: (context) =>
-                                      const ProductListPage()),
-                            )
-                          : noSubscriptionDialog();
-                    },
-                  )
-                : const SizedBox.shrink(),
-            ListTile(
-              leading: Icon(Icons.document_scanner_outlined,
-                  color: subscriptionExpired == 0 ? black : darkGrey),
-              title: Text(
-                'Transactions',
-                style: TextStyle(
-                    fontFamily: 'Roboto-Regular',
+                      title: Text(
+                        'Update Inventory',
+                        style: TextStyle(
+                            fontFamily: 'Roboto-Regular',
+                            color: subscriptionExpired == 0 ? black : darkGrey),
+                      ),
+                      onTap: () {
+                        subscriptionExpired == 0
+                            ? navigatorKey.currentState?.push(
+                                CupertinoPageRoute(
+                                    builder: (context) =>
+                                        const ProductListPage()),
+                              )
+                            : noSubscriptionDialog();
+                      },
+                    )
+                  : const SizedBox.shrink(),
+              ListTile(
+                leading: Icon(Icons.document_scanner_outlined,
                     color: subscriptionExpired == 0 ? black : darkGrey),
-              ),
-              onTap: () {
-                subscriptionExpired == 0
-                    ? navigatorKey.currentState?.push(
-                        CupertinoPageRoute(
-                            builder: (context) => const TransactionListPage()),
-                      )
-                    : noSubscriptionDialog();
-              },
-            ),
-            isAdmin == 1
-                ? ListTile(
-                    leading: Icon(Icons.person_add_outlined,
-                        color: subscriptionExpired == 0 ? black : darkGrey),
-                    title: Text(
-                      'Add Employee',
-                      style: TextStyle(
-                          fontFamily: 'Roboto-Regular',
-                          color: subscriptionExpired == 0 ? black : darkGrey),
-                    ),
-                    onTap: () {
-                      subscriptionExpired == 0
-                          ? navigatorKey.currentState?.push(
-                              CupertinoPageRoute(
-                                  builder: (context) =>
-                                      const EmployeeSignUpPage()),
-                            )
-                          : noSubscriptionDialog();
-                    },
-                  )
-                : const SizedBox.shrink(),
-            isAdmin == 1
-                ? ListTile(
-                    leading: Icon(Icons.settings_outlined,
-                        color: subscriptionExpired == 0 ? black : darkGrey),
-                    title: Text(
-                      'Preferences',
-                      style: TextStyle(
-                          fontFamily: 'Roboto-Regular',
-                          color: subscriptionExpired == 0 ? black : darkGrey),
-                    ),
-                    onTap: () {
-                      subscriptionExpired == 0
-                          ? navigatorKey.currentState?.push(
-                              CupertinoPageRoute(
-                                  builder: (context) =>
-                                      const PreferencesPage()),
-                            )
-                          : noSubscriptionDialog();
-                    },
-                  )
-                : const SizedBox.shrink(),
-            const Divider(
-              color: darkGrey,
-              indent: 15,
-              endIndent: 15,
-            ),
-            ListTile(
-                leading: const Icon(Icons.print_outlined),
-                title: const Text('Connect Printer'),
+                title: Text(
+                  'Transactions',
+                  style: TextStyle(
+                      fontFamily: 'Roboto-Regular',
+                      color: subscriptionExpired == 0 ? black : darkGrey),
+                ),
                 onTap: () {
-                  _buildPrinterSelector();
-                }),
-            ListTile(
-              leading: const Icon(Icons.account_circle_outlined),
-              title: const Text('Account'),
-              onTap: () {
-                navigatorKey.currentState?.push(
-                  CupertinoPageRoute(builder: (context) => const UserAccount()),
-                );
-              },
-            ),
-            isAdmin == 1
-                ? ListTile(
-                    leading: const Icon(Icons.password_outlined),
-                    title: const Text('Change Password'),
-                    onTap: () {
-                      navigatorKey.currentState?.push(
-                        CupertinoPageRoute(
-                            builder: (context) => ChangePasswordPage(
-                                  smsType: 'change_password',
-                                  phoneNumber: phone,
-                                  countryCode: countryCode,
-                                )),
-                      );
-                    },
-                  )
-                : const SizedBox.shrink(),
-            isAdmin == 1
-                ? ListTile(
-                    leading: const Icon(Icons.upload_file),
-                    title: const Text('Upload Dataset'),
-                    onTap: () {
-                      navigatorKey.currentState?.push(
-                        CupertinoPageRoute(
-                            builder: (context) =>
-                                const NewDataset(title: "Dataset")),
-                      );
-                    },
-                  )
-                : const SizedBox.shrink(),
-            isAdmin == 1
-                ? ListTile(
-                    leading: const Icon(Icons.account_balance_wallet_outlined),
-                    title: const Text('Subscription'),
-                    onTap: () {
-                      navigatorKey.currentState?.push(
-                        CupertinoPageRoute(
-                          builder: (context) => const Subscriptions(),
-                        ),
-                      );
-                    },
-                  )
-                : const SizedBox.shrink(),
-            ListTile(
-              leading: const Icon(Icons.support_agent),
-              title: const Text('Support'),
-              onTap: () {
-                navigatorKey.currentState?.push(
-                  CupertinoPageRoute(
-                    builder: (context) => const ContactSupportPage(),
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.contact_page_outlined),
-              title: const Text('Contact Us'),
-              onTap: () {
-                navigatorKey.currentState?.push(
-                  CupertinoPageRoute(
-                    builder: (context) => const ContactUsPage(),
-                  ),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.exit_to_app),
-              title: const Text('Logout'),
-              onTap: () {
-                _logout(context);
-              },
-            ),
-          ],
+                  subscriptionExpired == 0
+                      ? navigatorKey.currentState?.push(
+                          CupertinoPageRoute(
+                              builder: (context) =>
+                                  const TransactionListPage()),
+                        )
+                      : noSubscriptionDialog();
+                },
+              ),
+              isAdmin == 1
+                  ? ListTile(
+                      leading: Icon(Icons.person_add_outlined,
+                          color: subscriptionExpired == 0 ? black : darkGrey),
+                      title: Text(
+                        'Add Employee',
+                        style: TextStyle(
+                            fontFamily: 'Roboto-Regular',
+                            color: subscriptionExpired == 0 ? black : darkGrey),
+                      ),
+                      onTap: () {
+                        subscriptionExpired == 0
+                            ? navigatorKey.currentState?.push(
+                                CupertinoPageRoute(
+                                    builder: (context) =>
+                                        const EmployeeSignUpPage()),
+                              )
+                            : noSubscriptionDialog();
+                      },
+                    )
+                  : const SizedBox.shrink(),
+              isAdmin == 1
+                  ? ListTile(
+                      leading: Icon(Icons.settings_outlined,
+                          color: subscriptionExpired == 0 ? black : darkGrey),
+                      title: Text(
+                        'Preferences',
+                        style: TextStyle(
+                            fontFamily: 'Roboto-Regular',
+                            color: subscriptionExpired == 0 ? black : darkGrey),
+                      ),
+                      onTap: () {
+                        subscriptionExpired == 0
+                            ? navigatorKey.currentState?.push(
+                                CupertinoPageRoute(
+                                    builder: (context) =>
+                                        const PreferencesPage()),
+                              )
+                            : noSubscriptionDialog();
+                      },
+                    )
+                  : const SizedBox.shrink(),
+              const Divider(
+                color: darkGrey,
+                indent: 15,
+                endIndent: 15,
+              ),
+              ListTile(
+                  leading: const Icon(Icons.print_outlined),
+                  title: const Text('Connect Printer'),
+                  onTap: () {
+                    _buildPrinterSelector();
+                  }),
+              ListTile(
+                leading: const Icon(Icons.account_circle_outlined),
+                title: const Text('Account'),
+                onTap: () {
+                  navigatorKey.currentState?.push(
+                    CupertinoPageRoute(
+                        builder: (context) => const UserAccount()),
+                  );
+                },
+              ),
+              isAdmin == 1
+                  ? ListTile(
+                      leading: const Icon(Icons.password_outlined),
+                      title: const Text('Change Password'),
+                      onTap: () {
+                        navigatorKey.currentState?.push(
+                          CupertinoPageRoute(
+                              builder: (context) => ChangePasswordPage(
+                                    smsType: 'change_password',
+                                    phoneNumber: phone,
+                                    countryCode: countryCode,
+                                  )),
+                        );
+                      },
+                    )
+                  : const SizedBox.shrink(),
+              isAdmin == 1
+                  ? ListTile(
+                      leading: const Icon(Icons.upload_file),
+                      title: const Text('Upload Dataset'),
+                      onTap: () {
+                        navigatorKey.currentState?.push(
+                          CupertinoPageRoute(
+                              builder: (context) =>
+                                  const NewDataset(title: "Dataset")),
+                        );
+                      },
+                    )
+                  : const SizedBox.shrink(),
+              isAdmin == 1
+                  ? ListTile(
+                      leading:
+                          const Icon(Icons.account_balance_wallet_outlined),
+                      title: const Text('Subscription'),
+                      onTap: () {
+                        navigatorKey.currentState?.push(
+                          CupertinoPageRoute(
+                            builder: (context) => const Subscriptions(),
+                          ),
+                        );
+                      },
+                    )
+                  : const SizedBox.shrink(),
+              ListTile(
+                leading: const Icon(Icons.support_agent),
+                title: const Text('Support'),
+                onTap: () {
+                  navigatorKey.currentState?.push(
+                    CupertinoPageRoute(
+                      builder: (context) => const ContactSupportPage(),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.contact_page_outlined),
+                title: const Text('Contact Us'),
+                onTap: () {
+                  navigatorKey.currentState?.push(
+                    CupertinoPageRoute(
+                      builder: (context) => const ContactUsPage(),
+                    ),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.exit_to_app),
+                title: const Text('Logout'),
+                onTap: () {
+                  _logout(context);
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

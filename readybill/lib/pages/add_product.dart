@@ -43,6 +43,7 @@ class AddInventoryService {
     EasyLoading.show(status: 'Uploading...');
     var streamedResponse = await request.send();
     var response = await http.Response.fromStream(streamedResponse);
+    print(response.body);
     EasyLoading.dismiss();
     return response;
   }
