@@ -1,0 +1,1 @@
+/Users/Apple/Development/projects/apk_uploader/readybill/build/app/intermediates/cxx/Debug/2a141u2q/obj/armeabi-v7a
