@@ -1,0 +1,2 @@
+/Users/Apple/Documents/GitHub/apk_uploader/readybill/android/app/.cxx/RelWithDebInfo/3d415y6d/armeabi-v7a/CMakeFiles/edit_cache.dir
+/Users/Apple/Documents/GitHub/apk_uploader/readybill/android/app/.cxx/RelWithDebInfo/3d415y6d/armeabi-v7a/CMakeFiles/rebuild_cache.dir
