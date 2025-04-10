@@ -1,0 +1,1 @@
+/Users/Apple/Documents/GitHub/apkUploader/readybill/build/app/intermediates/cxx/RelWithDebInfo/3w131ys1/obj/armeabi-v7a

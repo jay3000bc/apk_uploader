@@ -1,0 +1,2 @@
+/Users/Apple/Development/projects/apk_uploader/readybill/android/app/.cxx/Debug/2a141u2q/x86/CMakeFiles/edit_cache.dir
+/Users/Apple/Development/projects/apk_uploader/readybill/android/app/.cxx/Debug/2a141u2q/x86/CMakeFiles/rebuild_cache.dir

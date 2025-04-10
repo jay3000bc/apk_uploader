@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "773424579671",
+    "project_id": "readybill-90e17",
+    "storage_bucket": "readybill-90e17.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:773424579671:android:ac9331a3b08cecef900f12",
+        "android_client_info": {
+          "package_name": "com.alegra.readybill"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBbDXTVvefUuKQxgCm9sfx6j9f90dAe2yU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

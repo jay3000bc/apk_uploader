@@ -1,0 +1,2 @@
+/Users/parthatalukdar/Desktop/apk_uploader/readybill/android/app/.cxx/Debug/324p2g1i/arm64-v8a/CMakeFiles/edit_cache.dir
+/Users/parthatalukdar/Desktop/apk_uploader/readybill/android/app/.cxx/Debug/324p2g1i/arm64-v8a/CMakeFiles/rebuild_cache.dir
