@@ -340,6 +340,7 @@ class _NewDatasetState extends State<NewDataset> {
   @override
   Widget build(BuildContext context) {
     int count = countUniqueXCoordinates(errorCoordinates);
+    print('Count: $count');
     print(errorCoordinates);
     return Scaffold(
       appBar: customAppBar(widget.title, [
@@ -1299,8 +1300,7 @@ class _ItemDataSource extends DataTableSource {
           return null;
         }),
         cells: Utils.modelBuilder(cells, (cellIndex, cell) {
-          Widget cellContent = cellIndex == 0 &&
-                  index < _state.errorCoordinates.length
+          Widget cellContent = cellIndex == 0 && index < count
               ? Text(cell.toString(),
                   style:
                       const TextStyle(color: red, fontWeight: FontWeight.bold))

@@ -155,14 +155,20 @@ class LocalDatabase2 {
     );
     data.addAll(startsWithMatches);
 
-    // 3. Partial word sequence matches
-    String partialMatchPattern = queryWords.map((word) => '%$word%').join('');
-    List<Map<String, dynamic>> partialMatches = await db.query(
-      _tableName,
-      distinct: true,
-      where: 'LOWER($_nameColumn) LIKE ?',
-      whereArgs: [partialMatchPattern],
-    );
+    // 3. Partial word sequence matches (modified)
+    List<Map<String, dynamic>> partialMatches = [];
+    for (String word in queryWords) {
+      if (word.isNotEmpty) {
+        // Skip empty words
+        var results = await db.query(
+          _tableName,
+          distinct: true,
+          where: 'LOWER($_nameColumn) LIKE ?',
+          whereArgs: ['%$word%'],
+        );
+        partialMatches.addAll(results);
+      }
+    }
     data.addAll(partialMatches);
 
     // 4. Contains matches (for backward compatibility)
@@ -302,10 +308,7 @@ class LocalDatabase2 {
         return !hasMatch; // Remove the name if no match is found
       });
     }
-    print(
-        "Akshara:${doubleMetaphone.encode("akshara")!.primary} and Apsara: ${doubleMetaphone.encode("apsara")!.primary}");
-    print(
-        "Ratio: of name apsara and query $query is ${ratio(queryEncoded!, doubleMetaphone.encode("apsara non dust eraser")!.primary)}");
+
     return names;
   }
 }

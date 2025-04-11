@@ -213,11 +213,7 @@ class _SidebarState extends State<Sidebar> {
   @override
   Widget build(BuildContext context) {
     Widget drawerHeader = Container(
-      padding: EdgeInsets.only(
-          left: 20,
-          top: MediaQuery.of(context).padding.top * 1.5,
-          bottom: 10,
-          right: 10),
+      padding: const EdgeInsets.only(left: 20, top: 20, bottom: 10, right: 10),
       decoration: const BoxDecoration(
         color: green2,
       ),

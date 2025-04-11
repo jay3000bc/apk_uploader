@@ -833,7 +833,11 @@ class HomePageState extends State<HomePage> {
         if (action == 'save') {
           Provider.of<HomeBillItemProvider>(context, listen: false)
               .clearItems();
+          Provider.of<HomeBillItemProvider>(context, listen: false)
+              .assignUnit('Unit');
         }
+        Provider.of<HomeBillItemProvider>(context, listen: false)
+            .assignQuantity(0);
         clearProductName();
         return response.body;
       } else {
@@ -917,11 +921,12 @@ class HomePageState extends State<HomePage> {
     //     Provider.of<HomeBillItemProvider>(context, listen: false).unit;
     var screenWidth = MediaQuery.of(context).size.width;
     var screenHeight = MediaQuery.of(context).size.height;
-
-    _quantityController.text =
-        Provider.of<HomeBillItemProvider>(context, listen: false)
-            .quantity
-            .toString();
+    Provider.of<HomeBillItemProvider>(context, listen: false).quantity == 0
+        ? _quantityController.text = 'Enter Quantity'
+        : _quantityController.text =
+            Provider.of<HomeBillItemProvider>(context, listen: false)
+                .quantity
+                .toString();
     bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom != 0;
     return Scaffold(
       drawer: const Drawer(
@@ -995,6 +1000,13 @@ class HomePageState extends State<HomePage> {
                                       _nameController.clear();
                                       _quantityController.clear();
                                       _localDatabase.clearSuggestions();
+                                      _dropdownItemsQuantity = _dropdownItems;
+                                      Provider.of<HomeBillItemProvider>(context,
+                                              listen: false)
+                                          .assignUnit('Unit');
+                                      Provider.of<HomeBillItemProvider>(context,
+                                              listen: false)
+                                          .assignQuantity(0);
                                       setState(() {});
                                     },
                                     icon: const Icon(
@@ -1404,7 +1416,14 @@ class HomePageState extends State<HomePage> {
                                                         context,
                                                         listen: false)
                                                     .clearItems();
-
+                                                Provider.of<HomeBillItemProvider>(
+                                                        context,
+                                                        listen: false)
+                                                    .assignUnit('Unit');
+                                                Provider.of<HomeBillItemProvider>(
+                                                        context,
+                                                        listen: false)
+                                                    .assignQuantity(0);
                                                 navigatorKey.currentState
                                                     ?.pop();
                                               },
