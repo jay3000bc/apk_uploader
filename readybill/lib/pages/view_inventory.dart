@@ -1,8 +1,12 @@
+import 'dart:convert';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_easyloading/flutter_easyloading.dart';
 import 'package:fuzzywuzzy/fuzzywuzzy.dart';
-
+import 'package:http/http.dart' as http;
+import 'package:readybill/components/api_constants.dart';
 import 'package:readybill/components/bottom_navigation_bar.dart';
 import 'package:readybill/components/custom_components.dart';
 import 'package:readybill/components/color_constants.dart';
@@ -10,8 +14,8 @@ import 'package:readybill/components/sidebar.dart';
 import 'package:readybill/pages/add_product.dart';
 import 'package:readybill/pages/edit_product.dart';
 import 'package:readybill/pages/subscriptions.dart';
+import 'package:readybill/services/api_services.dart';
 import 'package:readybill/services/global_internet_connection_handler.dart';
-
 import 'package:readybill/services/local_database_2.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -24,17 +28,16 @@ class ProductListPage extends StatefulWidget {
 
 class _ProductListPageState extends State<ProductListPage> {
   String _searchQuery = '';
-  String _selectedColumn = 'Item Name'; // Default selected column
+  String _selectedColumn = 'Item Name';
   final List<String> _columnNames = ['Item Name', 'Qty', 'Unit'];
   List<Map<String, dynamic>> _products = [];
   bool _isLoading = false;
-  final ScrollController _scrollController =
-      ScrollController(); // For scrolling
+  final ScrollController _scrollController = ScrollController();
   int _selectedIndex = 2;
   final FocusNode _focusNode = FocusNode();
-
   int? isAdmin;
   int? subscriptionExpired;
+  List<int> _selectedProductIds = [];
 
   @override
   void initState() {
@@ -51,36 +54,36 @@ class _ProductListPageState extends State<ProductListPage> {
   @override
   void dispose() {
     _scrollController.dispose();
+    _focusNode.dispose();
     super.dispose();
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-    ]);
+    SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   }
 
   getPrefs() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     subscriptionExpired = prefs.getInt('isSubscriptionExpired');
     isAdmin = prefs.getInt('isAdmin');
-    print(" sub exp: ${prefs.getInt('isSubscriptionExpired')}");
     if (subscriptionExpired != 0) {
       showDialog(
-          context: context,
-          builder: (context) {
-            return customAlertBox(
-                title: "No Subscription Found",
-                content:
-                    "No valid subscription found for the shop.\nPress 'OK' to get a new subscription.",
-                actions: [
-                  customElevatedButton("OK", green2, white, () {
-                    navigatorKey.currentState!.pop();
-                    navigatorKey.currentState!.push(CupertinoPageRoute(
-                        builder: (context) => const Subscriptions()));
-                  }),
-                  customElevatedButton("Cancel", red, white, () {
-                    navigatorKey.currentState!.pop();
-                  })
-                ]);
-          });
+        context: context,
+        builder: (context) {
+          return customAlertBox(
+            title: "No Subscription Found",
+            content:
+                "No valid subscription found for the shop.\nPress 'OK' to get a new subscription.",
+            actions: [
+              customElevatedButton("OK", green2, white, () {
+                navigatorKey.currentState!.pop();
+                navigatorKey.currentState!.push(CupertinoPageRoute(
+                    builder: (context) => const Subscriptions()));
+              }),
+              customElevatedButton("Cancel", red, white, () {
+                navigatorKey.currentState!.pop();
+              })
+            ],
+          );
+        },
+      );
     }
   }
 
@@ -89,12 +92,10 @@ class _ProductListPageState extends State<ProductListPage> {
       _isLoading = true;
     });
     try {
-      // Fetch all data from local SQLite database
       final db = await LocalDatabase2.instance.database;
       final List<Map<String, dynamic>> data = await db.query('inventory');
-
       setState(() {
-        _products = data; // Set fetched products
+        _products = data;
         _isLoading = false;
       });
     } catch (e) {
@@ -125,13 +126,8 @@ class _ProductListPageState extends State<ProductListPage> {
     final id = product['itemId'].toString();
 
     switch (_selectedColumn) {
-      case 'ID':
-        return id.contains(_searchQuery);
       case 'Item Name':
-        final similarity = partialRatio(
-          itemName,
-          _searchQuery.toLowerCase(),
-        );
+        final similarity = partialRatio(itemName, _searchQuery.toLowerCase());
         return similarity >= 70;
       case 'Qty':
         return quantity.contains(_searchQuery);
@@ -142,13 +138,66 @@ class _ProductListPageState extends State<ProductListPage> {
     }
   }
 
+  void _toggleSelection(int productId) {
+    setState(() {
+      if (_selectedProductIds.contains(productId)) {
+        _selectedProductIds.remove(productId);
+      } else {
+        _selectedProductIds.add(productId);
+      }
+    });
+  }
+
+  // New: Toggle selection for all products
+  void _toggleSelectAll(bool? value) {
+    setState(() {
+      if (value == true) {
+        // Select all products (including filtered ones, depending on your preference)
+        _selectedProductIds = _products
+            .where(_filterProduct) // Only select visible items
+            .map((p) => p['itemId'] as int)
+            .toList();
+      } else {
+        _selectedProductIds.clear();
+      }
+    });
+  }
+
+  void deleteSelected(productIDs) async {
+    print(productIDs);
+    var apiKey = await APIService.getXApiKey();
+    var token = await APIService.getToken();
+    EasyLoading.show(status: "Deleting...");
+    var response = await http.post(Uri.parse("$baseUrl/multiple-delete"),
+        headers: {
+          'auth-key': "$apiKey",
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'ids': productIDs,
+        }));
+    EasyLoading.dismiss();
+    print("response: ${response.body}");
+    if (response.statusCode == 200) {
+      EasyLoading.showSuccess("Deleted Successfully");
+      LocalDatabase2.instance.clearTable();
+      setState(() async {
+        _products = [];
+        _selectedProductIds.clear();
+        await LocalDatabase2.instance.fetchDataAndStoreLocally();
+        await _fetchProductsFromLocalDatabase();
+      });
+    } else {
+      EasyLoading.showError("Failed to delete");
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     bool isKeyboardVisible = MediaQuery.of(context).viewInsets.bottom != 0;
     return Scaffold(
-      drawer: const Drawer(
-        child: Sidebar(),
-      ),
+      drawer: const Drawer(child: Sidebar()),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: isKeyboardVisible || isAdmin == 0
           ? null
@@ -170,7 +219,29 @@ class _ProductListPageState extends State<ProductListPage> {
         },
         selectedIndex: _selectedIndex,
       ),
-      appBar: customAppBar("Inventory",[]),
+      appBar: customAppBar("Inventory", [
+        _selectedProductIds.isNotEmpty
+            ? IconButton(
+                onPressed: () {
+                  showDialog(
+                      context: context,
+                      builder: (context) => customAlertBox(
+                              title: "Confirm Deletion",
+                              content:
+                                  "Are you sure you want to delete the selected items?",
+                              actions: [
+                                customElevatedButton('Yes', red, white, () {
+                                  deleteSelected(_selectedProductIds);
+                                  navigatorKey.currentState!.pop();
+                                }),
+                                customElevatedButton('No', green2, white, () {
+                                  navigatorKey.currentState!.pop();
+                                })
+                              ]));
+                },
+                icon: const Icon(Icons.delete))
+            : const SizedBox.shrink(),
+      ]),
       body: subscriptionExpired == 0
           ? _products.isNotEmpty
               ? Column(
@@ -207,23 +278,36 @@ class _ProductListPageState extends State<ProductListPage> {
                       ),
                     ),
                     const SizedBox(width: 10),
-                    const Padding(
-                      padding: EdgeInsets.only(
+                    Padding(
+                      padding: const EdgeInsets.only(
                           left: 15, right: 15, top: 8.0, bottom: 8),
                       child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Expanded(
-                            flex: 5, // Larger space for item name
+                            flex: 1,
+                            child: Checkbox(
+                              value:
+                                  _products.where(_filterProduct).isNotEmpty &&
+                                      _products.where(_filterProduct).every(
+                                          (p) => _selectedProductIds
+                                              .contains(p['itemId'])),
+                              onChanged: _products.where(_filterProduct).isEmpty
+                                  ? null // Disable if no products
+                                  : _toggleSelectAll,
+                            ),
+                          ),
+                          const Expanded(
+                            flex: 5,
                             child: Text(
                               'Item Name',
                               style: TextStyle(
                                   fontWeight: FontWeight.bold, fontSize: 16),
                             ),
                           ),
-                          Expanded(
-                            flex: 2, // Smaller space for Qty
+                          const Expanded(
+                            flex: 2,
                             child: Text(
                               'Stock',
                               textAlign: TextAlign.center,
@@ -231,8 +315,8 @@ class _ProductListPageState extends State<ProductListPage> {
                                   fontWeight: FontWeight.bold, fontSize: 16),
                             ),
                           ),
-                          Expanded(
-                            flex: 2, // Smaller space for Unit
+                          const Expanded(
+                            flex: 2,
                             child: Text(
                               "Unit",
                               textAlign: TextAlign.center,
@@ -244,38 +328,36 @@ class _ProductListPageState extends State<ProductListPage> {
                       ),
                     ),
                     Expanded(
-                        child: _isLoading
-                            ? const Center(child: CircularProgressIndicator())
-                            : ListView.builder(
-                                controller: _scrollController,
-                                itemCount:
-                                    _products.where(_filterProduct).length,
-                                itemBuilder: (context, index) {
-                                  final product = _products
-                                      .where(_filterProduct)
-                                      .toList()[index];
-                                  return _products
-                                          .where(_filterProduct)
-                                          .isNotEmpty
-                                      ? InkWell(
-                                          onTap: () {
-                                            isAdmin == 1
-                                                ? Navigator.push(context,
-                                                    CupertinoPageRoute(
-                                                        builder: (context) {
-                                                    return ProductEditPage(
-                                                        productId:
-                                                            product['itemId']);
-                                                  }))
-                                                : null;
-                                          },
-                                          child: itemWidget(product),
-                                        )
-                                      : const Center(
-                                          child: Text('No Data Found'),
-                                        );
-                                },
-                              )),
+                      child: _isLoading
+                          ? const Center(child: CircularProgressIndicator())
+                          : ListView.builder(
+                              controller: _scrollController,
+                              itemCount: _products.where(_filterProduct).length,
+                              itemBuilder: (context, index) {
+                                final product = _products
+                                    .where(_filterProduct)
+                                    .toList()[index];
+                                return _products
+                                        .where(_filterProduct)
+                                        .isNotEmpty
+                                    ? InkWell(
+                                        onTap: () {
+                                          if (isAdmin == 1) {
+                                            Navigator.push(context,
+                                                CupertinoPageRoute(
+                                                    builder: (context) {
+                                              return ProductEditPage(
+                                                  productId: product['itemId']);
+                                            }));
+                                          }
+                                        },
+                                        child: itemWidget(product),
+                                      )
+                                    : const Center(
+                                        child: Text('No Data Found'));
+                              },
+                            ),
+                    ),
                   ],
                 )
               : const Center(
@@ -287,10 +369,11 @@ class _ProductListPageState extends State<ProductListPage> {
                 )
           : const Center(
               child: Text(
-              "No active subscription found.\n Please renew your subscription to view inventory data.",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            )),
+                "No active subscription found.\n Please renew your subscription to view inventory data.",
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+            ),
     );
   }
 
@@ -304,7 +387,16 @@ class _ProductListPageState extends State<ProductListPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                flex: 5, // Larger space for item name
+                flex: 1,
+                child: Checkbox(
+                  value: _selectedProductIds.contains(product['itemId']),
+                  onChanged: (bool? value) {
+                    _toggleSelection(product['itemId']);
+                  },
+                ),
+              ),
+              Expanded(
+                flex: 5,
                 child: Text(
                   product['name'],
                   style: const TextStyle(fontSize: 14),
@@ -313,7 +405,7 @@ class _ProductListPageState extends State<ProductListPage> {
                 ),
               ),
               Expanded(
-                flex: 2, // Smaller space for Qty
+                flex: 2,
                 child: Text(
                   product['quantity'].toString(),
                   style: const TextStyle(fontSize: 14),
@@ -321,7 +413,7 @@ class _ProductListPageState extends State<ProductListPage> {
                 ),
               ),
               Expanded(
-                flex: 2, // Smaller space for Unit
+                flex: 2,
                 child: Text(
                   product['unit'],
                   style: const TextStyle(fontSize: 14),

@@ -52,8 +52,7 @@ class LocalDatabase2 {
   Future<List<Map<String, dynamic>>> fetchDataFromAPI() async {
     var token = await APIService.getToken();
     var apiKey = await APIService.getXApiKey();
-    print('token is null: ${token == null}');
-    print('apikey is null: ${apiKey == null}');
+
     // print(apiKey);
     // print('api key: $apiKey');
     final response = await http.get(Uri.parse('$baseUrl/all-items'), headers: {
