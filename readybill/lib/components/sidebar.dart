@@ -504,7 +504,7 @@ class _SidebarState extends State<Sidebar> {
   void _logout(BuildContext context) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String fcmToken = prefs.getString('fcmToken') ?? '';
-    print('fcmToken: $fcmToken');
+
     EasyLoading.show(status: 'Logging out...');
     try {
       var token = await APIService.getToken();

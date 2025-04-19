@@ -118,11 +118,11 @@ class _SplashScreenState extends State<SplashScreen>
     if (status != PermissionStatus.granted) {
       status = await Permission.storage.request();
       // Check if permission was granted after request
-      if (status != PermissionStatus.granted) {
-        // Handle denied permission
-        _handleDeniedStoragePermission();
-        return false;
-      }
+      // if (status != PermissionStatus.granted&&status != PermissionStatus.limited) {
+      //   // Handle denied permission
+      //   _handleDeniedStoragePermission();
+      //   return false;
+      // }
     }
     return true;
   }

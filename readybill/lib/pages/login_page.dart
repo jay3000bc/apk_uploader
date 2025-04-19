@@ -450,7 +450,7 @@ class _LoginPageState extends State<LoginPage> {
     );
 
     print(response.statusCode);
-
+    print(response.body);
     if (response.statusCode == 200) {
       Timer.periodic(const Duration(seconds: 1), (timer) {
         _localDatabase.clearTable();
@@ -466,8 +466,6 @@ class _LoginPageState extends State<LoginPage> {
       return responseData;
     } else if (response.statusCode == 201) {
       final Map<String, dynamic> responseData = json.decode(response.body);
-      // print();
-
       navigatorKey.currentState?.push(
         CupertinoPageRoute(
           builder: (context) => AddShopDetailsPage(
